@@ -1,6 +1,8 @@
 .horizontal-track-wrapper {
   position: relative;
   height: 300vh; /* Allow for scroll-triggered horizontal movement */
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
 }
 
 .horizontal-nav {
