@@ -1,0 +1,45 @@
+ScrollingAppTemplate/
+  en
+ components
+ config
+ context
+ examples
+ hooks
+ locales
+ styles
+ types
+ utils
+.
+
+   common.json
+  App.example.tsx
+  Navigation.tsx
+  ScrollProgress.tsx
+  Section.tsx
+  ThemeContext.tsx
+  index.ts
+  index.ts
+  index.ts
+  index.ts
+  index.ts
+  index.ts
+  navigation.ts
+  navigation.ts
+  scrollUtils.ts
+  scrolling.css
+  section.ts
+  theme.css
+  theme.ts
+  useDarkMode.ts
+  useMobileDetection.ts
+ .eslintrc.json
+ .gitignore
+ QUICKSTART.md
+ README.md
+ STRUCTURE.txt
+ TEMPLATE_SUMMARY.md
+ i18n.setup.example.ts
+ index.ts
+ package.json
+ tailwind.config.js
+ tsconfig.json
