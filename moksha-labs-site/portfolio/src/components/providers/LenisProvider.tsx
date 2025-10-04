@@ -23,7 +23,6 @@ export function LenisProvider({ children }: LenisProviderProps) {
       gestureOrientation: 'vertical',
       smoothWheel: true,
       wheelMultiplier: 0.3, // MUCH slower wheel scroll for epic feeling
-      smoothTouch: false,
       touchMultiplier: 1.0,
       infinite: false,
     });

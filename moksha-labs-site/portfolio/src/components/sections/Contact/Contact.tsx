@@ -61,7 +61,7 @@ export function Contact() {
           ref={titleRef}
           className="text-[clamp(3rem,8vw,6rem)] font-bold mb-12 tracking-tight leading-none"
         >
-          Let's Talk
+          Let&apos;s Talk
         </h2>
         
         <a 
