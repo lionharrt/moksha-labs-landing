@@ -1,0 +1,48 @@
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem;
+  z-index: 100;
+  mix-blend-mode: difference;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+}
+
+.menu {
+  display: flex;
+  gap: 2rem;
+}
+
+.menu a {
+  color: white;
+  text-decoration: none;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  transition: opacity 0.3s;
+}
+
+.menu a:hover {
+  opacity: 0.7;
+}
+
+.menu a.active {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .menu {
+    display: none;
+  }
+}
+

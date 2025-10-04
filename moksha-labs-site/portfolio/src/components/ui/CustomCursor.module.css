@@ -1,0 +1,63 @@
+.cursor {
+  position: fixed;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: width 0.3s var(--ease-smooth), height 0.3s var(--ease-smooth);
+  mix-blend-mode: difference;
+}
+
+/* Default Cursor */
+.default {
+  background: white;
+  border: 2px solid white;
+}
+
+/* Hover Cursor */
+.hover {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid white;
+}
+
+/* Explore Cursor */
+.explore {
+  width: 30px;
+  height: 30px;
+  background: rgba(99, 102, 241, 0.3);
+  border: 2px solid rgb(99, 102, 241);
+}
+
+/* Drag Cursor */
+.drag {
+  width: 50px;
+  height: 50px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 3px solid white;
+  border-style: dashed;
+}
+
+/* Trail Cursor */
+.trail {
+  background: white;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+}
+
+/* Magnetic Cursor */
+.magnetic {
+  width: 15px;
+  height: 15px;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+}
+
+@media (max-width: 768px) {
+  .cursor {
+    display: none;
+  }
+}
+
