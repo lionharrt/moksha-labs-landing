@@ -1,0 +1,11 @@
+{
+  "name": "moksha-labs",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev:playground": "cd moksha-labs-site/playground && npm run dev",
+    "build:playground": "cd moksha-labs-site/playground && npm run build",
+    "start:playground": "cd moksha-labs-site/playground && npm start"
+  }
+}
+
