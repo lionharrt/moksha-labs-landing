@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useStore } from '@/stores/useStore';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { MANDALA_INFO } from '@/components/sections/Hero/mandalas';
 
 export function DevToolbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,8 +11,10 @@ export function DevToolbar() {
   const [viewportSize, setViewportSize] = useState('N/A');
   const currentSection = useStore((state) => state.currentSection);
   const scrollProgress = useStore((state) => state.scrollProgress);
-  const selectedMandala = useStore((state) => state.selectedMandala);
-  const setSelectedMandala = useStore((state) => state.setSelectedMandala);
+  const visualMode = useStore((state) => state.visualMode);
+  const setVisualMode = useStore((state) => state.setVisualMode);
+  const textAnimationMode = useStore((state) => state.textAnimationMode);
+  const setTextAnimationMode = useStore((state) => state.setTextAnimationMode);
 
   useEffect(() => {
     // Only access window on client
@@ -98,22 +99,45 @@ export function DevToolbar() {
                 </div>
               </div>
 
-              {/* Mandala Selector */}
+              {/* Visual Mode Selector */}
               <div className="space-y-2 pt-3 border-t border-white/20">
-                <label className="text-xs text-white/60 uppercase tracking-wider">Sacred Geometry</label>
+                <label className="text-xs text-white/60 uppercase tracking-wider">Visual Effect</label>
                 <select
-                  value={selectedMandala}
-                  onChange={(e) => setSelectedMandala(e.target.value as any)}
+                  value={visualMode}
+                  onChange={(e) => setVisualMode(e.target.value as any)}
                   className="w-full px-3 py-2 rounded text-sm bg-white/10 hover:bg-white/20 transition-colors text-white border border-white/20 cursor-pointer"
                 >
-                  {Object.entries(MANDALA_INFO).map(([key, info]) => (
-                    <option key={key} value={key} className="bg-black text-white">
-                      {info.name}
-                    </option>
-                  ))}
+                  <option value="wireframe" className="bg-black text-white">
+                    Wireframe Mandala
+                  </option>
+                  <option value="lotus" className="bg-black text-white">
+                    Lotus Dissolve
+                  </option>
                 </select>
                 <p className="text-xs text-white/40 leading-relaxed">
-                  {MANDALA_INFO[selectedMandala]?.description}
+                  {visualMode === 'wireframe' && 'Sacred geometry wireframe that breaks apart'}
+                  {visualMode === 'lotus' && 'Lotus petals that dissolve upward'}
+                </p>
+              </div>
+
+              {/* Text Animation Selector */}
+              <div className="space-y-2">
+                <label className="text-xs text-white/60 uppercase tracking-wider">Text Animation</label>
+                <select
+                  value={textAnimationMode}
+                  onChange={(e) => setTextAnimationMode(e.target.value as any)}
+                  className="w-full px-3 py-2 rounded text-sm bg-white/10 hover:bg-white/20 transition-colors text-white border border-white/20 cursor-pointer"
+                >
+                  <option value="default" className="bg-black text-white">
+                    Default Fade
+                  </option>
+                  <option value="enhanced" className="bg-black text-white">
+                    Enhanced (Polished)
+                  </option>
+                </select>
+                <p className="text-xs text-white/40 leading-relaxed">
+                  {textAnimationMode === 'default' && 'Simple fade in/out with vertical movement'}
+                  {textAnimationMode === 'enhanced' && 'Character-by-character with blur-to-sharp transition'}
                 </p>
               </div>
 

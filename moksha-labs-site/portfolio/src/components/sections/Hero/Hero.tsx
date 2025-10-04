@@ -6,7 +6,9 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import dynamic from 'next/dynamic';
 
-const GeometricWireframe = dynamic(() => import('./GeometricWireframe').then(mod => mod.GeometricWireframe), { ssr: false });
+import { TextSwitcher } from './TextSwitcher';
+
+const DynamicEffectSwitcher = dynamic(() => import('./EffectSwitcher').then(mod => mod.EffectSwitcher), { ssr: false });
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -17,16 +19,17 @@ export function Hero() {
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const scrollIndicatorRef = useRef<HTMLDivElement>(null);
   const [shapeBreakProgress, setShapeBreakProgress] = useState(0);
+  const [textAnimationProgress, setTextAnimationProgress] = useState(0);
   const setCurrentSection = useStore((state) => state.setCurrentSection);
 
   useEffect(() => {
-    if (!sectionRef.current || !titleRef.current || !subtitleRef.current || !scrollIndicatorRef.current) return;
+    if (!sectionRef.current || !scrollIndicatorRef.current || !canvasContainerRef.current) return;
 
     const ctx = gsap.context(() => {
-      // Initial state - everything hidden
-      gsap.set([titleRef.current, subtitleRef.current, canvasContainerRef.current], { 
-        opacity: 0,
-      });
+      // Set initial canvas opacity to 0
+      if (canvasContainerRef.current) {
+        canvasContainerRef.current.style.opacity = '0';
+      }
 
       // Scroll indicator bounces
       gsap.to(scrollIndicatorRef.current, {
@@ -48,61 +51,54 @@ export function Hero() {
           anticipatePin: 1,
           onUpdate: (self) => {
             const rawProgress = self.progress; // 0-1 across entire Hero
-            console.log('Hero scroll progress:', rawProgress.toFixed(3));
             
-            // Map rawProgress to shape break phase
-            // Shape breaks throughout 10-100%, but reaches 90% broken at 70%
-            // Then finishes the last 10% of break while text is visible
-            let breakProgress = 0;
-            if (rawProgress < 0.1) {
-              // 0-10%: Shape intact, fading in
-              breakProgress = 0;
+            // Map rawProgress to canvas opacity (0-10%)
+            let canvasOpacity = 0;
+            if (rawProgress <= 0.1) {
+              canvasOpacity = rawProgress / 0.1; // 0 to 1 over first 10%
             } else {
-              // 10-100%: Shape breaking continuously
-              // Map 0.1-1.0 to breakProgress 0-1
-              breakProgress = (rawProgress - 0.1) / 0.9;
+              canvasOpacity = 1;
+            }
+            if (canvasContainerRef.current) {
+              canvasContainerRef.current.style.opacity = String(canvasOpacity);
             }
             
+            console.log('Hero scroll progress:', rawProgress.toFixed(3), '| Canvas opacity:', canvasOpacity.toFixed(3));
+            
+            // Map rawProgress to shape break phase (10-100%)
+            let breakProgress = 0;
+            if (rawProgress < 0.1) {
+              breakProgress = 0;
+            } else {
+              breakProgress = (rawProgress - 0.1) / 0.9;
+            }
             setShapeBreakProgress(breakProgress);
+            
+            // Map rawProgress to text animation phase (60-100%)
+            let textProgress = 0;
+            if (rawProgress < 0.6) {
+              textProgress = 0;
+            } else if (rawProgress < 1.0) {
+              textProgress = (rawProgress - 0.6) / 0.4;
+            } else {
+              textProgress = 1;
+            }
+            setTextAnimationProgress(textProgress);
           },
         }
       });
 
-      // Phase 1: Geometric shape fades in (0-10%)
-      tl.to(canvasContainerRef.current, {
-        opacity: 1,
-        duration: 0.1,
-        ease: 'none',
-      }, 0)
+      // Phase 1: Canvas fades in (0-10%)
+      // Handled in onUpdate callback via canvasOpacity calculation
       
       // Phase 2: Shape breaks apart (10-100%)
-      // This is handled by GeometricWireframe based on scroll progress
-      // By 70%, shape is ~90% broken
-      // Shape finishes breaking (90-100%) while text is visible
+      // Handled by GeometricWireframe via shapeBreakProgress prop
       
-      // Phase 3: Text fades in (70-75%) - 5% of total scroll
-      .to([titleRef.current, subtitleRef.current], {
-        opacity: 1,
-        y: 0,
-        stagger: 0.02,
-        duration: 0.05,
-        ease: 'none',
-      }, 0.70)
-      
-      // Phase 4: Text holds at full opacity (75-90%) - 15% of total scroll
-      // GSAP naturally holds the values here
-      
-      // Phase 5: Text fades out (90-100%) - 10% of total scroll
-      .to([titleRef.current, subtitleRef.current], {
-        opacity: 0,
-        y: -50,
-        stagger: 0.02,
-        duration: 0.1,
-        ease: 'none',
-      }, 0.90)
+      // Phase 3: Text animates (60-100%)
+      // Handled by text components via textAnimationProgress prop
       
       // Fade out scroll indicator as soon as scroll starts
-      .to(scrollIndicatorRef.current, {
+      tl.to(scrollIndicatorRef.current, {
         opacity: 0,
         duration: 0.1,
         ease: 'none',
@@ -133,24 +129,15 @@ export function Hero() {
         ref={canvasContainerRef}
         className="absolute inset-0 z-0"
       >
-        <GeometricWireframe breakProgress={shapeBreakProgress} />
+        <DynamicEffectSwitcher breakProgress={shapeBreakProgress} />
       </div>
 
       {/* Text Content - In front */}
-      <div className="relative z-10 max-w-7xl mx-auto px-8 text-center">
-        <h1 
-          ref={titleRef}
-          className="text-[clamp(4rem,10vw,8rem)] font-bold leading-none tracking-tight mb-8 text-white"
-        >
-          Moksha Labs
-        </h1>
-        <p 
-          ref={subtitleRef}
-          className="text-[clamp(1.25rem,2.5vw,2rem)] text-gray-300 font-light"
-        >
-          Where artistry meets code
-        </p>
-      </div>
+      <TextSwitcher 
+        titleRef={titleRef} 
+        subtitleRef={subtitleRef} 
+        animationProgress={textAnimationProgress}
+      />
 
       {/* Scroll Indicator */}
       <div 
