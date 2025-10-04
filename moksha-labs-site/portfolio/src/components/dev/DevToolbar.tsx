@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useStore } from '@/stores/useStore';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { MANDALA_INFO } from '@/components/sections/Hero/mandalas';
 
 export function DevToolbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,6 +12,8 @@ export function DevToolbar() {
   const [viewportSize, setViewportSize] = useState('N/A');
   const currentSection = useStore((state) => state.currentSection);
   const scrollProgress = useStore((state) => state.scrollProgress);
+  const selectedMandala = useStore((state) => state.selectedMandala);
+  const setSelectedMandala = useStore((state) => state.setSelectedMandala);
 
   useEffect(() => {
     // Only access window on client
@@ -79,23 +82,42 @@ export function DevToolbar() {
             </div>
           </div>
 
-          {/* Scroll Progress */}
-          <div className="space-y-2">
-            <label className="text-xs text-white/60 uppercase tracking-wider">Scroll Progress</label>
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs font-mono">
-                <span>{Math.round(scrollProgress * 100)}%</span>
+              {/* Scroll Progress */}
+              <div className="space-y-2">
+                <label className="text-xs text-white/60 uppercase tracking-wider">Scroll Progress</label>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs font-mono">
+                    <span>{Math.round(scrollProgress * 100)}%</span>
+                  </div>
+                  <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
+                    <div 
+                      className="bg-white h-full transition-all duration-200"
+                      style={{ width: `${scrollProgress * 100}%` }}
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
-                <div 
-                  className="bg-white h-full transition-all duration-200"
-                  style={{ width: `${scrollProgress * 100}%` }}
-                />
-              </div>
-            </div>
-          </div>
 
-          {/* Controls */}
+              {/* Mandala Selector */}
+              <div className="space-y-2 pt-3 border-t border-white/20">
+                <label className="text-xs text-white/60 uppercase tracking-wider">Sacred Geometry</label>
+                <select
+                  value={selectedMandala}
+                  onChange={(e) => setSelectedMandala(e.target.value as any)}
+                  className="w-full px-3 py-2 rounded text-sm bg-white/10 hover:bg-white/20 transition-colors text-white border border-white/20 cursor-pointer"
+                >
+                  {Object.entries(MANDALA_INFO).map(([key, info]) => (
+                    <option key={key} value={key} className="bg-black text-white">
+                      {info.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-white/40 leading-relaxed">
+                  {MANDALA_INFO[selectedMandala]?.description}
+                </p>
+              </div>
+
+              {/* Controls */}
           <div className="space-y-3 pt-3 border-t border-white/20">
             <label className="text-xs text-white/60 uppercase tracking-wider">Controls</label>
             

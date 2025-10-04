@@ -3,6 +3,7 @@ import { subscribeWithSelector } from 'zustand/middleware';
 
 export type CursorType = 'default' | 'hover' | 'drag' | 'explore' | 'disabled';
 export type SectionId = 'hero' | 'services' | 'work' | 'about' | 'contact';
+export type MandalaType = 'original' | 'flowerOfLife' | 'sriYantra' | 'metatronsCube' | 'fibonacciSpiral' | 'seedOfLife';
 
 interface AppState {
   // UI State
@@ -22,6 +23,7 @@ interface AppState {
   devMode: boolean;
   showStats: boolean;
   selectedCursor: string;
+  selectedMandala: MandalaType;
   
   // Actions
   setCurrentSection: (section: SectionId) => void;
@@ -34,6 +36,7 @@ interface AppState {
   toggleDevMode: () => void;
   setShowStats: (show: boolean) => void;
   setSelectedCursor: (cursor: string) => void;
+  setSelectedMandala: (mandala: MandalaType) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -49,6 +52,7 @@ export const useStore = create<AppState>()(
     devMode: true, // Start with dev mode on
     showStats: false,
     selectedCursor: 'default',
+    selectedMandala: 'original',
     
     // Actions
     setCurrentSection: (section) => set({ currentSection: section }),
@@ -61,6 +65,7 @@ export const useStore = create<AppState>()(
     toggleDevMode: () => set((state) => ({ devMode: !state.devMode })),
     setShowStats: (show) => set({ showStats: show }),
     setSelectedCursor: (cursor) => set({ selectedCursor: cursor }),
+    setSelectedMandala: (mandala) => set({ selectedMandala: mandala }),
   }))
 );
 
