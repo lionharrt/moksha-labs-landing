@@ -1,0 +1,145 @@
+{
+  "quote": {
+    "title": "Get Your Free Quote",
+    "subtitle": "Fill out the form below and we'll get back to you within 24 hours",
+    "fields": {
+      "name": {
+        "label": "Full Name",
+        "placeholder": "John Doe",
+        "error": "Please enter your full name"
+      },
+      "phone": {
+        "label": "Phone Number",
+        "placeholder": "+1-555-0100",
+        "error": "Please enter a valid Irish phone number"
+      },
+      "email": {
+        "label": "Email Address",
+        "placeholder": "john@example.com",
+        "error": "Please enter a valid email address"
+      },
+      "eircode": {
+        "label": "Eircode",
+        "placeholder": "A65 F4E2",
+        "error": "Please enter a valid Eircode (e.g., A65 F4E2)"
+      },
+      "propertyType": {
+        "label": "Property Type",
+        "options": {
+          "detached": "Detached House",
+          "semi-detached": "Semi-Detached House",
+          "terraced": "Terraced House",
+          "apartment": "Apartment",
+          "commercial": "Commercial Property"
+        }
+      },
+      "roofType": {
+        "label": "Roof Type",
+        "options": {
+          "pitched": "Pitched Roof",
+          "flat": "Flat Roof",
+          "mixed": "Mixed"
+        }
+      },
+      "roofOrientation": {
+        "label": "Roof Orientation",
+        "options": {
+          "south": "South",
+          "east": "East",
+          "west": "West",
+          "north": "North",
+          "mixed": "Mixed",
+          "unknown": "Not Sure"
+        }
+      },
+      "electricityUsage": {
+        "label": "Current Electricity Usage (kWh/year)",
+        "options": {
+          "under-3000": "Under 3,000 kWh",
+          "3000-5000": "3,000 - 5,000 kWh",
+          "5000-8000": "5,000 - 8,000 kWh",
+          "over-8000": "Over 8,000 kWh",
+          "unknown": "Not Sure"
+        }
+      },
+      "systemSize": {
+        "label": "Interested System Size",
+        "options": {
+          "2-3-kwp": "2-3 kWp (Small)",
+          "3-4-kwp": "3-4 kWp (Medium)",
+          "4-6-kwp": "4-6 kWp (Large)",
+          "over-6-kwp": "Over 6 kWp (Extra Large)",
+          "not-sure": "Not Sure"
+        }
+      },
+      "grantEligibility": {
+        "label": "SEAI Grant Eligibility",
+        "helper": "Is your property built before 2021?",
+        "options": {
+          "eligible": "Yes, built before 2021",
+          "not-eligible": "No, built 2021 or later",
+          "unsure": "Not Sure"
+        }
+      },
+      "timeframe": {
+        "label": "Installation Timeframe",
+        "options": {
+          "asap": "As Soon As Possible",
+          "1-3-months": "Within 1-3 Months",
+          "3-6-months": "Within 3-6 Months",
+          "over-6-months": "6+ Months",
+          "just-exploring": "Just Exploring"
+        }
+      },
+      "projectType": {
+        "label": "Project Type",
+        "options": {
+          "residential-solar": "Residential Solar",
+          "commercial-solar": "Commercial Solar",
+          "solar-maintenance": "Solar Maintenance",
+          "battery-storage": "Battery Storage"
+        }
+      },
+      "preferredContact": {
+        "label": "Preferred Contact Method",
+        "options": {
+          "email": "Email",
+          "phone": "Phone",
+          "whatsapp": "WhatsApp"
+        }
+      },
+      "isHouseOwner": {
+        "label": "Are you a house owner?",
+        "options": {
+          "yes": "Yes, I'm a houseowner",
+          "no": "No, I'm not a houseowner"
+        }
+      },
+      "notes": {
+        "label": "Additional Notes",
+        "placeholder": "Tell us more about your requirements..."
+      }
+    },
+    "submit": "Request Free Quote",
+    "submitting": "Sending...",
+    "success": {
+      "title": "Quote Request Submitted!",
+      "message": "Thank you for your interest. We'll contact you within 24 hours.",
+      "close": "Close"
+    },
+    "error": {
+      "title": "Submission Failed",
+      "message": "Sorry, something went wrong. Please try again or call us at +1-555-0100.",
+      "retry": "Try Again"
+    }
+  },
+  "validation": {
+    "required": "This field is required",
+    "email": "Please enter a valid email address",
+    "phone": "Please enter a valid phone number",
+    "eircode": "Please enter a valid Eircode",
+    "min": "Minimum {{min}} characters required",
+    "max": "Maximum {{max}} characters allowed"
+  }
+}
+

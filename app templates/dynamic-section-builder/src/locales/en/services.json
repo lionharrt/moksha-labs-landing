@@ -1,0 +1,33 @@
+{
+  "title": "Our Services",
+  "subtitle": "Comprehensive solar solutions for homes and businesses",
+  "residential": {
+    "title": "Residential Solar",
+    "benefits": [
+      "SEAI grants up to €2,100 available",
+      "Save up to 90% on electricity bills",
+      "Improve BER rating and home value",
+      "Qualify for green mortgage rates"
+    ],
+    "cta": "Get Residential Quote"
+  },
+  "commercial": {
+    "title": "Commercial Solar",
+    "benefits": [
+      "Grants up to €162,600 for businesses",
+      "100% year-one Accelerated Capital Allowance",
+      "VAT reclaim available",
+      "Reduce operating costs significantly"
+    ],
+    "cta": "Get Commercial Quote"
+  },
+  "maintenance": {
+    "title": "Solar Maintenance",
+    "description": "Ongoing support and system optimization to ensure peak performance."
+  },
+  "batteryStorage": {
+    "title": "Battery Storage",
+    "description": "Store excess energy for use when you need it most."
+  }
+}
+

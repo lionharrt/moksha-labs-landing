@@ -1,0 +1,108 @@
+{
+  "hero": {
+    "title": "Save Up to 90% on Your Electricity Bills Forever",
+    "subtitle": "SEAI Grants Up to €2,100 Available",
+    "disclaimer": "*Subject to site survey and system installed",
+    "cta": {
+      "quote": "Get A Quote",
+      "call": "Call +1-555-0100"
+    },
+    "stats": {
+      "installations": "500+",
+      "installationsLabel": "Installations",
+      "experience": "12+",
+      "experienceLabel": "Years Experience",
+      "warranty": "30",
+      "warrantyLabel": "Year Warranty"
+    }
+  },
+  "whoWeAre": {
+    "title": "Who We Are",
+    "heading": "YOUR LOCAL DUBLIN & LEINSTER SOLAR EXPERTS",
+    "brendanQuote": "If you're new to solar, you've come to the right place. My team and I will offer you the best advice, with the best equipment to suit your budget, to meet your goals, help the environment and save you money. We are a family business and we treat our customers as we would our own families.",
+    "brendanName": "Brendan Hickey",
+    "brendanRole": "Co-Founder",
+    "whatWeDo": {
+      "title": "What We Do",
+      "description": "YourCompany.ie are a professional, SEAI registered and insured solar PV installation company, that designs and installs bespoke solar photovoltaic systems to meet client's needs, goals and budgets, using the best available equipment.",
+      "approach": "We take the time to understand what system will best suit your lifestyle and future needs.",
+      "coverage": "We cover all of Dublin, Southside Dublin, Northside Dublin, West Dublin and all of Leinster."
+    }
+  },
+  "benefits": {
+    "title": "Why Choose Solar Power?",
+    "subtitle": "Transform your home with clean, renewable energy and enjoy significant savings",
+    "saveMoney": {
+      "title": "Save Money",
+      "description": "Reduce electricity bills by up to 90% with solar energy"
+    },
+    "increaseValue": {
+      "title": "Increase Home Value",
+      "description": "Improve your BER rating and property value"
+    },
+    "greenEnergy": {
+      "title": "Green Energy",
+      "description": "Reduce CO₂ emissions and help the environment"
+    },
+    "greenMortgage": {
+      "title": "Green Mortgage",
+      "description": "Qualify for green mortgages with reduced rates"
+    },
+    "roi": {
+      "title": "Great ROI",
+      "description": "Typical returns of 16-22% on investment"
+    },
+    "warranty": {
+      "title": "30-Year Warranty",
+      "description": "Industry-leading warranty on premium panels"
+    }
+  },
+  "invest": {
+    "title": "Invest In Solar In Dublin, Kildare, Meath, Louth, Wicklow, Laois, Wexford and Carlow",
+    "benefits": [
+      "Drastically reduce or virtually eliminate your electricity bill – yes you can!",
+      "Increase your BER rating",
+      "Qualify for a much reduced green mortgage – saving thousands over the lifetime of the mortgage",
+      "Increase the value of your home – higher BER rated homes are commanding premium prices, as they are warmer, cheaper to run and the work is done."
+    ],
+    "payback": "Most systems typically pay for themselves within approximately five years, providing free solar electricity for up to 30 years.",
+    "familyBusiness": "As a family business, we value our customers and treat them with the same care and dedication we would extend to our own families. We are committed to delivering outstanding service, exceptional products, and long-term support for your solar journey.",
+    "closing": "Choose YourCompany.ie for the best quality equipment and premium workmanship, where you are not just a number. Contact us today to explore how solar power can transform your energy consumption, help the environment, and save you money."
+  },
+  "didYouKnow": {
+    "title": "Did you know that Ireland is an ideal country for solar power?",
+    "subtitle": "FOR YOUR POCKET, FOR THE ENVIRONMENT",
+    "facts": [
+      "Excellent annual daylight – solar power is generated from daylight.",
+      "You do not need the sun to generate power.",
+      "Solar PV power generation is more efficient at lower temperatures.",
+      "SEAI grants of up to €2,100 available to most.",
+      "Our rain washes your solar panels, so maintenance free.",
+      "Most systems will typically pay for themselves in about 5 years and keep producing free electricity for approx 30 years."
+    ]
+  },
+  "process": {
+    "title": "LOWER YOUR BILLS",
+    "subtitle": "in 3 Easy Steps...",
+    "step1": {
+      "title": "Free Phone Consultation",
+      "description": "A friendly, no-obligation assessment with one of our experts."
+    },
+    "step2": {
+      "title": "Free Technical Visit",
+      "description": "One of our technicians will visit and inspect for installation."
+    },
+    "step3": {
+      "title": "Quote & Install",
+      "description": "If you're happy to proceed we carry out the installation."
+    },
+    "cta": "Contact us now to find out more information. Request a Quote!"
+  },
+  "contact": {
+    "title": "Get Your Free Quote Today",
+    "subtitle": "Call us at",
+    "formTitle": "Let's Talk Solar!",
+    "formNote": "Only complete this form to get a quote to install solar panels. For jobs or any other enquires, please call this number +1-555-0100"
+  }
+}
+

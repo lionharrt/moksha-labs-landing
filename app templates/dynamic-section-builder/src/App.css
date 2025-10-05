@@ -1,0 +1,118 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --nav-height: 5rem; /* 80px */
+  --nav-height-mobile: 4rem; /* 64px */
+  
+  /* Dynamic theme colors (RGB values) - updated by ThemeWrapper */
+  /* Primary (default: Green) */
+  --theme-primary-50: 236 253 245;
+  --theme-primary-100: 209 250 229;
+  --theme-primary-200: 167 243 208;
+  --theme-primary-300: 110 231 183;
+  --theme-primary-400: 52 211 153;
+  --theme-primary-500: 16 185 129;
+  --theme-primary-600: 5 150 105;
+  --theme-primary-700: 4 120 87;
+  --theme-primary-800: 6 95 70;
+  --theme-primary-900: 6 78 59;
+  
+  /* Secondary (default: Orange) */
+  --theme-secondary-50: 255 247 237;
+  --theme-secondary-100: 255 237 213;
+  --theme-secondary-200: 254 215 170;
+  --theme-secondary-300: 253 186 116;
+  --theme-secondary-400: 251 146 60;
+  --theme-secondary-500: 249 115 22;
+  --theme-secondary-600: 234 88 12;
+  --theme-secondary-700: 194 65 12;
+  --theme-secondary-800: 154 52 18;
+  --theme-secondary-900: 124 45 18;
+  
+  /* Accent (default: Yellow) */
+  --theme-accent-50: 255 251 235;
+  --theme-accent-100: 254 243 199;
+  --theme-accent-200: 253 230 138;
+  --theme-accent-300: 252 211 77;
+  --theme-accent-400: 251 191 36;
+  --theme-accent-500: 245 158 11;
+  --theme-accent-600: 217 119 6;
+  --theme-accent-700: 180 83 9;
+  --theme-accent-800: 146 64 14;
+  --theme-accent-900: 120 53 15;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden; /* Prevent double scrollbars */
+}
+
+.App {
+  min-height: 100vh;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+/* Scroll Container */
+.scroll-snap-container {
+  scroll-behavior: smooth;
+  position: relative;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Section spacing to account for fixed nav */
+.scroll-snap-section {
+  scroll-margin-top: var(--nav-height);
+  min-height: 100vh;
+}
+
+@media (max-width: 768px) {
+  .scroll-snap-section {
+    scroll-margin-top: var(--nav-height-mobile);
+    min-height: calc(100vh - var(--nav-height-mobile));
+  }
+}
+
+/* Custom scrollbar */
+.scroll-snap-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scroll-snap-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.scroll-snap-container::-webkit-scrollbar-thumb {
+  background: #10B981;
+  border-radius: 4px;
+}
+
+.scroll-snap-container::-webkit-scrollbar-thumb:hover {
+  background: #059669;
+}
+
+/* Hide scrollbar for Firefox */
+.scroll-snap-container {
+  scrollbar-width: thin;
+  scrollbar-color: #10B981 #f1f1f1;
+}
+
+/* Typography */
+.font-display {
+  font-family: 'Poppins', system-ui, sans-serif;
+}
+
