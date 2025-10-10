@@ -3,7 +3,7 @@ import { subscribeWithSelector } from 'zustand/middleware';
 
 export type CursorType = 'default' | 'hover' | 'drag' | 'explore' | 'disabled';
 export type SectionId = 'hero' | 'services' | 'work' | 'about' | 'contact';
-export type VisualMode = 'wireframe' | 'lotus';
+export type VisualMode = 'wireframe' | 'lotus' | 'boids' | 'flowfield' | 'helix' | 'crystal' | 'glassdna';
 export type TextAnimationMode = 'default' | 'enhanced';
 
 interface AppState {

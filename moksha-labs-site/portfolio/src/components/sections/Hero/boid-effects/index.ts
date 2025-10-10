@@ -1,0 +1,2 @@
+export { BoidSimulation } from './BoidSimulation';
+

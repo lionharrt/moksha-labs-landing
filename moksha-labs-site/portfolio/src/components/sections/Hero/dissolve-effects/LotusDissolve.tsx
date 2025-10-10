@@ -13,6 +13,7 @@ import * as THREE from 'three';
 
 interface LotusDissolveProps {
   breakProgress: number;
+  fadeProgress: number; // 0-1 fade-in
 }
 
 function Lotus({ breakProgress }: { breakProgress: number }) {
@@ -134,16 +135,18 @@ const fragmentShader = `
   }
 `;
 
-export function LotusDissolve({ breakProgress }: LotusDissolveProps) {
+export function LotusDissolve({ breakProgress, fadeProgress }: LotusDissolveProps) {
   return (
-    <Canvas
-      camera={{ position: [0, 0, 5], fov: 75 }}
-      style={{ background: 'transparent' }}
-      dpr={[1, 2]}
-    >
-      <ambientLight intensity={0.5} />
-      <Lotus breakProgress={breakProgress} />
-    </Canvas>
+    <div style={{ opacity: fadeProgress, width: '100%', height: '100%' }}>
+      <Canvas
+        camera={{ position: [0, 0, 5], fov: 75 }}
+        style={{ background: 'transparent', width: '100%', height: '100%' }}
+        dpr={[1, 2]}
+      >
+        <ambientLight intensity={0.5} />
+        <Lotus breakProgress={breakProgress} />
+      </Canvas>
+    </div>
   );
 }
 

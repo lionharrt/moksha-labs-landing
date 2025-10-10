@@ -18,6 +18,7 @@ export function Hero() {
   const subtitleRef = useRef<HTMLParagraphElement>(null);
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const scrollIndicatorRef = useRef<HTMLDivElement>(null);
+  const [fadeProgress, setFadeProgress] = useState(0);
   const [shapeBreakProgress, setShapeBreakProgress] = useState(0);
   const [textAnimationProgress, setTextAnimationProgress] = useState(0);
   const setCurrentSection = useStore((state) => state.setCurrentSection);
@@ -26,11 +27,6 @@ export function Hero() {
     if (!sectionRef.current || !scrollIndicatorRef.current || !canvasContainerRef.current) return;
 
     const ctx = gsap.context(() => {
-      // Set initial canvas opacity to 0
-      if (canvasContainerRef.current) {
-        canvasContainerRef.current.style.opacity = '0';
-      }
-
       // Scroll indicator bounces
       gsap.to(scrollIndicatorRef.current, {
         y: 10,
@@ -52,18 +48,17 @@ export function Hero() {
           onUpdate: (self) => {
             const rawProgress = self.progress; // 0-1 across entire Hero
             
-            // Map rawProgress to canvas opacity (0-10%)
-            let canvasOpacity = 0;
+            // Map rawProgress to fade progress (0-10%)
+            // This is passed to effects that need fade-in (wireframe, lotus)
+            let fadeOpacity = 0;
             if (rawProgress <= 0.1) {
-              canvasOpacity = rawProgress / 0.1; // 0 to 1 over first 10%
+              fadeOpacity = rawProgress / 0.1; // 0 to 1 over first 10%
             } else {
-              canvasOpacity = 1;
+              fadeOpacity = 1;
             }
-            if (canvasContainerRef.current) {
-              canvasContainerRef.current.style.opacity = String(canvasOpacity);
-            }
+            setFadeProgress(fadeOpacity);
             
-            console.log('Hero scroll progress:', rawProgress.toFixed(3), '| Canvas opacity:', canvasOpacity.toFixed(3));
+            console.log('Hero scroll progress:', rawProgress.toFixed(3), '| Fade:', fadeOpacity.toFixed(3));
             
             // Map rawProgress to shape break phase (10-100%)
             let breakProgress = 0;
@@ -89,7 +84,7 @@ export function Hero() {
       });
 
       // Phase 1: Canvas fades in (0-10%)
-      // Handled in onUpdate callback via canvasOpacity calculation
+      // Passed to effects via fadeProgress prop (wireframe & lotus use it, boids ignores it)
       
       // Phase 2: Shape breaks apart (10-100%)
       // Handled by GeometricWireframe via shapeBreakProgress prop
@@ -129,7 +124,10 @@ export function Hero() {
         ref={canvasContainerRef}
         className="absolute inset-0 z-0"
       >
-        <DynamicEffectSwitcher breakProgress={shapeBreakProgress} />
+        <DynamicEffectSwitcher 
+          breakProgress={shapeBreakProgress} 
+          fadeProgress={fadeProgress}
+        />
       </div>
 
       {/* Text Content - In front */}

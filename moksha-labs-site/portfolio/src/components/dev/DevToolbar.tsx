@@ -113,10 +113,30 @@ export function DevToolbar() {
                   <option value="lotus" className="bg-black text-white">
                     Lotus Dissolve
                   </option>
+                  <option value="boids" className="bg-black text-white">
+                    Boids Flocking
+                  </option>
+                  <option value="flowfield" className="bg-black text-white">
+                    Flow Field
+                  </option>
+                  <option value="helix" className="bg-black text-white">
+                    DNA Helix
+                  </option>
+                  <option value="crystal" className="bg-black text-white">
+                    Crystal Gem
+                  </option>
+                  <option value="glassdna" className="bg-black text-white">
+                    🔥 Glass DNA (PREMIUM)
+                  </option>
                 </select>
                 <p className="text-xs text-white/40 leading-relaxed">
                   {visualMode === 'wireframe' && 'Sacred geometry wireframe that breaks apart'}
                   {visualMode === 'lotus' && 'Lotus petals that dissolve upward'}
+                  {visualMode === 'boids' && 'Flocking particles that flee from your cursor'}
+                  {visualMode === 'flowfield' && 'Particles flowing through perlin noise field'}
+                  {visualMode === 'helix' && 'DNA double helix with pulsing glow'}
+                  {visualMode === 'crystal' && 'Rotating glass gem with light refraction'}
+                  {visualMode === 'glassdna' && 'DNA helix with glass crystal rungs + sparkles + bloom'}
                 </p>
               </div>
 

@@ -33,3 +33,6 @@ pnpm-debug.log*
 
 # OS
 Thumbs.db
+
+# Separate git repositories
+app templates/demo-builder/
