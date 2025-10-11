@@ -38,7 +38,7 @@ export function GlassDNA({ breakProgress }: GlassDNAProps) {
     >
       {/* Center-focused spotlight zone */}
       <ambientLight intensity={0.15} />
-      <fog attach="fog" args={['#0a0f14', 8, 25]} />
+      <fog attach="fog" args={['#0a0f14', 12, 40]} />
       
       {/* === MAIN CENTER SAFFRON ZONE (Y: -3 to +3) === */}
       

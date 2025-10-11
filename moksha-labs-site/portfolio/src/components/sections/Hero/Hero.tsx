@@ -60,7 +60,11 @@ export function Hero() {
             
             console.log('Hero scroll progress:', rawProgress.toFixed(3), '| Fade:', fadeOpacity.toFixed(3));
             
-            // Map rawProgress to shape break phase (10-100%)
+            // Timeline for Glass DNA:
+            // HELIX: 0-10% fade in, 10-100% build/break
+            // TEXT: 10-30% fade in (reaches peak at middle of helix), 30-85% HOLD, 85-100% fade out
+            
+            // Map rawProgress to shape break phase (helix lifecycle)
             let breakProgress = 0;
             if (rawProgress < 0.1) {
               breakProgress = 0;
@@ -69,28 +73,34 @@ export function Hero() {
             }
             setShapeBreakProgress(breakProgress);
             
-            // Map rawProgress to text animation phase (60-100%)
+            // Map rawProgress to text animation phase
             let textProgress = 0;
-            if (rawProgress < 0.6) {
+            if (rawProgress < 0.1) {
+              // Wait for initial fade
               textProgress = 0;
-            } else if (rawProgress < 1.0) {
-              textProgress = (rawProgress - 0.6) / 0.4;
+            } else if (rawProgress < 0.3) {
+              // Fast fade in: 0 to 0.45 (reaches crescendo at 30% scroll = middle of helix)
+              textProgress = ((rawProgress - 0.1) / 0.2) * 0.45;
+            } else if (rawProgress < 0.85) {
+              // HOLD at full visibility through entire helix lifecycle
+              textProgress = 0.45;
             } else {
-              textProgress = 1;
+              // Fade out only after helix is gone: 0.45 to 1.0
+              textProgress = 0.45 + ((rawProgress - 0.85) / 0.15) * 0.55;
             }
             setTextAnimationProgress(textProgress);
           },
         }
       });
 
-      // Phase 1: Canvas fades in (0-10%)
-      // Passed to effects via fadeProgress prop (wireframe & lotus use it, boids ignores it)
-      
-      // Phase 2: Shape breaks apart (10-100%)
-      // Handled by GeometricWireframe via shapeBreakProgress prop
-      
-      // Phase 3: Text animates (60-100%)
-      // Handled by text components via textAnimationProgress prop
+      // TIMELINE (for Glass DNA):
+      // HELIX: 0-10% fade, 10-100% build/break lifecycle
+      // TEXT: 10-30% fade in (peaks at 30% = middle of helix build)
+      //       30-85% HOLD at full visibility
+      //       85-100% fade out (after helix is gone)
+      //
+      // breakProgress: 0-1 controls helix lifecycle
+      // textAnimationProgress: 0-1 controls text phases
       
       // Fade out scroll indicator as soon as scroll starts
       tl.to(scrollIndicatorRef.current, {
