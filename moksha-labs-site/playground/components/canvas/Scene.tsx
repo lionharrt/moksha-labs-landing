@@ -6,10 +6,48 @@
 'use client';
 
 import { OrbitControls } from '@react-three/drei';
+import { useFrame, useThree } from '@react-three/fiber';
+import { useRef } from 'react';
+import { Atmosphere } from './Atmosphere';
+import * as THREE from 'three';
 
 export function Scene() {
+  const { viewport } = useThree();
+  const fog1Ref = useRef();
+  const fog2Ref = useRef();
+  const fog3Ref = useRef();
+
+  useFrame((state) => {
+    const time = state.clock.getElapsedTime();
+    if(fog1Ref.current) {
+      fog1Ref.current.material.uniforms.uTime.value = time;
+    }
+    if(fog2Ref.current) {
+      fog2Ref.current.material.uniforms.uTime.value = time;
+    }
+    if(fog3Ref.current) {
+      fog3Ref.current.material.uniforms.uTime.value = time;
+    }
+  });
+
   return (
     <>
+      {/* Fog Layers */}
+      <Atmosphere
+        ref={fog1Ref}
+        scale={[viewport.width, viewport.height, 1]}
+        position={[0, 0, -5]}
+      />
+      <Atmosphere
+        ref={fog2Ref}
+        scale={[viewport.width * 1.5, viewport.height * 1.5, 1]}
+        position={[0, 0, -10]}
+      />
+       <Atmosphere
+        ref={fog3Ref}
+        scale={[viewport.width * 2, viewport.height * 2, 1]}
+        position={[0, 0, -15]}
+      />
       {/* Camera controls - drag to rotate, scroll to zoom */}
       <OrbitControls
         enableDamping
