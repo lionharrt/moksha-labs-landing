@@ -78,6 +78,9 @@ export {
   syncWithLenis,
 } from './utils/scrollSync';
 
+// Context
+export { StoryboardProvider, useStoryboardContext } from './context/StoryboardContext';
+
 // Hooks
 export { useScene, useStoryboard } from './hooks/useScene';
 export { useElement } from './hooks/useElement';

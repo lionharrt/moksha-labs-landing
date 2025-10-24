@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { MEDIA_CONFIG } from '../config/media';
+import { useVariants } from '../contexts/VariantContext';
 
 interface NavigationProps {
   className?: string;
@@ -65,18 +66,44 @@ const Navigation: React.FC<NavigationProps> = ({ className = '' }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation(['navigation', 'common']);
+  const { state } = useVariants();
 
   const scrollTimeoutRef = useRef<number>();
   const autoFadeTimeoutRef = useRef<number>();
 
-  // Navigation items
+  // Section key to nav ID mapping
+  const sectionToNavId: Record<string, string> = {
+    whoWeAre: 'who-we-are',
+    benefits: 'benefits',
+    services: 'services',
+    showcase: 'recent-jobs',  // showcase section uses recent-jobs ID
+    process: 'process',
+    didYouKnow: 'did-you-know',
+    invest: 'invest',
+    contact: 'contact',
+  };
+
+  // Section key to translation key mapping
+  const sectionToTranslationKey: Record<string, string> = {
+    whoWeAre: 'whoWeAre',
+    benefits: 'benefits',
+    services: 'services',
+    showcase: 'recentJobs',
+    process: 'process',
+    didYouKnow: 'didYouKnow',
+    invest: 'invest',
+    contact: 'contact',
+  };
+
+  // Dynamic navigation items based on enabled sections
   const navItems = [
     { id: 'home', label: t('navigation:home') },
-    { id: 'who-we-are', label: t('navigation:whoWeAre') },
-    { id: 'services', label: t('navigation:services') },
-    { id: 'recent-jobs', label: t('navigation:recentJobs') },
-    { id: 'process', label: t('navigation:process') },
-    { id: 'contact', label: t('navigation:contact') },
+    ...state.sectionOrder
+      .filter(sectionKey => sectionToNavId[sectionKey]) // Only include sections with nav mappings
+      .map(sectionKey => ({
+        id: sectionToNavId[sectionKey],
+        label: t(`navigation:${sectionToTranslationKey[sectionKey]}`),
+      })),
   ];
 
   // Mobile detection
@@ -138,9 +165,9 @@ const Navigation: React.FC<NavigationProps> = ({ className = '' }) => {
           setIsActivelyScrolling(true);
         }
 
-        // Determine active section
-        const sections = ['home', 'who-we-are', 'services', 'recent-jobs', 'process', 'contact'];
-        const navHeight = 80;
+        // Determine active section (dynamically based on navItems)
+        const sections = navItems.map(item => item.id);
+        const navHeight = isMobile ? 80 : 96; // h-20 (80px) mobile, h-24 (96px) desktop
 
         let activeSection = null;
         let closestDistance = Infinity;
@@ -210,7 +237,7 @@ const Navigation: React.FC<NavigationProps> = ({ className = '' }) => {
     return () => {
       if (cleanup) cleanup();
     };
-  }, [isMobile]);
+  }, [isMobile, navItems]);
 
   // Blur visibility logic
   useEffect(() => {
@@ -261,7 +288,7 @@ const Navigation: React.FC<NavigationProps> = ({ className = '' }) => {
       } ${className}`}
     >
       <div className="mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between h-16 sm:h-20">
+        <div className="flex items-center justify-between h-20 sm:h-24">
           {/* Logo */}
           <div className="flex-shrink-0">
             <button
@@ -271,7 +298,8 @@ const Navigation: React.FC<NavigationProps> = ({ className = '' }) => {
               <img 
                 src={MEDIA_CONFIG.images.logo} 
                 alt={t('common:company.name')}
-                className="h-12 sm:h-14 w-auto"
+                className="h-16 sm:h-20 w-auto min-w-[120px] sm:min-w-[160px]"
+                style={{ objectFit: 'contain' }}
               />
             </button>
           </div>

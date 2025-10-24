@@ -53,13 +53,13 @@ export function Contact() {
     <section 
       ref={sectionRef}
       id="contact"
-      className="relative min-h-screen flex items-center py-32 bg-black text-white"
+      className="relative min-h-screen flex items-center py-32 bg-brand-teal-dark text-white"
       data-section="contact"
     >
       <div className="max-w-7xl mx-auto px-8 w-full text-center">
         <h2 
           ref={titleRef}
-          className="text-[clamp(3rem,8vw,6rem)] font-bold mb-12 tracking-tight leading-none"
+          className="text-[clamp(3rem,8vw,6rem)] font-heading font-bold mb-12 tracking-tight leading-none text-white"
         >
           Let&apos;s Talk
         </h2>
@@ -67,7 +67,7 @@ export function Contact() {
         <a 
           ref={emailRef}
           href="mailto:hello@mokshalabs.com"
-          className="text-[clamp(1.5rem,3vw,2.5rem)] hover:text-gray-400 transition-colors duration-300 inline-block"
+          className="text-[clamp(1.5rem,3vw,2.5rem)] text-brand-saffron hover:text-brand-saffron-light transition-colors duration-300 inline-block"
         >
           hello@mokshalabs.com
         </a>

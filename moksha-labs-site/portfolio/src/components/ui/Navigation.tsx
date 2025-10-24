@@ -20,15 +20,15 @@ export function Navigation() {
   return (
     <>
       {/* Logo - Fixed to top left */}
-      <div className={`fixed top-8 left-8 z-50 text-xl font-bold transition-colors duration-300 ${
-        isDarkSection ? 'text-white' : 'text-black'
+      <div className={`fixed top-8 left-8 z-50 text-xl font-heading font-bold transition-colors duration-300 ${
+        isDarkSection ? 'text-brand-saffron' : 'text-brand-teal-dark'
       }`}>
         ML
       </div>
       
       {/* Navigation - Fixed to top right */}
       <nav className="fixed top-8 right-8 z-50">
-        <div className="flex gap-6 text-sm">
+        <div className="flex gap-6 text-sm font-medium tracking-wide">
           {sections.map((section) => {
             const isActive = currentSection === section.id;
             return (
@@ -39,11 +39,11 @@ export function Navigation() {
                 className={`transition-colors duration-200 ${
                   isActive
                     ? isDarkSection
-                      ? 'text-white font-semibold underline'
-                      : 'text-black font-semibold underline'
+                      ? 'text-brand-saffron font-semibold underline decoration-2 underline-offset-4'
+                      : 'text-brand-teal-dark font-semibold underline decoration-2 underline-offset-4'
                     : isDarkSection
-                      ? 'text-gray-400 hover:text-white'
-                      : 'text-gray-500 hover:text-black'
+                      ? 'text-brand-teal-light hover:text-brand-saffron-light'
+                      : 'text-brand-teal-light hover:text-brand-teal-dark'
                 }`}
               >
                 {section.title}

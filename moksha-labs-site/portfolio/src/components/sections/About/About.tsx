@@ -64,16 +64,16 @@ export function About() {
       <div className="max-w-5xl mx-auto px-8 w-full">
         <h2 
           ref={titleRef}
-          className="text-[clamp(3rem,6vw,5rem)] font-bold mb-16 tracking-tight text-black"
+          className="text-[clamp(3rem,6vw,5rem)] font-heading font-bold mb-16 tracking-tight text-brand-teal-dark"
         >
           About Us
         </h2>
         
         <div ref={contentRef}>
-          <p className="text-[clamp(1.5rem,2.5vw,2.25rem)] leading-relaxed font-light text-black mb-8">
+          <p className="text-[clamp(1.5rem,2.5vw,2.25rem)] leading-relaxed font-light text-brand-teal-dark mb-8">
             We craft digital experiences that blend artistry with technological prowess.
           </p>
-          <p className="text-[clamp(1.5rem,2.5vw,2.25rem)] leading-relaxed font-light text-gray-700">
+          <p className="text-[clamp(1.5rem,2.5vw,2.25rem)] leading-relaxed font-light text-foreground-muted">
             Every project is an opportunity to push boundaries and create something remarkable.
           </p>
         </div>

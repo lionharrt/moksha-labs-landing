@@ -83,10 +83,24 @@ export function createSceneScrollTrigger(
     onLeave?: () => void;
   }
 ): () => void {
+  // Parse duration to handle vh units
+  let endValue = config.duration || '+=100%';
+  
+  // Convert vh to pixels if needed
+  if (endValue.includes('vh')) {
+    const match = endValue.match(/([+\-]?=?)(\d+)vh/);
+    if (match) {
+      const prefix = match[1] || '';
+      const vhValue = parseInt(match[2], 10);
+      const pixels = (vhValue / 100) * window.innerHeight;
+      endValue = `${prefix}${pixels}`;
+    }
+  }
+  
   const instance = ScrollTrigger.create({
     trigger: element,
     start: 'top top',
-    end: config.duration || '+=100%',
+    end: endValue,
     pin: config.pin ?? false,
     scrub: config.scrub ?? true,
     markers: false,

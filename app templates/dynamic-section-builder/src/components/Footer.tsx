@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { MEDIA_CONFIG } from '../config/media';
+import { useVariants } from '../contexts/VariantContext';
 
 interface FooterProps {
   className?: string;
@@ -10,6 +11,7 @@ interface FooterProps {
 const Footer: React.FC<FooterProps> = ({ className = '' }) => {
   const { t } = useTranslation(['common', 'navigation']);
   const navigate = useNavigate();
+  const { state } = useVariants();
 
   const scrollToSection = (sectionId: string) => {
     navigate(`/#${sectionId}`);
@@ -20,6 +22,41 @@ const Footer: React.FC<FooterProps> = ({ className = '' }) => {
       }
     }, 100);
   };
+
+  // Section key to nav ID mapping (same as Navigation component)
+  const sectionToNavId: Record<string, string> = {
+    whoWeAre: 'who-we-are',
+    benefits: 'benefits',
+    services: 'services',
+    showcase: 'recent-jobs',
+    process: 'process',
+    didYouKnow: 'did-you-know',
+    invest: 'invest',
+    contact: 'contact',
+  };
+
+  // Section key to translation key mapping
+  const sectionToTranslationKey: Record<string, string> = {
+    whoWeAre: 'whoWeAre',
+    benefits: 'benefits',
+    services: 'services',
+    showcase: 'recentJobs',
+    process: 'process',
+    didYouKnow: 'didYouKnow',
+    invest: 'invest',
+    contact: 'contact',
+  };
+
+  // Dynamic navigation items based on enabled sections
+  const footerNavItems = [
+    { id: 'home', label: t('navigation:home') },
+    ...state.sectionOrder
+      .filter(sectionKey => sectionToNavId[sectionKey])
+      .map(sectionKey => ({
+        id: sectionToNavId[sectionKey],
+        label: t(`navigation:${sectionToTranslationKey[sectionKey]}`),
+      })),
+  ];
 
   const currentYear = new Date().getFullYear();
 
@@ -32,7 +69,8 @@ const Footer: React.FC<FooterProps> = ({ className = '' }) => {
             <img 
               src={MEDIA_CONFIG.images.logo} 
               alt={t('common:company.name')}
-              className="h-12 w-auto mb-4"
+              className="h-16 w-auto min-w-[120px] mb-4"
+              style={{ objectFit: 'contain' }}
             />
             <p className="text-gray-400 mb-4">{t('common:company.tagline')}</p>
             
@@ -72,54 +110,16 @@ const Footer: React.FC<FooterProps> = ({ className = '' }) => {
           <div>
             <h4 className="text-lg font-semibold mb-4">{t('common:footer.sitemap')}</h4>
             <ul className="space-y-2">
-              <li>
-                <button
-                  onClick={() => scrollToSection('home')}
-                  className="text-gray-400 hover:text-primary-400 transition-colors"
-                >
-                  {t('navigation:home')}
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => scrollToSection('who-we-are')}
-                  className="text-gray-400 hover:text-primary-400 transition-colors"
-                >
-                  {t('navigation:whoWeAre')}
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => scrollToSection('services')}
-                  className="text-gray-400 hover:text-primary-400 transition-colors"
-                >
-                  {t('navigation:services')}
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => scrollToSection('recent-jobs')}
-                  className="text-gray-400 hover:text-primary-400 transition-colors"
-                >
-                  {t('navigation:recentJobs')}
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => scrollToSection('process')}
-                  className="text-gray-400 hover:text-primary-400 transition-colors"
-                >
-                  {t('navigation:process')}
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => scrollToSection('contact')}
-                  className="text-gray-400 hover:text-primary-400 transition-colors"
-                >
-                  {t('navigation:contact')}
-                </button>
-              </li>
+              {footerNavItems.map((item) => (
+                <li key={item.id}>
+                  <button
+                    onClick={() => scrollToSection(item.id)}
+                    className="text-gray-400 hover:text-primary-400 transition-colors"
+                  >
+                    {item.label}
+                  </button>
+                </li>
+              ))}
             </ul>
           </div>
 

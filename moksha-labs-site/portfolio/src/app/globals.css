@@ -3,20 +3,32 @@
 @tailwind utilities;
 
 :root {
+  /* Brand Colors - Moksha Labs Identity */
+  --brand-teal-dark: #0d3838;
+  --brand-teal: #1a4d4d;
+  --brand-teal-light: #2d6363;
+  --brand-saffron: #e89f4c;
+  --brand-saffron-dark: #d4883b;
+  --brand-saffron-light: #f2b56a;
+  
   /* Theme Colors - Easy to swap entire palette */
-  --color-primary: #000000;
-  --color-secondary: #ffffff;
-  --color-accent: #6366f1;
-  --color-bg: #ffffff;
-  --color-text: #000000;
+  --color-primary: #0d3838;        /* Deep teal */
+  --color-secondary: #e89f4c;      /* Saffron */
+  --color-accent: #f2b56a;         /* Light saffron */
+  --color-bg: #ffffff;             /* Light sections */
+  --color-bg-dark: #0d3838;        /* Dark sections (hero, contact) */
+  --color-text: #0d3838;           /* Dark teal text on light */
+  --color-text-light: #ffffff;     /* White text on dark */
+  --color-text-muted: #5a7878;     /* Muted teal */
   
   /* Three.js Material Colors */
-  --material-primary: #000000;
-  --material-secondary: #6366f1;
-  --material-accent: #8b5cf6;
+  --material-primary: #1a4d4d;     /* Teal for 3D elements */
+  --material-secondary: #e89f4c;   /* Saffron accent */
+  --material-accent: #f2b56a;      /* Light saffron highlight */
+  --material-glow: #d4a574;        /* Warm glow (existing lighting) */
   
   /* Typography */
-  --font-heading: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-heading: 'Iowan Old Style', 'Palatino Linotype', 'URW Palladio L', P052, serif;
   --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: 'Courier New', monospace;
   

@@ -1,0 +1,39 @@
+{
+  "name": "@moksha-labs/intro-auto-scroller",
+  "version": "1.0.0",
+  "description": "Reusable intro animation with auto-scroll functionality for demo presentations",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "react",
+    "animation",
+    "intro",
+    "auto-scroll",
+    "demo",
+    "three.js",
+    "presentation"
+  ],
+  "author": "Moksha Labs",
+  "license": "MIT",
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "dependencies": {
+    "@react-three/drei": "^9.92.0",
+    "@react-three/fiber": "^8.15.0",
+    "@react-three/postprocessing": "^2.15.0",
+    "gsap": "^3.12.5",
+    "three": "^0.159.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@types/three": "^0.180.0",
+    "typescript": "^5.2.2"
+  }
+}
+

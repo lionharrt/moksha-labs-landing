@@ -3,8 +3,6 @@ import { subscribeWithSelector } from 'zustand/middleware';
 
 export type CursorType = 'default' | 'hover' | 'drag' | 'explore' | 'disabled';
 export type SectionId = 'hero' | 'services' | 'work' | 'about' | 'contact';
-export type VisualMode = 'wireframe' | 'lotus' | 'boids' | 'flowfield' | 'helix' | 'crystal' | 'glassdna';
-export type TextAnimationMode = 'default' | 'enhanced';
 
 interface AppState {
   // UI State
@@ -24,8 +22,7 @@ interface AppState {
   devMode: boolean;
   showStats: boolean;
   selectedCursor: string;
-  visualMode: VisualMode;
-  textAnimationMode: TextAnimationMode;
+  petalConcept: number; // 0-5 for the 6 concepts
   
   // Actions
   setCurrentSection: (section: SectionId) => void;
@@ -38,8 +35,7 @@ interface AppState {
   toggleDevMode: () => void;
   setShowStats: (show: boolean) => void;
   setSelectedCursor: (cursor: string) => void;
-  setVisualMode: (mode: VisualMode) => void;
-  setTextAnimationMode: (mode: TextAnimationMode) => void;
+  setPetalConcept: (concept: number) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -55,8 +51,7 @@ export const useStore = create<AppState>()(
     devMode: true, // Start with dev mode on
     showStats: false,
     selectedCursor: 'default',
-    visualMode: 'wireframe',
-    textAnimationMode: 'default',
+    petalConcept: 0, // Start with Concept 1
     
     // Actions
     setCurrentSection: (section) => set({ currentSection: section }),
@@ -69,8 +64,7 @@ export const useStore = create<AppState>()(
     toggleDevMode: () => set((state) => ({ devMode: !state.devMode })),
     setShowStats: (show) => set({ showStats: show }),
     setSelectedCursor: (cursor) => set({ selectedCursor: cursor }),
-    setVisualMode: (mode) => set({ visualMode: mode }),
-    setTextAnimationMode: (mode) => set({ textAnimationMode: mode }),
+    setPetalConcept: (concept) => set({ petalConcept: concept }),
   }))
 );
 

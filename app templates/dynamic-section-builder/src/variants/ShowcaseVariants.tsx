@@ -9,7 +9,7 @@ export const ShowcaseVariantA: React.FC = () => {
   const projects = [1, 2, 3, 4, 5, 6];
 
   return (
-    <YourCompanySection id="showcase" background="gradient" height="auto">
+    <YourCompanySection id="recent-jobs" background="gradient" height="auto">
       <div className="text-center mb-12">
         <h2 className="text-4xl font-bold text-gray-900 mb-4 font-display">
           Recent Solar Installations
@@ -73,77 +73,142 @@ export const ShowcaseVariantA: React.FC = () => {
   );
 };
 
-// Variant B: Featured Projects with Large Cards
+// Variant B: Horizontal Carousel with Dots
 export const ShowcaseVariantB: React.FC = () => {
   useTranslation(['home']);
+  const [currentSlide, setCurrentSlide] = React.useState(0);
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+
+  const projects = [
+    { id: 1, title: 'Modern Family Home', location: 'Dublin 15', size: '7.2kW', panels: 18, savings: 85 },
+    { id: 2, title: 'Eco-Friendly Residence', location: 'Dublin 4', size: '6.5kW', panels: 16, savings: 80 },
+    { id: 3, title: 'Suburban Installation', location: 'Kildare', size: '8.0kW', panels: 20, savings: 90 },
+    { id: 4, title: 'Coastal Property', location: 'Wicklow', size: '5.5kW', panels: 14, savings: 75 },
+  ];
+
+  const scrollToSlide = (index: number) => {
+    if (scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      const slideWidth = container.offsetWidth;
+      container.scrollTo({
+        left: slideWidth * index,
+        behavior: 'smooth',
+      });
+      setCurrentSlide(index);
+    }
+  };
+
+  React.useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const scrollLeft = container.scrollLeft;
+      const slideWidth = container.offsetWidth;
+      const newIndex = Math.round(scrollLeft / slideWidth);
+      if (newIndex !== currentSlide) {
+        setCurrentSlide(newIndex);
+      }
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [currentSlide]);
 
   return (
-    <YourCompanySection id="showcase" background="gradient" height="auto">
+    <YourCompanySection id="recent-jobs" background="gradient" height="auto">
       <div className="text-center mb-12">
         <h2 className="text-4xl font-bold text-gray-900 mb-4 font-display">
-          Featured Projects
+          Featured Case Studies
         </h2>
         <p className="text-xl text-gray-600 max-w-3xl mx-auto">
           Transforming homes across Ireland
         </p>
       </div>
 
-      {/* Featured Project Cards */}
-      <div className="space-y-12">
-        {[1, 2].map((project) => (
-          <div key={project} className="bg-white rounded-2xl shadow-xl overflow-hidden">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Project Image */}
-              <div className="aspect-[4/3] bg-gradient-to-br from-accent-400 to-accent-600 flex items-center justify-center">
-                <div className="text-center p-8">
-                  <svg className="w-24 h-24 mx-auto mb-4 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <p className="text-white/90 font-semibold text-xl">Add Project Photo Here</p>
-                  <p className="text-white/70 text-sm mt-2">1200x900px recommended</p>
-                </div>
-              </div>
-
-              {/* Project Details */}
-              <div className="p-8 lg:p-12 flex flex-col justify-center">
-                <div className="mb-4">
-                  <span className="inline-block bg-primary-100 text-primary-800 text-sm font-semibold px-3 py-1 rounded-full">
-                    Residential
-                  </span>
-                </div>
-                <h3 className="text-3xl font-bold text-gray-900 mb-4 font-display">
-                  Modern Family Home in Dublin
-                </h3>
-                <p className="text-gray-600 mb-6 leading-relaxed">
-                  A complete 7.2kW solar installation featuring 18 premium panels, battery storage, and smart monitoring. This family now saves over 85% on their electricity bills.
-                </p>
-
-                {/* Stats */}
-                <div className="grid grid-cols-3 gap-4 mb-6">
-                  <div className="text-center p-4 bg-primary-50 rounded-lg">
-                    <div className="text-2xl font-bold text-primary-700">7.2kW</div>
-                    <div className="text-xs text-gray-600">System Size</div>
+      {/* Horizontal Scrolling Carousel */}
+      <div className="relative">
+        <div
+          ref={scrollContainerRef}
+          className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-6 pb-8"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {projects.map((project, index) => (
+            <div
+              key={project.id}
+              className="flex-shrink-0 w-full snap-center"
+            >
+              <div className="bg-white rounded-2xl shadow-xl overflow-hidden mx-auto max-w-5xl">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* Project Image */}
+                  <div className="aspect-[4/3] bg-gradient-to-br from-accent-400 to-accent-600 flex items-center justify-center">
+                    <div className="text-center p-8">
+                      <svg className="w-24 h-24 mx-auto mb-4 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <p className="text-white/90 font-semibold text-xl">Add Project Photo Here</p>
+                      <p className="text-white/70 text-sm mt-2">1200x900px recommended</p>
+                    </div>
                   </div>
-                  <div className="text-center p-4 bg-secondary-50 rounded-lg">
-                    <div className="text-2xl font-bold text-secondary-700">18</div>
-                    <div className="text-xs text-gray-600">Panels</div>
-                  </div>
-                  <div className="text-center p-4 bg-accent-50 rounded-lg">
-                    <div className="text-2xl font-bold text-accent-700">85%</div>
-                    <div className="text-xs text-gray-600">Savings</div>
-                  </div>
-                </div>
 
-                <div className="flex items-center gap-2 text-gray-600">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                  </svg>
-                  <span>Dublin 15 • Installed March 2024</span>
+                  {/* Project Details */}
+                  <div className="p-8 lg:p-12 flex flex-col justify-center">
+                    <div className="mb-4">
+                      <span className="inline-block bg-primary-100 text-primary-800 text-sm font-semibold px-3 py-1 rounded-full">
+                        Residential
+                      </span>
+                    </div>
+                    <h3 className="text-3xl font-bold text-gray-900 mb-4 font-display">
+                      {project.title}
+                    </h3>
+                    <p className="text-gray-600 mb-6 leading-relaxed">
+                      A complete {project.size} solar installation featuring {project.panels} premium panels, battery storage, and smart monitoring. This family now saves over {project.savings}% on their electricity bills.
+                    </p>
+
+                    {/* Stats */}
+                    <div className="grid grid-cols-3 gap-4 mb-6">
+                      <div className="text-center p-4 bg-primary-50 rounded-lg">
+                        <div className="text-2xl font-bold text-primary-700">{project.size}</div>
+                        <div className="text-xs text-gray-600">System Size</div>
+                      </div>
+                      <div className="text-center p-4 bg-secondary-50 rounded-lg">
+                        <div className="text-2xl font-bold text-secondary-700">{project.panels}</div>
+                        <div className="text-xs text-gray-600">Panels</div>
+                      </div>
+                      <div className="text-center p-4 bg-accent-50 rounded-lg">
+                        <div className="text-2xl font-bold text-accent-700">{project.savings}%</div>
+                        <div className="text-xs text-gray-600">Savings</div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                      </svg>
+                      <span>{project.location} • Installed 2024</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
+
+        {/* Dot Navigation */}
+        <div className="flex justify-center gap-3 mt-8">
+          {projects.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => scrollToSlide(index)}
+              className={`transition-all duration-300 rounded-full ${
+                currentSlide === index
+                  ? 'w-8 h-3 bg-primary-600'
+                  : 'w-3 h-3 bg-gray-300 hover:bg-gray-400'
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
       </div>
 
       <div className="text-center mt-12">
@@ -151,6 +216,12 @@ export const ShowcaseVariantB: React.FC = () => {
           Explore More Projects
         </button>
       </div>
+
+      <style jsx>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
     </YourCompanySection>
   );
 };
@@ -160,7 +231,7 @@ export const ShowcaseVariantC: React.FC = () => {
   useTranslation(['home']);
 
   return (
-    <YourCompanySection id="showcase" background="gradient" height="auto">
+    <YourCompanySection id="recent-jobs" background="gradient" height="auto">
       <div className="text-center mb-12">
         <h2 className="text-4xl font-bold text-gray-900 mb-4 font-display">
           See The Transformation

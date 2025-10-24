@@ -81,7 +81,7 @@ export function Services() {
       <div className="max-w-7xl mx-auto px-8 w-full">
         <h2 
           ref={titleRef}
-          className="text-[clamp(3rem,6vw,5rem)] font-bold mb-20 tracking-tight text-black"
+          className="text-[clamp(3rem,6vw,5rem)] font-heading font-bold mb-20 tracking-tight text-brand-teal-dark"
         >
           What We Do
         </h2>
@@ -90,15 +90,15 @@ export function Services() {
           {services.map((service, index) => (
             <div 
               key={index} 
-              className="service-card group relative border border-gray-200 p-10 hover:border-black transition-colors duration-300 cursor-pointer"
+              className="service-card group relative border border-brand-teal-light/30 p-10 hover:border-brand-saffron hover:shadow-lg transition-all duration-300 cursor-pointer"
             >
-              <h3 className="text-4xl font-bold mb-3 text-black">
+              <h3 className="text-4xl font-heading font-bold mb-3 text-brand-teal-dark">
                 {service.title}
               </h3>
-              <p className="text-base text-gray-500 mb-4 uppercase tracking-wider">
+              <p className="text-base text-brand-saffron-dark mb-4 uppercase tracking-wider font-medium">
                 {service.subtitle}
               </p>
-              <p className="text-base leading-relaxed text-gray-700">
+              <p className="text-base leading-relaxed text-foreground-muted">
                 {service.description}
               </p>
             </div>

@@ -2,20 +2,29 @@ import * as THREE from 'three';
 
 export const theme = {
   colors: {
-    primary: '#000000',
-    secondary: '#ffffff',
-    accent: '#6366f1',
+    // Brand colors
+    tealDark: '#0d3838',
+    teal: '#1a4d4d',
+    tealLight: '#2d6363',
+    saffron: '#e89f4c',
+    saffronDark: '#d4883b',
+    saffronLight: '#f2b56a',
+    
+    // Semantic colors
+    primary: '#0d3838',
+    secondary: '#e89f4c',
+    accent: '#f2b56a',
   },
   
   // Three.js materials reference CSS variables
   getMaterialColor: (variable: string): THREE.Color => {
-    if (typeof window === 'undefined') return new THREE.Color('#000000');
+    if (typeof window === 'undefined') return new THREE.Color('#1a4d4d');
     
     const color = getComputedStyle(document.documentElement)
       .getPropertyValue(variable)
       .trim();
     
-    return new THREE.Color(color || '#000000');
+    return new THREE.Color(color || '#1a4d4d');
   },
   
   animation: {

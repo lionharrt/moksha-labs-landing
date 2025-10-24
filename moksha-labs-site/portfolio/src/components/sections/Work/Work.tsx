@@ -80,13 +80,13 @@ export function Work() {
     <section 
       ref={sectionRef}
       id="work"
-      className="relative min-h-screen flex items-center py-32 bg-gray-50"
+      className="relative min-h-screen flex items-center py-32 bg-brand-teal-light/5"
       data-section="work"
     >
       <div className="max-w-7xl mx-auto px-8 w-full">
         <h2 
           ref={titleRef}
-          className="text-[clamp(3rem,6vw,5rem)] font-bold mb-20 tracking-tight text-black"
+          className="text-[clamp(3rem,6vw,5rem)] font-heading font-bold mb-20 tracking-tight text-brand-teal-dark"
         >
           Selected Work
         </h2>
@@ -97,17 +97,17 @@ export function Work() {
               key={index} 
               className="project-card group cursor-pointer"
             >
-              <div className="aspect-[4/3] bg-gray-200 mb-6 overflow-hidden">
-                <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-100 group-hover:scale-105 transition-transform duration-500"></div>
+              <div className="aspect-[4/3] bg-brand-teal-light/10 mb-6 overflow-hidden rounded-sm">
+                <div className="w-full h-full bg-gradient-to-br from-brand-saffron/20 to-brand-teal-light/20 group-hover:scale-105 transition-transform duration-500"></div>
               </div>
               
               <div className="flex justify-between items-baseline mb-2">
-                <h3 className="text-3xl font-bold text-black">
+                <h3 className="text-3xl font-heading font-bold text-brand-teal-dark group-hover:text-brand-saffron-dark transition-colors">
                   {project.title}
                 </h3>
-                <span className="text-sm text-gray-600">{project.year}</span>
+                <span className="text-sm text-foreground-muted">{project.year}</span>
               </div>
-              <p className="text-base text-gray-700">{project.category}</p>
+              <p className="text-base text-brand-saffron-dark font-medium">{project.category}</p>
             </div>
           ))}
         </div>
