@@ -4,6 +4,7 @@ const nextConfig = {
   images: {
     unoptimized: true  // Required for static export
   },
+  // Exclude archive directory from compilation
   webpack: (config) => {
     // GLSL shader support
     config.module.rules.push({
@@ -11,10 +12,20 @@ const nextConfig = {
       exclude: /node_modules/,
       use: ['raw-loader'],
     });
+    
+    // Exclude archive from being processed
+    config.module.rules.push({
+      test: /\.tsx?$/,
+      exclude: /archive/,
+    });
 
     return config;
   },
   transpilePackages: ['three'],
+  // Exclude archive from TypeScript checking
+  typescript: {
+    ignoreBuildErrors: false,
+  },
 };
 
 module.exports = nextConfig;

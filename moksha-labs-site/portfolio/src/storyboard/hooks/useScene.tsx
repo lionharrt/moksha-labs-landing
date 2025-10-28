@@ -53,29 +53,33 @@ export function useScene(config: SceneConfig): UseSceneReturn {
     }
 
     // Subscribe to progress updates
-    const unsubscribeProgress = () => {
-      controller.on('progress', (data) => {
-        setProgress(data.progress);
-        
-        // Update active phases
-        const active: string[] = [];
-        Object.entries(data.phaseProgress).forEach(([name, prog]) => {
-          if (prog > 0 && prog < 1) {
-            active.push(name);
-          }
-        });
-        setActivePhases(active);
+    const progressHandler = (data: any) => {
+      setProgress(data.progress);
+      
+      // Update active phases
+      const active: string[] = [];
+      Object.entries(data.phaseProgress).forEach(([name, prog]) => {
+        const progress = prog as number;
+        if (progress > 0 && progress < 1) {
+          active.push(name);
+        }
       });
+      setActivePhases(active);
     };
 
-    // Subscribe to enter/exit events
-    controller.on('enter', () => setIsActive(true));
-    controller.on('exit', () => setIsActive(false));
+    const enterHandler = () => setIsActive(true);
+    const exitHandler = () => setIsActive(false);
 
-    unsubscribeProgress();
+    // Subscribe to events
+    controller.on('progress', progressHandler);
+    controller.on('enter', enterHandler);
+    controller.on('exit', exitHandler);
 
     return () => {
-      // Cleanup subscriptions handled by controller
+      // Cleanup subscriptions
+      controller.off('progress', progressHandler);
+      controller.off('enter', enterHandler);
+      controller.off('exit', exitHandler);
     };
   }, [storyboard, config.id]);
   

@@ -86,7 +86,7 @@ export { useScene, useStoryboard } from './hooks/useScene';
 export { useElement } from './hooks/useElement';
 export { useStoryboardEffect, useComposedEffects } from './hooks/useEffect';
 
-// Example Scene (for reference)
-export { silkEmergenceConfig } from './scenes/01-silk-emergence/SilkEmergenceScene.config';
-export { SilkEmergenceScene } from './scenes/01-silk-emergence/SilkEmergenceScene';
+// Example Scenes (for reference)
+export { heroSceneConfig } from './scenes/01-hero/HeroScene.config';
+export { HeroScene } from './scenes/01-hero/HeroScene';
 

@@ -127,7 +127,7 @@ export class SceneController implements ISceneController {
     // Start animation loop for continuous effects
     this.startAnimationLoop();
     
-    this.emit('initialize', { sceneId: this.config.id });
+    this.emit('enter', { sceneId: this.config.id });
   }
   
   /**
@@ -193,7 +193,7 @@ export class SceneController implements ISceneController {
     
     this.lifecycle = 'idle';
     
-    this.emit('cleanup', { sceneId: this.config.id });
+    this.emit('exit', { sceneId: this.config.id });
   }
   
   /**

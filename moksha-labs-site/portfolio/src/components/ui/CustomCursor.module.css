@@ -10,49 +10,49 @@
   mix-blend-mode: difference;
 }
 
-/* Default Cursor */
+/* Default Cursor - Teal outline */
 .default {
-  background: white;
-  border: 2px solid white;
+  background: transparent;
+  border: 2px solid var(--brand-teal);
 }
 
-/* Hover Cursor */
+/* Hover Cursor - Saffron fill */
 .hover {
   width: 40px;
   height: 40px;
-  background: rgba(255, 255, 255, 0.2);
-  border: 2px solid white;
+  background: var(--brand-saffron);
+  border: 2px solid var(--brand-saffron);
 }
 
-/* Explore Cursor */
+/* Explore Cursor - Teal with saffron accent */
 .explore {
   width: 30px;
   height: 30px;
-  background: rgba(99, 102, 241, 0.3);
-  border: 2px solid rgb(99, 102, 241);
+  background: rgba(232, 159, 76, 0.2);
+  border: 2px solid var(--brand-saffron);
 }
 
-/* Drag Cursor */
+/* Drag Cursor - Dashed teal */
 .drag {
   width: 50px;
   height: 50px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 3px solid white;
-  border-style: dashed;
+  background: rgba(13, 56, 56, 0.1);
+  border: 3px dashed var(--brand-teal);
 }
 
-/* Trail Cursor */
+/* Trail Cursor - Saffron glow */
 .trail {
-  background: white;
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+  background: var(--brand-saffron);
+  box-shadow: 0 0 20px var(--brand-saffron);
 }
 
-/* Magnetic Cursor */
+/* Magnetic Cursor - Teal with rings */
 .magnetic {
   width: 15px;
   height: 15px;
-  background: white;
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+  background: var(--brand-teal);
+  box-shadow: 0 0 0 3px rgba(26, 77, 77, 0.3),
+              0 0 0 6px rgba(26, 77, 77, 0.1);
 }
 
 @media (max-width: 768px) {

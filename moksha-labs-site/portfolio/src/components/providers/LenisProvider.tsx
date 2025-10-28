@@ -7,6 +7,12 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
+// Expose GSAP to window for debugging
+if (typeof window !== 'undefined') {
+  (window as any).gsap = gsap;
+  (window as any).ScrollTrigger = ScrollTrigger;
+}
+
 interface LenisProviderProps {
   children: ReactNode;
 }
@@ -30,14 +36,20 @@ export function LenisProvider({ children }: LenisProviderProps) {
     lenisRef.current = lenis;
 
     // Connect Lenis to GSAP ScrollTrigger
-    lenis.on('scroll', ScrollTrigger.update);
+    lenis.on('scroll', () => {
+      ScrollTrigger.update();
+    });
 
+    // Use GSAP ticker to drive Lenis
     const tickerCallback = (time: number) => {
       lenis.raf(time * 1000);
     };
     
     gsap.ticker.add(tickerCallback);
     gsap.ticker.lagSmoothing(0);
+    
+    // Tell ScrollTrigger to use custom scroller
+    ScrollTrigger.defaults({ scroller: 'body' });
 
     // Cleanup
     return () => {

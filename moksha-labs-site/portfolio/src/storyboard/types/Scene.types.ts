@@ -168,3 +168,21 @@ export type SceneEvent =
   | 'phase-exit'   // Phase ends
   | 'complete';    // Scene fully scrolled through
 
+/**
+ * Storyboard Configuration
+ */
+export interface StoryboardConfig {
+  /** Array of scene configurations */
+  scenes: SceneConfig[];
+  
+  /** Enable debug mode (ScrollTrigger markers, console logs) */
+  debug?: boolean;
+  
+  /** Global settings */
+  settings?: {
+    smoothScroll?: boolean;
+    smoothScrollDuration?: number;
+    enableDevTools?: boolean;
+  };
+}
+

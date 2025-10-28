@@ -75,6 +75,9 @@ export function useStoryboardEffect(options: UseStoryboardEffectOptions): void {
 
 /**
  * Hook for composing multiple effects on one element
+ * 
+ * Note: This function is currently a placeholder due to React hooks rules.
+ * To use multiple effects, call useStoryboardEffect individually for each effect.
  */
 export function useComposedEffects(
   targetId: string,
@@ -85,11 +88,12 @@ export function useComposedEffects(
     enabled?: boolean;
   }>
 ): void {
-  effects.forEach(effect => {
-    useStoryboardEffect({
-      ...effect,
-      targetId,
-    });
-  });
+  // Placeholder - users should call useStoryboardEffect directly for each effect
+  // This avoids the React hooks rules violation
+  if (process.env.NODE_ENV === 'development' && effects.length > 0) {
+    console.warn(
+      'useComposedEffects is a placeholder. Call useStoryboardEffect individually for each effect to avoid hooks rules violations.'
+    );
+  }
 }
 
