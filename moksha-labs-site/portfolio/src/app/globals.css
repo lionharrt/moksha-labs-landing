@@ -4,72 +4,74 @@
 
 :root {
   /* Brand Colors */
-  --brand-teal-dark: #0d3838;
-  --brand-teal: #1a4d4d;
-  --brand-teal-light: #2d6363;
-  --brand-saffron: #e89f4c;
-  --brand-saffron-dark: #d4883b;
-  --brand-saffron-light: #f2b56a;
-  
+  --brand-teal-dark: #2d7368;
+  --brand-teal: #37917c;
+  --brand-teal-light: #4aa590;
+  --brand-saffron: #e6400b;
+  --brand-saffron-dark: #c43509;
+  --brand-saffron-light: #ff5a1f;
+
   /* Semantic Colors */
-  --color-primary: #0d3838;
-  --color-secondary: #e89f4c;
-  --color-accent: #f2b56a;
-  --color-bg: #ffffff;
-  --color-bg-dark: #0d3838;
-  --color-text: #0d3838;
-  --color-text-light: #ffffff;
-  --color-text-muted: #5a7878;
-  
+  --color-primary: #37917c;
+  --color-secondary: #e6400b;
+  --color-accent: #ff5a1f;
+  --color-bg: #fdfdfd;
+  --color-bg-dark: #070707;
+  --color-text: #070707;
+  --color-text-light: #fdfdfd;
+  --color-text-muted: #6b6b6b;
+
   /* Material Colors for 3D */
-  --material-primary: #1a4d4d;
-  --material-secondary: #e89f4c;
-  --material-accent: #f2b56a;
-  --material-glow: #d4a574;
-  
+  --material-primary: #37917c;
+  --material-secondary: #e6400b;
+  --material-accent: #ff5a1f;
+  --material-glow: #ff7a4a;
+
   /* Typography Scale (Major Third 1.25) - Optimized for readability */
-  --font-heading: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-  --font-accent: 'Georgia', 'Times New Roman', serif;
-  --font-mono: 'SF Mono', 'Monaco', 'Courier New', monospace;
-  
+  --font-heading: -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Helvetica Neue", Arial, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue",
+    Arial, sans-serif;
+  --font-accent: "Georgia", "Times New Roman", serif;
+  --font-mono: "SF Mono", "Monaco", "Courier New", monospace;
+
   /* Modular Type Scale */
-  --text-xs: 0.8rem;       /* 12.8px */
-  --text-sm: 1rem;         /* 16px */
-  --text-base: 1.125rem;   /* 18px - body text */
-  --text-lg: 1.5rem;       /* 24px - large text */
-  --text-xl: 2rem;         /* 32px - h3 */
-  --text-2xl: clamp(2.5rem, 5vw, 3.5rem);  /* 40-56px - h2 */
-  --text-3xl: clamp(3.5rem, 8vw, 6rem);    /* 56-96px - h1 */
-  
+  --text-xs: 0.8rem; /* 12.8px */
+  --text-sm: 1rem; /* 16px */
+  --text-base: 1.125rem; /* 18px - body text */
+  --text-lg: 1.5rem; /* 24px - large text */
+  --text-xl: 2rem; /* 32px - h3 */
+  --text-2xl: clamp(2.5rem, 5vw, 3.5rem); /* 40-56px - h2 */
+  --text-3xl: clamp(3.5rem, 8vw, 6rem); /* 56-96px - h1 */
+
   /* Spacing Scale (8px base) */
-  --space-xs: 0.5rem;      /* 8px */
-  --space-sm: 1rem;        /* 16px */
-  --space-md: 1.5rem;      /* 24px */
-  --space-lg: 2rem;        /* 32px */
-  --space-xl: 3rem;        /* 48px */
-  --space-2xl: 4rem;       /* 64px */
-  --space-3xl: 6rem;       /* 96px */
+  --space-xs: 0.5rem; /* 8px */
+  --space-sm: 1rem; /* 16px */
+  --space-md: 1.5rem; /* 24px */
+  --space-lg: 2rem; /* 32px */
+  --space-xl: 3rem; /* 48px */
+  --space-2xl: 4rem; /* 64px */
+  --space-3xl: 6rem; /* 96px */
   --space-4xl: clamp(5rem, 12vh, 12.5rem); /* 80-200px - section spacing */
-  
+
   /* Layout Proportions */
   --container-max: 1440px;
   --container-padding: clamp(1.5rem, 5vw, 3rem);
   --grid-gap: clamp(1.5rem, 3vw, 3rem);
   --card-padding: clamp(2rem, 4vw, 3rem);
-  
+
   /* Line Heights */
   --leading-tight: 1.1;
   --leading-normal: 1.5;
   --leading-relaxed: 1.6;
-  
+
   /* Animation Timings */
   --duration-fast: 0.3s;
   --duration-normal: 0.6s;
   --duration-slow: 1s;
-  
+
   /* Easing Functions */
-  --ease-smooth: cubic-bezier(0.4, 0.0, 0.2, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -107,7 +109,12 @@ body {
 }
 
 /* Typography Hierarchy */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-heading);
   font-weight: 700;
   line-height: var(--leading-tight);
@@ -140,7 +147,7 @@ p {
   .text-balance {
     text-wrap: balance;
   }
-  
+
   .container-custom {
     max-width: var(--container-max);
     margin-left: auto;
@@ -148,47 +155,48 @@ p {
     padding-left: var(--container-padding);
     padding-right: var(--container-padding);
   }
-  
+
   /* Hover lift effect for cards */
   .hover-lift {
     transition: transform var(--duration-fast) var(--ease-smooth),
-                box-shadow var(--duration-fast) var(--ease-smooth);
+      box-shadow var(--duration-fast) var(--ease-smooth);
   }
-  
+
   .hover-lift:hover {
     transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba(13, 56, 56, 0.15);
+    box-shadow: 0 20px 40px rgba(55, 145, 124, 0.15);
   }
-  
+
   /* Fade in animation */
   .fade-in {
     opacity: 0;
     transform: translateY(30px);
     transition: opacity var(--duration-normal) var(--ease-smooth),
-                transform var(--duration-normal) var(--ease-smooth);
+      transform var(--duration-normal) var(--ease-smooth);
   }
-  
+
   .fade-in.visible {
     opacity: 1;
     transform: translateY(0);
   }
-  
+
   /* Section spacing */
   .section-padding {
     padding-top: var(--space-4xl);
     padding-bottom: var(--space-4xl);
   }
-  
+
   /* Gradient animation for skeletons */
   @keyframes gradientShift {
-    0%, 100% {
+    0%,
+    100% {
       background-position: 0% 50%;
     }
     50% {
       background-position: 100% 50%;
     }
   }
-  
+
   .animate-gradientShift {
     animation: gradientShift 3s ease-in-out infinite;
   }
@@ -197,19 +205,19 @@ p {
 /* Responsive Typography */
 @media (max-width: 1024px) {
   :root {
-    --text-3xl: clamp(2.5rem, 10vw, 4rem);   /* Smaller on tablet */
+    --text-3xl: clamp(2.5rem, 10vw, 4rem); /* Smaller on tablet */
     --text-2xl: clamp(2rem, 6vw, 3rem);
   }
 }
 
 @media (max-width: 640px) {
   :root {
-    --text-3xl: clamp(2rem, 12vw, 2.5rem);   /* Even smaller on mobile */
+    --text-3xl: clamp(2rem, 12vw, 2.5rem); /* Even smaller on mobile */
     --text-2xl: clamp(1.75rem, 8vw, 2rem);
     --text-xl: 1.5rem;
     --text-base: 1rem;
   }
-  
+
   html {
     font-size: 14px; /* Slightly smaller base on mobile */
   }
