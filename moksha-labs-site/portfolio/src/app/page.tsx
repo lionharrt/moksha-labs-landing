@@ -86,7 +86,7 @@ export default function Home() {
         {/* Scenes */}
         <div className="relative">
           <HeroScene />
-          <PhilosophyScene />
+          {/* <PhilosophyScene /> */}
           {/* <ServicesScene />
           <WorkScene config={workScene1Config} project={workProjects[0]} />
           <WorkScene config={workScene2Config} project={workProjects[1]} />

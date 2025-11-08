@@ -1,79 +1,409 @@
-/**
- * Scene 1: Hero
- *
- * FIXED: Content always visible, simple animations
- */
-
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef, useMemo, useState, useLayoutEffect } from "react"; // Added useMemo
 import { useScene } from "../../hooks/useScene";
 import { heroSceneConfig } from "./HeroScene.config";
 import LotusFlower from "@/components/ui/LotusFlower";
+import { gsap } from "gsap"; // Ensure gsap/GSAPTimeline is imported
+import { useSmoothProgress } from "@/storyboard/hooks/useSmoothProgress";
+import bgImage from "@/media/BG.png";
+import { MotionPathPlugin } from "gsap/MotionPathPlugin";
+import { WaterSurface } from "@/components/ui/WaterSurface";
+gsap.registerPlugin(MotionPathPlugin);
+// Define the structure for clarity
+interface ProgressSegment {
+  start: number;
+  end: number;
+}
+
+const progressBreakup: Record<string, ProgressSegment> = {
+  // Total 10000vh scroll
+  // Intro (0% to 10% of total scroll)
+  entrance: { start: 0, end: 0.01 },
+  intro: { start: 0.01, end: 0.02 },
+  // Outro (60% to 100% of total scroll)
+  outro: { start: 0.02, end: 0.03 },
+  splitAndShrink: { start: 0.03, end: 0.04 },
+  aboutUsEntrance: { start: 0.04, end: 0.05 },
+  ourServicesEntrance: { start: 0.05, end: 0.06 },
+  ourWorkEntrance: { start: 0.06, end: 0.07 },
+  contactUsEntrance: { start: 0.07, end: 0.08 },
+};
+
+// --- Helper Function ---
+/**
+ * Maps the overall scene progress (0-1) to the local progress (0-1)
+ * of a specific segment defined in progressBreakup.
+ *
+ * @param overallProgress The progress from the useScene hook (0 to 1)
+ * @param segment Segment object with start and end normalized values
+ * @returns Local progress within the segment (0 to 1), or null if outside.
+ */
+const mapProgressToSegment = (
+  overallProgress: number,
+  segment: ProgressSegment
+): number | null => {
+  const { start, end } = segment;
+
+  if (overallProgress < start) {
+    return null; // Not in this segment
+  }
+
+  if (overallProgress > end) {
+    return 1; // Not in this segment
+  }
+
+  const segmentLength = end - start;
+  // Calculate local progress: (current - start) / total segment length
+  const localProgress = (overallProgress - start) / segmentLength;
+
+  return localProgress;
+};
+
+// Flower configuration with positions and progress keys
+const FLOWER_CONFIG = [
+  {
+    index: 0,
+    title: "Moksha Labs",
+    position: { x: 0, y: 300 }, // Center position
+    progressKey: "heroLotusProgress" as const,
+  },
+  {
+    index: 1,
+    title: "About Us",
+    position: { x: -800, y: 228 }, // Left side
+    progressKey: "aboutUsLotusProgress" as const,
+  },
+  {
+    index: 2,
+    title: "Our Services",
+    position: { x: -500, y: 397 }, // Left-center
+    progressKey: "ourServicesLotusProgress" as const,
+  },
+  {
+    index: 3,
+    title: "Our Work",
+    position: { x: 320, y: 195 }, // Right-center
+    progressKey: "ourWorkLotusProgress" as const,
+  },
+  {
+    index: 4,
+    title: "Contact Us",
+    position: { x: 800, y: 320 }, // Right side
+    progressKey: "contactUsLotusProgress" as const,
+  },
+] as const;
+
+const BASE_DESIGN_WIDTH = 1920;
+
+// Helper function to calculate responsive position
+const getResponsivePosition = (
+  basePosition: number,
+  viewportWidth: number = typeof window !== "undefined"
+    ? window.innerWidth
+    : BASE_DESIGN_WIDTH
+): number => {
+  return (basePosition / BASE_DESIGN_WIDTH) * viewportWidth;
+};
 
 export function HeroScene() {
   const { sceneRef, progress } = useScene(heroSceneConfig);
-  const lotusProgressRef = useRef(0);
-  const gradientProgress = progress * 200;
-  const timelineRef = useRef<GSAPTimeline | null>(null);
+  const [numberOfExtraFlowers, setNumberOfExtraFlowers] = useState(1);
 
-  useEffect(() => {
-    gsap.killTweensOf(".lotus-flower-container");
-    // when we reach 0.5 we want to animate the lotus flower to sway side to side
-    timelineRef.current = gsap.timeline({
-      paused: true,
-      repeat: -1,
-      yoyo: true,
-    });
-    timelineRef.current.fromTo(
-      ".lotus-flower-container",
-      {
-        rotation: -2.5,
-      },
-      {
-        rotation: 2.5,
-        duration: 0.5,
-        ease: "power1.inOut",
-      }
+  const splitAndShrinkTimeline = useRef<GSAPTimeline | null>(null);
+  const entranceTimeline = useRef<GSAPTimeline | null>(null);
+  const aboutUsEntranceTimeline = useRef<GSAPTimeline | null>(null);
+  // --- Calculate Mapped Progress Values ---
+  // Use useMemo to re-calculate only when 'progress' changes
+  const mappedProgress = useMemo(() => {
+    // 1. Lotus Animation Progress (e.g., scale up/down)
+    // We want the lotus to be animated during 'intro' and reverse during 'outro'.
+    const introProgress = mapProgressToSegment(progress, progressBreakup.intro);
+    const outroProgress = mapProgressToSegment(progress, progressBreakup.outro);
+    const entranceProgress = mapProgressToSegment(
+      progress,
+      progressBreakup.entrance
     );
-    timelineRef.current?.progress(0.5);
+    const splitAndShrinkProgress = mapProgressToSegment(
+      progress,
+      progressBreakup.splitAndShrink
+    );
+    const aboutUsEntranceProgress = mapProgressToSegment(
+      progress,
+      progressBreakup.aboutUsEntrance
+    );
+    const ourServicesEntranceProgress = mapProgressToSegment(
+      progress,
+      progressBreakup.ourServicesEntrance
+    );
+    const ourWorkEntranceProgress = mapProgressToSegment(
+      progress,
+      progressBreakup.ourWorkEntrance
+    );
+    const contactUsEntranceProgress = mapProgressToSegment(
+      progress,
+      progressBreakup.contactUsEntrance
+    );
+
+    let heroLotusProgress = 0;
+    let aboutUsLotusProgress = 0;
+    let ourServicesLotusProgress = 0;
+    let ourWorkLotusProgress = 0;
+    let contactUsLotusProgress = 0;
+
+    if (introProgress !== null && introProgress !== 1) {
+      heroLotusProgress = introProgress;
+    }
+
+    if (outroProgress !== null && outroProgress !== 1) {
+      heroLotusProgress = 1 - outroProgress;
+    }
+
+    //for transition if intro 1 and outro null then lotusProgress = 1
+    if (introProgress === 1 && outroProgress === null) {
+      heroLotusProgress = 1;
+    }
+
+    if (introProgress === 1 && outroProgress === 1) {
+      heroLotusProgress = 0;
+    }
+
+    if (aboutUsEntranceProgress !== null && aboutUsEntranceProgress !== 1) {
+      aboutUsLotusProgress = aboutUsEntranceProgress;
+    } else if (aboutUsEntranceProgress === 1) {
+      aboutUsLotusProgress = 1;
+    }
+
+    if (
+      ourServicesEntranceProgress !== null &&
+      ourServicesEntranceProgress !== 1
+    ) {
+      ourServicesLotusProgress = ourServicesEntranceProgress;
+    } else if (ourServicesEntranceProgress === 1) {
+      ourServicesLotusProgress = 1;
+    }
+
+    if (ourWorkEntranceProgress !== null && ourWorkEntranceProgress !== 1) {
+      ourWorkLotusProgress = ourWorkEntranceProgress;
+    } else if (ourWorkEntranceProgress === 1) {
+      ourWorkLotusProgress = 1;
+    }
+
+    if (contactUsEntranceProgress !== null && contactUsEntranceProgress !== 1) {
+      contactUsLotusProgress = contactUsEntranceProgress;
+    } else if (contactUsEntranceProgress === 1) {
+      contactUsLotusProgress = 1;
+    }
+
+    return {
+      entranceProgress,
+      aboutUsLotusProgress,
+      ourServicesLotusProgress,
+      ourWorkLotusProgress,
+      contactUsLotusProgress,
+      heroLotusProgress,
+      splitAndShrinkProgress,
+      aboutUsEntranceProgress,
+      ourServicesEntranceProgress,
+      ourWorkEntranceProgress,
+      contactUsEntranceProgress,
+    };
+  }, [progress]);
+
+  // Destructure for cleaner access in the render and effects
+  const {
+    entranceProgress,
+    heroLotusProgress,
+    aboutUsLotusProgress,
+    ourServicesLotusProgress,
+    ourWorkLotusProgress,
+    contactUsLotusProgress,
+    splitAndShrinkProgress,
+    aboutUsEntranceProgress,
+  } = mappedProgress;
+  //Entrace scale up and fall from the top
+  useLayoutEffect(() => {
+    gsap.set(".lotus-flower-container-0", {
+      scale: 0.001,
+      x: 0,
+      y: -500,
+      z: -1000,
+      opacity: 0,
+    });
+
+    entranceTimeline.current = gsap.timeline({
+      paused: true,
+    });
+
+    entranceTimeline.current?.fromTo(
+      ".lotus-flower-container-0",
+      // FROM: (Start way up and small)
+      { scale: 0.001, x: 0, y: -500, z: -1000, opacity: 0 },
+      // TO: (The main flight)
+      {
+        scale: 2.5,
+        opacity: 1,
+        z: 0,
+        ease: "sine.in", // Use an ease that simulates gravity, like power1.in
+        force3D: true,
+        x: 0,
+        y: 0,
+      },
+      0
+    );
+
+    // Cleanup function
     return () => {
-      timelineRef.current?.kill();
+      entranceTimeline.current?.kill();
     };
   }, []);
 
-  useEffect(() => {
-    if (progress < 0.25) {
-      lotusProgressRef.current = progress / 0.25;
-    }
-    if (progress > 0.25 && progress < 0.5) {
-      //lotus should be reversed so that 0.5 === 0 and 0.25 === 1
-      lotusProgressRef.current = 1 - (progress - 0.25) / 0.25;
-    }
-    if (progress > 0.5) {
-      timelineRef.current?.play();
+  // Split and shrink - set the number of flowers to 5
+  useLayoutEffect(() => {
+    if (splitAndShrinkProgress !== null) {
+      setNumberOfExtraFlowers(4);
     } else {
-      timelineRef.current?.restart();
-      timelineRef.current?.progress(0.5);
-      timelineRef.current?.pause();
+      setNumberOfExtraFlowers(0);
     }
-  }, [progress]);
+  }, [splitAndShrinkProgress]);
 
+  useLayoutEffect(() => {
+    if (numberOfExtraFlowers > 0) {
+      // 1. Create a single array of ALL flower selectors
+      const targets = Array.from(
+        { length: numberOfExtraFlowers + 1 },
+        (_, i) => `.lotus-flower-container-${i}`
+      );
+
+      splitAndShrinkTimeline.current = gsap.timeline({
+        paused: true,
+      });
+
+      // Set z-index immediately: index 0 on top, others below
+      gsap.set(".lotus-flower-container-0", { zIndex: 10 });
+      targets.slice(1).forEach((selector) => {
+        gsap.set(selector, { zIndex: 1 });
+      });
+
+      // Helper function to calculate scale based on Y position
+      const calculateScale = (yPosition: number) => {
+        // Define the actual range of Y positions for the flowers
+        const MIN_Y = 195; // Closest to y=0 (should get min scale)
+        const MAX_Y = 397; // Farthest from y=0 (should get max scale)
+
+        // Normalize Y position within the actual range: 0 (closest) to 1 (farthest)
+        const yFactor = Math.min(
+          Math.max((yPosition - MIN_Y) / (MAX_Y - MIN_Y), 0),
+          1
+        );
+
+        // Scale: 0.25 when close to y=0 (yFactor=0), increasing to 0.4 when far (yFactor=1)
+        return 0.25 + 0.15 * yFactor;
+      };
+
+      // 2. Use a single fromTo call with the targets array
+      const viewportWidth =
+        typeof window !== "undefined" ? window.innerWidth : BASE_DESIGN_WIDTH;
+
+      splitAndShrinkTimeline.current?.fromTo(
+        targets, // <-- Target is the array of all elements
+        {
+          scale: 2.5,
+          x: 0,
+          y: 0,
+          transformOrigin: "50% 50%", // Explicitly set center origin
+          zIndex: (i) => (i === 0 ? 10 : 1), // Index 0 on top, others below
+        },
+        {
+          scale: (i) => {
+            const flowerConfig = FLOWER_CONFIG[i];
+            return flowerConfig
+              ? calculateScale(flowerConfig.position.y)
+              : 0.33;
+          },
+          transformOrigin: "50% 50%", // Keep center origin when scaling
+          zIndex: (i) => (i === 0 ? 10 : 1), // Keep index 0 on top throughout
+          motionPath: {
+            path: (i) => {
+              const flowerConfig = FLOWER_CONFIG[i];
+              if (!flowerConfig) return "M 0,0";
+
+              const startX = 0;
+              const startY = 0;
+              const endX = getResponsivePosition(
+                flowerConfig.position.x,
+                viewportWidth
+              );
+              const endY = flowerConfig.position.y;
+
+              // Create a downward parabolic Bezier curve with early curve start
+              // First control point stays close to x:0 but curves up dramatically
+              const control1X = startX + (endX - startX) * 0.05; // Only 5% along x-axis - keeps beginning close to x:0
+              const control1Y = startY - 150; // Strong upward curve from the start
+
+              // Second control point creates the swoosh down
+              const control2X = startX + (endX - startX) * 0.5; // Midpoint for smooth transition
+              const control2Y = endY + 100; // Curve downward toward end
+
+              // Cubic Bezier curve: M start, C control1, control2, end
+              return `M ${startX},${startY} C ${control1X},${control1Y} ${control2X},${control2Y} ${endX},${endY}`;
+            },
+            autoRotate: false,
+          },
+          stagger: (i) => {
+            // Index 0 goes last, others stagger normally
+            if (i === 0) {
+              return numberOfExtraFlowers * 0.1; // Delay index 0 to be last
+            }
+            return (i - 1) * 0.1; // Stagger indices 1-4 normally
+          },
+          ease: "expo.out",
+          force3D: true,
+        },
+        0
+      );
+    }
+    return () => {
+      splitAndShrinkTimeline.current?.kill();
+    };
+  }, [numberOfExtraFlowers]);
+
+  useSmoothProgress(splitAndShrinkTimeline.current, splitAndShrinkProgress);
+
+  useSmoothProgress(entranceTimeline.current, entranceProgress);
   return (
     <section
       ref={sceneRef}
       id={heroSceneConfig.id}
       data-scene={heroSceneConfig.id}
       style={{ transform: "none !important" }}
-      className="relative h-screen overflow-hidden"
+      className="relative h-screen overflow-hidden hero-scene-container"
     >
       <div
-        className="absolute inset-0 w-full h-full flex items-center justify-center"
+        className="absolute inset-0 bg-cover bg-center"
         style={{
-          background: `linear-gradient(${gradientProgress}deg, var(--brand-teal-dark) 0%, var(--brand-teal) 25%, var(--brand-saffron-dark) 50%, var(--brand-teal) 75%, var(--brand-teal-dark) 100%)`,
+          //moksha-labs-site/portfolio/src/media/BG.png
+          backgroundImage: `url(${bgImage.src})`,
+          backgroundSize: "cover",
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "50% 175%",
         }}
-      ></div>
-      <LotusFlower progress={lotusProgressRef.current} withTitle />
+      />
+      <WaterSurface />
+      {/* Render flowers based on configuration */}
+      {FLOWER_CONFIG.slice(0, numberOfExtraFlowers + 1).map((flower) => (
+        <LotusFlower
+          key={flower.index}
+          progress={mappedProgress[flower.progressKey]}
+          phase={
+            flower.index === 0 ? 1 : splitAndShrinkProgress !== null ? 2 : 1
+          }
+          index={flower.index}
+          title={flower.title}
+          splitProgress={splitAndShrinkProgress}
+          finalYPosition={flower.position.y}
+        />
+      ))}
     </section>
   );
 }

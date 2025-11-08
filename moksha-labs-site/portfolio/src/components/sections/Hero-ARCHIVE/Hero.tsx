@@ -1,14 +1,17 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
-import { useStore } from '@/stores/useStore';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import dynamic from 'next/dynamic';
+import { useEffect, useRef, useState } from "react";
+import { useStore } from "@/stores/useStore";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import dynamic from "next/dynamic";
 
-import { TextSwitcher } from './TextSwitcher';
+import { TextSwitcher } from "./TextSwitcher";
 
-const DynamicEffectSwitcher = dynamic(() => import('./EffectSwitcher').then(mod => mod.EffectSwitcher), { ssr: false });
+const DynamicEffectSwitcher = dynamic(
+  () => import("./EffectSwitcher").then((mod) => mod.EffectSwitcher),
+  { ssr: false }
+);
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -24,7 +27,12 @@ export function Hero() {
   const setCurrentSection = useStore((state) => state.setCurrentSection);
 
   useEffect(() => {
-    if (!sectionRef.current || !scrollIndicatorRef.current || !canvasContainerRef.current) return;
+    if (
+      !sectionRef.current ||
+      !scrollIndicatorRef.current ||
+      !canvasContainerRef.current
+    )
+      return;
 
     const ctx = gsap.context(() => {
       // Scroll indicator bounces
@@ -33,21 +41,21 @@ export function Hero() {
         duration: 0.8,
         repeat: -1,
         yoyo: true,
-        ease: 'power1.inOut',
+        ease: "power1.inOut",
       });
 
       // SCRUB ANIMATION - tied to scroll position
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
-          start: 'top top',
-          end: '+=1000vh', // HUGE scroll distance so text has room to breathe after appearing
+          start: "top top",
+          end: "+=1000vh", // HUGE scroll distance so text has room to breathe after appearing
           scrub: 0.5, // Tight scrubbing for instant response
           pin: true,
           anticipatePin: 1,
           onUpdate: (self) => {
             const rawProgress = self.progress; // 0-1 across entire Hero
-            
+
             // Map rawProgress to fade progress (0-10%)
             // This is passed to effects that need fade-in (wireframe, lotus)
             let fadeOpacity = 0;
@@ -57,13 +65,18 @@ export function Hero() {
               fadeOpacity = 1;
             }
             setFadeProgress(fadeOpacity);
-            
-            console.log('Hero scroll progress:', rawProgress.toFixed(3), '| Fade:', fadeOpacity.toFixed(3));
-            
+
+            console.log(
+              "Hero scroll progress:",
+              rawProgress.toFixed(3),
+              "| Fade:",
+              fadeOpacity.toFixed(3)
+            );
+
             // Timeline for Glass DNA:
             // HELIX: 0-10% fade in, 10-100% build/break
             // TEXT: 10-30% fade in (reaches peak at middle of helix), 30-85% HOLD, 85-100% fade out
-            
+
             // Map rawProgress to shape break phase (helix lifecycle)
             let breakProgress = 0;
             if (rawProgress < 0.1) {
@@ -72,7 +85,7 @@ export function Hero() {
               breakProgress = (rawProgress - 0.1) / 0.9;
             }
             setShapeBreakProgress(breakProgress);
-            
+
             // Map rawProgress to text animation phase
             let textProgress = 0;
             if (rawProgress < 0.1) {
@@ -90,7 +103,7 @@ export function Hero() {
             }
             setTextAnimationProgress(textProgress);
           },
-        }
+        },
       });
 
       // TIMELINE (for Glass DNA):
@@ -101,21 +114,25 @@ export function Hero() {
       //
       // breakProgress: 0-1 controls helix lifecycle
       // textAnimationProgress: 0-1 controls text phases
-      
+
       // Fade out scroll indicator as soon as scroll starts
-      tl.to(scrollIndicatorRef.current, {
-        opacity: 0,
-        duration: 0.1,
-        ease: 'none',
-      }, 0);
+      tl.to(
+        scrollIndicatorRef.current,
+        {
+          opacity: 0,
+          duration: 0.1,
+          ease: "none",
+        },
+        0
+      );
 
       // Section tracking
       ScrollTrigger.create({
         trigger: sectionRef.current,
-        start: 'top center',
-        end: 'bottom center',
-        onEnter: () => setCurrentSection('hero'),
-        onEnterBack: () => setCurrentSection('hero'),
+        start: "top center",
+        end: "bottom center",
+        onEnter: () => setCurrentSection("hero"),
+        onEnterBack: () => setCurrentSection("hero"),
       });
     }, sectionRef);
 
@@ -123,39 +140,38 @@ export function Hero() {
   }, [setCurrentSection]);
 
   return (
-    <section 
+    <section
       ref={sectionRef}
       id="hero"
       className="relative h-screen flex items-center justify-center bg-brand-teal-dark overflow-hidden"
       data-section="hero"
     >
       {/* 3D Canvas - Behind text */}
-      <div 
-        ref={canvasContainerRef}
-        className="absolute inset-0 z-0"
-      >
-        <DynamicEffectSwitcher 
-          breakProgress={shapeBreakProgress} 
+      <div ref={canvasContainerRef} className="absolute inset-0 z-0">
+        <DynamicEffectSwitcher
+          breakProgress={shapeBreakProgress}
           fadeProgress={fadeProgress}
         />
       </div>
 
       {/* Text Content - In front */}
-      <TextSwitcher 
-        titleRef={titleRef} 
-        subtitleRef={subtitleRef} 
+      <TextSwitcher
+        titleRef={titleRef}
+        subtitleRef={subtitleRef}
         animationProgress={textAnimationProgress}
       />
 
       {/* Scroll Indicator */}
-      <div 
+      <div
         ref={scrollIndicatorRef}
         className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2"
       >
         <div className="w-6 h-10 border-2 border-brand-saffron/40 rounded-full flex items-start justify-center p-2">
           <div className="w-1 h-2 bg-brand-saffron rounded-full" />
         </div>
-        <span className="text-brand-saffron/60 text-xs uppercase tracking-wider">Scroll</span>
+        <span className="text-brand-saffron/60 text-xs uppercase tracking-wider">
+          Scroll
+        </span>
       </div>
     </section>
   );
