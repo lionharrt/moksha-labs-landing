@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useMemo, useState, useLayoutEffect } from "react"; // Added useMemo
+import { useRef, useMemo, useState, useLayoutEffect, useCallback } from "react"; // Added useMemo
 import { useScene } from "../../hooks/useScene";
 import { heroSceneConfig } from "./HeroScene.config";
 import LotusFlower from "@/components/ui/LotusFlower";
@@ -8,7 +8,7 @@ import { gsap } from "gsap"; // Ensure gsap/GSAPTimeline is imported
 import { useSmoothProgress } from "@/storyboard/hooks/useSmoothProgress";
 import bgImage from "@/media/BG.png";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
-import { WaterSurface } from "@/components/ui/WaterSurface";
+import { WaterSurface, WaterSurfaceRef } from "@/components/ui/WaterSurface";
 gsap.registerPlugin(MotionPathPlugin);
 // Define the structure for clarity
 interface ProgressSegment {
@@ -109,6 +109,7 @@ const getResponsivePosition = (
 export function HeroScene() {
   const { sceneRef, progress } = useScene(heroSceneConfig);
   const [numberOfExtraFlowers, setNumberOfExtraFlowers] = useState(1);
+  const waterSurfaceRef = useRef<WaterSurfaceRef>(null);
 
   const splitAndShrinkTimeline = useRef<GSAPTimeline | null>(null);
   const entranceTimeline = useRef<GSAPTimeline | null>(null);
@@ -221,6 +222,32 @@ export function HeroScene() {
     splitAndShrinkProgress,
     aboutUsEntranceProgress,
   } = mappedProgress;
+
+  const isFlowerInPhase2 = useCallback(
+    (index: number) => {
+      switch (index) {
+        case 0:
+          return heroLotusProgress === 1;
+        case 1:
+          return aboutUsLotusProgress === 1;
+        case 2:
+          return ourServicesLotusProgress === 1;
+        case 3:
+          return ourWorkLotusProgress === 1;
+        case 4:
+          return contactUsLotusProgress === 1;
+        default:
+          return false;
+      }
+    },
+    [
+      heroLotusProgress,
+      aboutUsLotusProgress,
+      ourServicesLotusProgress,
+      ourWorkLotusProgress,
+      contactUsLotusProgress,
+    ]
+  );
   //Entrace scale up and fall from the top
   useLayoutEffect(() => {
     gsap.set(".lotus-flower-container-0", {
@@ -371,6 +398,74 @@ export function HeroScene() {
   useSmoothProgress(splitAndShrinkTimeline.current, splitAndShrinkProgress);
 
   useSmoothProgress(entranceTimeline.current, entranceProgress);
+
+  // Subtle bobbing and swaying animation for flowers in water
+  useLayoutEffect(() => {
+    // Only animate if flowers are positioned (hero flower is open OR split has started)
+    if (heroLotusProgress < 1 && splitAndShrinkProgress === null) return;
+
+    const targets = Array.from(
+      { length: numberOfExtraFlowers + 1 },
+      (_, i) => `.lotus-flower-container-${i}`
+    );
+
+    targets.forEach((selector, index) => {
+      // Create unique animation for each flower with slight variations
+      const verticalBob = 5 + index * 0.2; // 1.5-2.5px vertical movement
+      const duration = 3 + index * 0.3; // 3-4.2 seconds per cycle
+      const delay = index * 0.2; // Stagger start times slightly
+
+      // Get flower config for ripple emission
+      const flower = FLOWER_CONFIG[index];
+      if (!flower) return;
+
+      // Vertical bobbing (up and down) with ripple emission at lowest point
+      // GSAP yoyo: goes down (0->amplitude), then up (amplitude->0)
+      // Lowest point is at the end of the first tween (when it completes)
+      const verticalTimeline = gsap.timeline({ repeat: -1, delay: delay });
+      verticalTimeline.to(selector, {
+        y: `+=${verticalBob}`,
+        duration: duration / 2,
+        ease: "sine.inOut",
+        onComplete: function () {
+          // This fires when flower reaches lowest point (end of downward motion)
+          if (waterSurfaceRef.current && splitAndShrinkProgress === 1) {
+            const phase = isFlowerInPhase2(flower.index) ? 2 : 1;
+
+            // Get the actual DOM element - its position already includes all GSAP transforms
+            const element = document.querySelector(selector) as HTMLElement;
+            if (element && waterSurfaceRef.current) {
+              // Pass the element directly - WaterSurface will use getBoundingClientRect()
+              // This automatically accounts for all transforms (bob, motion path)
+              waterSurfaceRef.current.emitRippleFromElement(
+                index,
+                element,
+                phase
+              );
+            }
+          }
+        },
+      });
+      verticalTimeline.to(selector, {
+        y: `-=${verticalBob}`,
+        duration: duration / 2,
+        ease: "sine.inOut",
+      });
+    });
+
+    return () => {
+      // Cleanup: kill all bobbing animations (only vertical now)
+      targets.forEach((selector) => {
+        gsap.killTweensOf(selector, "y");
+      });
+    };
+  }, [
+    numberOfExtraFlowers,
+    splitAndShrinkProgress,
+    heroLotusProgress,
+    isFlowerInPhase2,
+  ]);
+
   return (
     <section
       ref={sceneRef}
@@ -389,7 +484,27 @@ export function HeroScene() {
           backgroundPosition: "50% 175%",
         }}
       />
-      <WaterSurface />
+      <WaterSurface
+        ref={waterSurfaceRef}
+        flowerPositions={FLOWER_CONFIG.slice(0, numberOfExtraFlowers + 1).map(
+          (flower, index) => {
+            // Match the bobbing parameters from the animation
+            const verticalBob = 5 + index * 0.2;
+            const duration = 3 + index * 0.3;
+            const delay = index * 0.2;
+
+            return {
+              x: flower.position.x,
+              y: flower.position.y,
+              phase: isFlowerInPhase2(flower.index) ? 2 : 1,
+              verticalBob,
+              bobDuration: duration / 2, // Vertical bob uses half duration
+              bobDelay: delay,
+            };
+          }
+        )}
+        splitAndShrinkProgress={splitAndShrinkProgress}
+      />
       {/* Render flowers based on configuration */}
       {FLOWER_CONFIG.slice(0, numberOfExtraFlowers + 1).map((flower) => (
         <LotusFlower
