@@ -1,52 +1,67 @@
-/**
- * Main Page
- * Production-ready Three.js playground with best practices
- */
+"use client";
 
-'use client';
-
-import { Canvas } from '@react-three/fiber';
-import { useLenis } from '@/hooks/useLenis';
-import { siteConfig } from '@/config/site';
-import { SceneContent } from '@/components/canvas/SceneContent';
+import SVGWorkspace from "./components/SVGWorkspace";
+import { useScrollProgress } from "./hooks/useScrollProgress";
 
 export default function Home() {
-  // Initialize smooth scroll
-  useLenis();
+  const scrollProgress = useScrollProgress();
 
   return (
-    <>
-      {/* Fixed 3D Canvas */}
-      <Canvas
-        camera={{ 
-          position: [0, 0, 15], 
-          fov: 75,
-          near: 0.1,
-          far: 5000, // Extended for deep space scenes
-        }}
-        dpr={[
-          siteConfig.performance.pixelRatio.min,
-          siteConfig.performance.pixelRatio.max,
-        ]}
-        gl={{
-          antialias: true,
-          powerPreference: 'high-performance',
-        }}
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          background: '#000000',
-          zIndex: 0,
-        }}
-      >
-        <SceneContent />
-      </Canvas>
+    <main
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100vh",
+        overflow: "hidden",
+        zIndex: 10,
+        pointerEvents: "none",
+      }}
+    >
+      <div style={{ pointerEvents: "auto" }}>
+        {/* Scroll progress indicator */}
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "4px",
+            backgroundColor: "rgba(0, 0, 0, 0.1)",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              width: `${scrollProgress * 100}%`,
+              height: "100%",
+              backgroundColor: "#0070f3",
+              transition: "width 0.1s ease",
+            }}
+          />
+        </div>
 
-      {/* Scrollable spacer - drives camera animation */}
-      <div style={{ height: '300vh', position: 'relative', zIndex: 1 }} />
-    </>
+        {/* Scroll progress value display */}
+        <div
+          style={{
+            position: "fixed",
+            top: "20px",
+            right: "20px",
+            padding: "10px 15px",
+            backgroundColor: "rgba(0, 0, 0, 0.8)",
+            color: "#fff",
+            borderRadius: "8px",
+            fontFamily: "monospace",
+            fontSize: "14px",
+            zIndex: 1000,
+          }}
+        >
+          Scroll: {(scrollProgress * 100).toFixed(1)}%
+        </div>
+
+        <SVGWorkspace scrollProgress={scrollProgress} />
+      </div>
+    </main>
   );
 }
