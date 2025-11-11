@@ -13,7 +13,6 @@ import MountainBackground from "@/components/ui/MountainBackground";
 import { useLighting } from "@/hooks/useLighting";
 import LightingControls from "@/components/ui/LightingControls";
 import AtmosphericEffects from "@/components/ui/AtmosphericEffects";
-import { PerformanceStats } from "@/components/ui/PerformanceStats";
 import {
   PerformancePreloader,
   PreloadedData,
@@ -605,9 +604,6 @@ export function HeroScene() {
             />
           ))}
         </div>
-
-        {/* Performance Stats Overlay */}
-        <PerformanceStats enabled={true} position="top-right" />
       </section>
     </>
   );
