@@ -854,6 +854,8 @@ export function HeroScene() {
             isDaytime={lightPositions.isDaytime}
             moonPhase={lightPositions.moonPhase}
             skyColor={lightingState.skyColor}
+            lightingConfigRef={lightingConfigRef}
+            preloadedDataRef={preloadedDataRef}
           />
         </div>
 

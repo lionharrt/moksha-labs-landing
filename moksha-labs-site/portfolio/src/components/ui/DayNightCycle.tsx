@@ -1,10 +1,20 @@
 "use client";
 
-import { useMemo, useRef, useEffect, memo, useLayoutEffect } from "react";
+import {
+  useMemo,
+  useRef,
+  useEffect,
+  memo,
+  useLayoutEffect,
+  useCallback,
+} from "react";
 import Sun from "./Sun";
 import Moon from "./Moon";
 import { performanceLogger } from "@/utils/performanceLogger";
 import { calculateLightPosition } from "@/utils/lightPosition";
+import { calculateLightingState } from "@/utils/calculateLightingState";
+import { LightingConfig } from "@/hooks/useLighting";
+import { PreloadedData, getColorFromLUT } from "@/utils/performancePreloader";
 
 interface DayNightCycleProps {
   progressRef: React.MutableRefObject<number>;
@@ -14,7 +24,9 @@ interface DayNightCycleProps {
   }>;
   isDaytime: boolean;
   moonPhase: number;
-  skyColor?: string; // Optional sky color from lighting system
+  skyColor?: string; // Optional sky color from lighting system (fallback)
+  lightingConfigRef?: React.MutableRefObject<LightingConfig>; // For direct color calculation
+  preloadedDataRef?: React.MutableRefObject<PreloadedData | null>; // For color LUT lookup
 }
 
 function DayNightCycle({
@@ -23,6 +35,8 @@ function DayNightCycle({
   isDaytime,
   moonPhase,
   skyColor,
+  lightingConfigRef,
+  preloadedDataRef,
 }: DayNightCycleProps) {
   performanceLogger.logRender("DayNightCycle", {
     isDaytime,
@@ -37,11 +51,41 @@ function DayNightCycle({
   // This prevents expensive React reconciliation on every progress change
   const sunContainerRef = useRef<HTMLDivElement>(null);
   const moonContainerRef = useRef<HTMLDivElement>(null);
+  const backgroundRef = useRef<HTMLDivElement>(null);
   const lastSunPositionRef = useRef({ x: 0, y: 0 });
   const lastMoonPositionRef = useRef({ x: 0, y: 0 });
   const lastSunOpacityRef = useRef(0);
   const lastMoonOpacityRef = useRef(0);
+  const lastGradientRef = useRef("");
   const rafIdRef = useRef<number | null>(null);
+
+  // CRITICAL: Store skyColor in ref and smoothly interpolate to prevent flashing
+  // The prop updates discretely, but we interpolate smoothly in RAF loop
+  const skyColorRef = useRef<[number, number, number] | null>(null);
+  const targetSkyColorRef = useRef<[number, number, number] | null>(null);
+  const colorTransitionStartTimeRef = useRef<number | null>(null);
+  const colorTransitionDurationRef = useRef<number>(3000); // 3 seconds for smooth transition
+
+  // Parse color helper (moved outside render to avoid re-creation)
+  const parseColor = useCallback((color: string): [number, number, number] => {
+    if (color.startsWith("rgb")) {
+      const match = color.match(/\d+/g);
+      if (match) {
+        return [parseInt(match[0]), parseInt(match[1]), parseInt(match[2])];
+      }
+    } else if (color.startsWith("#")) {
+      const hex = color.slice(1);
+      return [
+        parseInt(hex.slice(0, 2), 16),
+        parseInt(hex.slice(2, 4), 16),
+        parseInt(hex.slice(4, 6), 16),
+      ];
+    }
+    return [135, 206, 235]; // Default sky blue
+  }, []);
+
+  // CRITICAL: Calculate sky color directly from progressRef in RAF loop
+  // This ensures smooth, continuous color transitions without discrete jumps
 
   // CRITICAL: Calculate moonPhase internally from progressRef for smooth updates
   // This prevents stuttering caused by throttled progress prop updates
@@ -206,6 +250,88 @@ function DayNightCycle({
         }
       }
 
+      // CRITICAL: Calculate sky color directly from progressRef for smooth transitions
+      // This prevents discrete jumps from prop updates
+      let calculatedSkyColor: string | null = null;
+
+      if (lightingConfigRef?.current && preloadedDataRef?.current) {
+        // Use color lookup table for fast, smooth color calculation
+        const cycleProgress = (progress * 28) % 1;
+        calculatedSkyColor = getColorFromLUT(
+          preloadedDataRef.current.colorLUT,
+          cycleProgress,
+          "sky"
+        );
+      } else if (lightingConfigRef?.current) {
+        // Fallback: calculate directly using lighting state
+        const lightingState = calculateLightingState(
+          progress,
+          lightingConfigRef.current,
+          viewportWidth,
+          viewportHeight
+        );
+        calculatedSkyColor = lightingState.skyColor;
+      } else if (skyColor) {
+        // Final fallback: use prop (but this will be discrete)
+        calculatedSkyColor = skyColor;
+      }
+
+      // Update gradient smoothly if we have a calculated color
+      if (calculatedSkyColor && backgroundRef.current) {
+        const newColor = parseColor(calculatedSkyColor);
+
+        // Update target color (this will smoothly interpolate)
+        if (
+          !targetSkyColorRef.current ||
+          newColor[0] !== targetSkyColorRef.current[0] ||
+          newColor[1] !== targetSkyColorRef.current[1] ||
+          newColor[2] !== targetSkyColorRef.current[2]
+        ) {
+          targetSkyColorRef.current = newColor;
+          // Initialize current color if not set
+          if (!skyColorRef.current) {
+            skyColorRef.current = newColor;
+          }
+        }
+
+        // Smooth interpolation between current and target
+        if (skyColorRef.current && targetSkyColorRef.current) {
+          const current = skyColorRef.current;
+          const target = targetSkyColorRef.current;
+
+          // Use very slow interpolation for smooth transitions (no time-based, just gradual)
+          const lerpFactor = 0.02; // Very slow - 2% per frame
+
+          // Interpolate each RGB component smoothly
+          const r = Math.round(
+            current[0] + (target[0] - current[0]) * lerpFactor
+          );
+          const g = Math.round(
+            current[1] + (target[1] - current[1]) * lerpFactor
+          );
+          const b = Math.round(
+            current[2] + (target[2] - current[2]) * lerpFactor
+          );
+
+          // Update current color for next frame
+          skyColorRef.current = [r, g, b];
+
+          // Create gradient with smooth color stops
+          const topColor = `rgb(${r}, ${g}, ${b})`;
+          const midColor = `rgba(${r}, ${g}, ${b}, 0.85)`;
+          const bottomColor = `rgba(${Math.min(255, r + 40)}, ${Math.min(
+            255,
+            g + 40
+          )}, ${Math.min(255, b + 40)}, 0.6)`;
+
+          const newGradient = `linear-gradient(to bottom, ${topColor} 0%, ${midColor} 50%, ${bottomColor} 100%)`;
+
+          // Always update (smooth interpolation means it changes every frame)
+          backgroundRef.current.style.background = newGradient;
+          lastGradientRef.current = newGradient;
+        }
+      }
+
       rafIdRef.current = requestAnimationFrame(updatePositions);
     };
 
@@ -216,64 +342,73 @@ function DayNightCycle({
         cancelAnimationFrame(rafIdRef.current);
       }
     };
-  }, [progressRef, viewportDimensionsRef]); // Only re-run if refs change (they shouldn't)
+  }, [
+    progressRef,
+    viewportDimensionsRef,
+    lightingConfigRef,
+    preloadedDataRef,
+    parseColor,
+    skyColor,
+  ]); // Refs are stable, parseColor is useCallback, skyColor is fallback only
 
   // Calculate background gradient colors - memoized to avoid recalculation on every render
-  // const skyGradient = useMemo(() => {
-  //   // Default gradients if no lighting system or during transitions
-  //   if (!skyColor) {
-  //     if (isDaytime) {
-  //       // Day gradient: bright blue sky to lighter blue/white horizon
-  //       return "linear-gradient(to bottom, #87CEEB 0%, #B0E0E6 50%, #E0F6FF 100%)";
-  //     } else {
-  //       // Night gradient: deep blue/purple to dark horizon
-  //       return "linear-gradient(to bottom, #0B1026 0%, #1A1A3E 50%, #2A2A5E 100%)";
-  //     }
-  //   }
+  const skyGradient = useCallback(() => {
+    // Default gradients if no lighting system or during transitions
+    if (!skyColor) {
+      if (isDaytime) {
+        // Day gradient: bright blue sky to lighter blue/white horizon
+        return "linear-gradient(to bottom, #87CEEB 0%, #B0E0E6 50%, #E0F6FF 100%)";
+      } else {
+        // Night gradient: deep blue/purple to dark horizon
+        return "linear-gradient(to bottom, #0B1026 0%, #1A1A3E 50%, #2A2A5E 100%)";
+      }
+    }
 
-  //   // If skyColor is provided by lighting system, use it
-  //   // Convert hex/rgb to proper format and create gradient
-  //   const parseColor = (color: string): [number, number, number] => {
-  //     if (color.startsWith("rgb")) {
-  //       const match = color.match(/\d+/g);
-  //       if (match) {
-  //         return [parseInt(match[0]), parseInt(match[1]), parseInt(match[2])];
-  //       }
-  //     } else if (color.startsWith("#")) {
-  //       const hex = color.slice(1);
-  //       return [
-  //         parseInt(hex.slice(0, 2), 16),
-  //         parseInt(hex.slice(2, 4), 16),
-  //         parseInt(hex.slice(4, 6), 16),
-  //       ];
-  //     }
-  //     return [135, 206, 235]; // Default sky blue
-  //   };
+    // If skyColor is provided by lighting system, use it
+    // Convert hex/rgb to proper format and create gradient
+    const parseColor = (color: string): [number, number, number] => {
+      if (color.startsWith("rgb")) {
+        const match = color.match(/\d+/g);
+        if (match) {
+          return [parseInt(match[0]), parseInt(match[1]), parseInt(match[2])];
+        }
+      } else if (color.startsWith("#")) {
+        const hex = color.slice(1);
+        return [
+          parseInt(hex.slice(0, 2), 16),
+          parseInt(hex.slice(2, 4), 16),
+          parseInt(hex.slice(4, 6), 16),
+        ];
+      }
+      return [135, 206, 235]; // Default sky blue
+    };
 
-  //   const [r, g, b] = parseColor(skyColor);
+    const [r, g, b] = parseColor(skyColor);
 
-  //   // Create gradient with proper opacity
-  //   // Top: full color
-  //   // Middle: slightly lighter
-  //   // Bottom: much lighter (horizon)
-  //   const topColor = `rgb(${r}, ${g}, ${b})`;
-  //   const midColor = `rgba(${r}, ${g}, ${b}, 0.85)`;
-  //   const bottomColor = `rgba(${Math.min(255, r + 40)}, ${Math.min(
-  //     255,
-  //     g + 40
-  //   )}, ${Math.min(255, b + 40)}, 0.6)`;
+    // Create gradient with proper opacity
+    // Top: full color
+    // Middle: slightly lighter
+    // Bottom: much lighter (horizon)
+    const topColor = `rgb(${r}, ${g}, ${b})`;
+    const midColor = `rgba(${r}, ${g}, ${b}, 0.85)`;
+    const bottomColor = `rgba(${Math.min(255, r + 40)}, ${Math.min(
+      255,
+      g + 40
+    )}, ${Math.min(255, b + 40)}, 0.6)`;
 
-  //   return `linear-gradient(to bottom, ${topColor} 0%, ${midColor} 50%, ${bottomColor} 100%)`;
-  // }, [skyColor, isDaytime]);
+    return `linear-gradient(to bottom, ${topColor} 0%, ${midColor} 50%, ${bottomColor} 100%)`;
+  }, [skyColor, isDaytime]);
 
   return (
     <div
+      ref={backgroundRef}
       data-component="DayNightCycle-Container"
       className="fixed inset-0 overflow-visible"
       style={{
         width: "100vw",
         height: "100vh",
-        // background: skyGradient,
+        background: skyGradient(), // Initial gradient, will be updated in RAF loop
+        transition: "none", // Remove CSS transition - we handle it in RAF loop for smooth updates
       }}
     >
       {/* Sun - always render but position based on arc */}
