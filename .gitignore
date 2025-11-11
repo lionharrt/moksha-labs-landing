@@ -39,3 +39,4 @@ Thumbs.db
 
 # Separate git repositories
 app templates/demo-builder/
+app-templates/demo-builder-backup-20251028.tar.gz
