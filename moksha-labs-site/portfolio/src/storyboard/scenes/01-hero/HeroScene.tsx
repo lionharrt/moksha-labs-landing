@@ -470,6 +470,123 @@ export function HeroScene() {
     };
   }, [progress]);
 
+  // CRITICAL: Create refs for continuous mapped progress values
+  // These update every frame from progressRef, preventing discrete jumps
+  const heroLotusProgressRef = useRef(0);
+  const aboutUsLotusProgressRef = useRef(0);
+  const ourServicesLotusProgressRef = useRef(0);
+  const ourWorkLotusProgressRef = useRef(0);
+  const contactUsLotusProgressRef = useRef(0);
+  const splitAndShrinkProgressRef = useRef<number | null>(null);
+  const entranceProgressRef = useRef<number | null>(null);
+
+  // RAF loop to continuously update mapped progress refs
+  useLayoutEffect(() => {
+    let rafId: number | null = null;
+    const updateMappedProgress = () => {
+      const currentProgress = progressRef.current;
+
+      // Calculate mapped progress values continuously
+      const introProgress = mapProgressToSegment(
+        currentProgress,
+        progressBreakup.intro
+      );
+      const outroProgress = mapProgressToSegment(
+        currentProgress,
+        progressBreakup.outro
+      );
+      const entranceProgress = mapProgressToSegment(
+        currentProgress,
+        progressBreakup.entrance
+      );
+      const splitAndShrinkProgress = mapProgressToSegment(
+        currentProgress,
+        progressBreakup.splitAndShrink
+      );
+      const aboutUsEntranceProgress = mapProgressToSegment(
+        currentProgress,
+        progressBreakup.aboutUsEntrance
+      );
+      const ourServicesEntranceProgress = mapProgressToSegment(
+        currentProgress,
+        progressBreakup.ourServicesEntrance
+      );
+      const ourWorkEntranceProgress = mapProgressToSegment(
+        currentProgress,
+        progressBreakup.ourWorkEntrance
+      );
+      const contactUsEntranceProgress = mapProgressToSegment(
+        currentProgress,
+        progressBreakup.contactUsEntrance
+      );
+
+      // Update entrance and split progress refs
+      entranceProgressRef.current = entranceProgress;
+      splitAndShrinkProgressRef.current = splitAndShrinkProgress;
+
+      // Calculate hero lotus progress
+      let heroProgress = 0;
+      if (introProgress !== null && introProgress !== 1) {
+        heroProgress = introProgress;
+      } else if (outroProgress !== null && outroProgress !== 1) {
+        heroProgress = 1 - outroProgress;
+      } else if (introProgress === 1 && outroProgress === null) {
+        heroProgress = 1;
+      } else if (introProgress === 1 && outroProgress === 1) {
+        heroProgress = 0;
+      }
+      heroLotusProgressRef.current = heroProgress;
+
+      // Calculate other flower progresses
+      aboutUsLotusProgressRef.current =
+        aboutUsEntranceProgress !== null && aboutUsEntranceProgress !== 1
+          ? aboutUsEntranceProgress
+          : aboutUsEntranceProgress === 1
+          ? 1
+          : 0;
+
+      ourServicesLotusProgressRef.current =
+        ourServicesEntranceProgress !== null &&
+        ourServicesEntranceProgress !== 1
+          ? ourServicesEntranceProgress
+          : ourServicesEntranceProgress === 1
+          ? 1
+          : 0;
+
+      ourWorkLotusProgressRef.current =
+        ourWorkEntranceProgress !== null && ourWorkEntranceProgress !== 1
+          ? ourWorkEntranceProgress
+          : ourWorkEntranceProgress === 1
+          ? 1
+          : 0;
+
+      contactUsLotusProgressRef.current =
+        contactUsEntranceProgress !== null && contactUsEntranceProgress !== 1
+          ? contactUsEntranceProgress
+          : contactUsEntranceProgress === 1
+          ? 1
+          : 0;
+
+      // Update GSAP timelines directly for smooth animation
+      if (splitAndShrinkTimeline.current) {
+        const progressValue = splitAndShrinkProgressRef.current ?? 0;
+        gsap.set(splitAndShrinkTimeline.current, { progress: progressValue });
+      }
+      if (entranceTimeline.current) {
+        const progressValue = entranceProgressRef.current ?? 0;
+        gsap.set(entranceTimeline.current, { progress: progressValue });
+      }
+
+      rafId = requestAnimationFrame(updateMappedProgress);
+    };
+
+    rafId = requestAnimationFrame(updateMappedProgress);
+
+    return () => {
+      if (rafId !== null) cancelAnimationFrame(rafId);
+    };
+  }, []);
+
   // Destructure for cleaner access in the render and effects
   const {
     entranceProgress,
@@ -675,9 +792,10 @@ export function HeroScene() {
     };
   }, [numberOfExtraFlowers]);
 
-  useSmoothProgress(splitAndShrinkTimeline.current, splitAndShrinkProgress);
-
-  useSmoothProgress(entranceTimeline.current, entranceProgress);
+  // CRITICAL: Timelines are now updated directly in RAF loop above
+  // Removed useSmoothProgress calls to prevent discrete updates
+  // useSmoothProgress(splitAndShrinkTimeline.current, splitAndShrinkProgress);
+  // useSmoothProgress(entranceTimeline.current, entranceProgress);
 
   // Subtle bobbing and swaying animation for flowers in water
   // CRITICAL: Only run when flowers should be animated (not on every progress change)
@@ -906,22 +1024,50 @@ export function HeroScene() {
         </div>
 
         {/* Layer 5: Flowers on top of everything */}
-        {/* TEMPORARILY DISABLED */}
-        {/* <div className="absolute inset-0" style={{ zIndex: 10 }}>
-          {FLOWER_CONFIG.slice(0, numberOfExtraFlowers + 1).map((flower) => (
-            <LotusFlower
-              key={flower.index}
-              progress={mappedProgress[flower.progressKey]}
-              phase={
-                flower.index === 0 ? 1 : splitAndShrinkProgress !== null ? 2 : 1
-              }
-              index={flower.index}
-              title={flower.title}
-              splitProgress={splitAndShrinkProgress}
-              finalYPosition={flower.position.y}
-            />
-          ))}
-        </div> */}
+        <div className="absolute inset-0" style={{ zIndex: 10 }}>
+          {FLOWER_CONFIG.slice(0, numberOfExtraFlowers + 1).map((flower) => {
+            // Get the appropriate progress ref for this flower
+            let flowerProgressRef;
+            switch (flower.progressKey) {
+              case "heroLotusProgress":
+                flowerProgressRef = heroLotusProgressRef;
+                break;
+              case "aboutUsLotusProgress":
+                flowerProgressRef = aboutUsLotusProgressRef;
+                break;
+              case "ourServicesLotusProgress":
+                flowerProgressRef = ourServicesLotusProgressRef;
+                break;
+              case "ourWorkLotusProgress":
+                flowerProgressRef = ourWorkLotusProgressRef;
+                break;
+              case "contactUsLotusProgress":
+                flowerProgressRef = contactUsLotusProgressRef;
+                break;
+              default:
+                flowerProgressRef = heroLotusProgressRef;
+            }
+
+            return (
+              <LotusFlower
+                key={flower.index}
+                progress={mappedProgress[flower.progressKey]} // Fallback for backward compatibility
+                progressRef={flowerProgressRef} // Continuous progress ref
+                phase={
+                  flower.index === 0
+                    ? 1
+                    : splitAndShrinkProgress !== null
+                    ? 2
+                    : 1
+                }
+                index={flower.index}
+                title={flower.title}
+                splitProgress={splitAndShrinkProgress}
+                finalYPosition={flower.position.y}
+              />
+            );
+          })}
+        </div>
       </section>
     </>
   );

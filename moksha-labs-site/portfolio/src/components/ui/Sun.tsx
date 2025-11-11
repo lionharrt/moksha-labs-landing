@@ -151,7 +151,7 @@ function Sun({
           rayGroup,
           {
             rotation: -360, // Full rotation
-            duration: 30,
+            duration: 5,
             ease: "none", // Constant speed for smooth continuous rotation
             svgOrigin: `${centerX} ${centerY}`, // Ensure origin is set during animation too
           },

@@ -51,12 +51,15 @@ const PHASE_2_PETALS = 12; //
 
 /**
  * @typedef {Object} LotusFlowerProps
- * @property {number} progress - The progress of the flower (0 to 1)
+ * @property {number} progress - The progress of the flower (0 to 1) - DEPRECATED: use progressRef instead
+ * @property {React.MutableRefObject<number>} [progressRef] - Ref to continuous progress value (preferred)
  * @property {number} index - The index of the flower
  * @property {string} [title] - The title of the flower
  * @property {1 | 2} [phase] - The phase of the flower (1 or 2)
  * @property {number | null} [splitProgress] - The progress of the split animation (0 to 1 or null)
  * @property {number} [finalYPosition] - The final Y position of the flower
+ * @property {Function} [mapProgressToSegment] - Function to map overall progress to segment progress
+ * @property {Object} [segment] - Segment definition with start and end values
  */
 
 /**
@@ -67,12 +70,15 @@ const PHASE_2_PETALS = 12; //
  * @returns {React.ReactElement} The rendered LotusFlower component
  */
 export default function LotusFlower({
-  progress,
+  progress: progressProp, // Keep for backward compatibility
+  progressRef, // New: continuous progress ref
   index,
   title = "",
   phase = 1,
   splitProgress = null,
   finalYPosition = 0,
+  mapProgressToSegment,
+  segment,
 }) {
   // 1. Create refs for the timelines and the stop elements
   const lotusTimeline = useRef(null);
@@ -86,6 +92,52 @@ export default function LotusFlower({
   const stop3Ref = useRef(null); // Ref for the dark stop (100%)
   const titleRef = useRef(null); // Ref for the title text element
   const previousPhaseRef = useRef(phase); // Track previous phase for smooth transitions
+  
+  // CRITICAL: Calculate continuous progress from ref if available
+  // This prevents discrete jumps from throttled prop updates
+  const continuousProgressRef = useRef(0);
+  
+  // RAF loop to continuously update progress from ref
+  useLayoutEffect(() => {
+    if (!progressRef) {
+      // Fallback to prop if no ref provided
+      continuousProgressRef.current = progressProp || 0;
+      return;
+    }
+    
+    let rafId;
+    const updateProgress = () => {
+      if (progressRef?.current !== undefined) {
+        continuousProgressRef.current = progressRef.current;
+        
+        // Calculate mapped progress if segment mapping function provided
+        if (mapProgressToSegment && segment) {
+          const mapped = mapProgressToSegment(progressRef.current, segment);
+          if (mapped !== null && mapped !== undefined) {
+            continuousProgressRef.current = mapped;
+          }
+        }
+        
+        // Update GSAP timelines directly for smooth animation
+        if (lotusTimeline.current) {
+          gsap.set(lotusTimeline.current, { progress: continuousProgressRef.current });
+        }
+        if (titleTimeline.current) {
+          gsap.set(titleTimeline.current, { progress: continuousProgressRef.current });
+        }
+      }
+      rafId = requestAnimationFrame(updateProgress);
+    };
+    
+    rafId = requestAnimationFrame(updateProgress);
+    
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, [progressRef, progressProp, mapProgressToSegment, segment]);
+  
+  // Use continuous progress for calculations
+  const progress = progressRef ? continuousProgressRef.current : (progressProp || 0);
 
   // Calculate petal configuration based on phase
   const petalCount = phase === 1 ? PHASE_1_PETALS : PHASE_2_PETALS;
@@ -478,8 +530,10 @@ export default function LotusFlower({
   }, [index, splitProgress, finalYPosition]);
 
   // Connect the scroll progress hook to the lotus and title animations
-  useSmoothProgress(lotusTimeline.current, progress);
-  useSmoothProgress(titleTimeline.current, progress);
+  // When progressRef is provided, RAF loop updates timelines directly (smoother)
+  // When progressRef is not provided, useSmoothProgress handles smoothing from prop updates
+  useSmoothProgress(lotusTimeline.current, progressRef ? null : progress);
+  useSmoothProgress(titleTimeline.current, progressRef ? null : progress);
 
   // Connect the petal transformation to the last 15% of split progress
   // Map splitProgress (0-1) to only animate during 0.85-1.0
