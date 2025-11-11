@@ -1,4 +1,9 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useEffect, useCallback } from "react";
+import {
+  PreloadedData,
+  getColorFromLUT,
+  getLightPositionFromLUT,
+} from "@/utils/performancePreloader";
 
 // Lighting configuration that can be tweaked via controls
 export interface LightingConfig {
@@ -46,7 +51,7 @@ export interface LightingConfig {
 }
 
 // Default anime/line-art aesthetic configuration
-const DEFAULT_CONFIG: LightingConfig = {
+export const DEFAULT_CONFIG: LightingConfig = {
   // Sky colors (bright, saturated anime style)
   daySkyColor: "#87CEEB", // Bright sky blue
   twilightSkyColor: "#6B4C93", // Purple twilight (between day and night)
@@ -83,7 +88,7 @@ const DEFAULT_CONFIG: LightingConfig = {
 
   // Atmospheric effects
   godRaysEnabled: true,
-  godRaysIntensity: 1,
+  godRaysIntensity: 0.5,
   lensFlareEnabled: true,
   lensFlareIntensity: 0.3,
   fogEnabled: true,
@@ -242,7 +247,8 @@ export interface LightingState {
 
 export function useLighting(
   progress: number,
-  initialConfig?: Partial<LightingConfig>
+  initialConfig?: Partial<LightingConfig>,
+  preloadedData?: PreloadedData | null
 ): [LightingState, (config: Partial<LightingConfig>) => void] {
   // Merge with default config
   const [config, setConfigState] = useState<LightingConfig>({
@@ -254,214 +260,314 @@ export function useLighting(
     setConfigState((prev) => ({ ...prev, ...updates }));
   };
 
-  const lightingState = useMemo(() => {
-    // Calculate which cycle we're in (0-27) and progress within that cycle
-    const totalCycles = 28;
-    const currentCycle = Math.floor(progress * totalCycles);
-    const cycleProgress = (progress * totalCycles) % 1;
+  // OPTIMIZED: Store progress in ref to avoid recalculations on every change
+  const progressRef = useRef(progress);
+  const configRef = useRef(config);
+  const lightingStateRef = useRef<LightingState | null>(null);
+  const lastUpdateTimeRef = useRef(0);
 
-    // Get time of day info
-    const timeOfDay = getTimeOfDay(cycleProgress);
-    const isDaytime = cycleProgress < 0.5;
+  // Update refs immediately (no re-render)
+  progressRef.current = progress;
+  configRef.current = config;
 
-    // Interpolate colors based on time of day
-    let skyColor: string;
-    let mountainColor: string;
-    let waterColor: string;
+  // Extract calculation logic into a pure function (defined before useState)
+  const calculateLightingState = useCallback(
+    (currentProgress: number, currentConfig: LightingConfig): LightingState => {
+      // Calculate which cycle we're in (0-27) and progress within that cycle
+      const totalCycles = 28;
+      const currentCycle = Math.floor(currentProgress * totalCycles);
+      const cycleProgress = (currentProgress * totalCycles) % 1;
 
-    const { period, transitionProgress, nextPeriod } = timeOfDay;
+      // Get time of day info
+      const timeOfDay = getTimeOfDay(cycleProgress);
+      const isDaytime = cycleProgress < 0.5;
 
-    // Color maps
-    const skyColors = {
-      dawn: config.dawnSkyColor,
-      day: config.daySkyColor,
-      twilight: config.twilightSkyColor,
-      dusk: config.duskSkyColor,
-      night: config.nightSkyColor,
-    };
+      // Calculate arc progress and parabola (needed for both lookup and calculation paths)
+      const isDayPhase = cycleProgress < 0.5;
+      const arcProgress = isDayPhase
+        ? cycleProgress / 0.5
+        : (cycleProgress - 0.5) / 0.5;
+      const parabola = -4 * Math.pow(arcProgress - 0.5, 2) + 1; // 0 at horizon, 1 at peak
 
-    const mountainColors = {
-      dawn: config.dawnMountainColor,
-      day: config.dayMountainColor,
-      twilight: config.twilightMountainColor,
-      dusk: config.duskMountainColor,
-      night: config.nightMountainColor,
-    };
+      // OPTIMIZED: Use lookup tables if available (fast O(1) lookup instead of calculations)
+      let skyColor: string;
+      let mountainColor: string;
+      let waterColor: string;
+      let lightX: number;
+      let lightY: number;
 
-    const waterColors = {
-      dawn: config.dawnWaterColor,
-      day: config.dayWaterColor,
-      twilight: config.twilightWaterColor,
-      dusk: config.duskWaterColor,
-      night: config.nightWaterColor,
-    };
+      if (preloadedData) {
+        // Use pre-calculated colors from lookup table
+        skyColor = getColorFromLUT(
+          preloadedData.colorLUT,
+          cycleProgress,
+          "sky"
+        );
+        mountainColor = getColorFromLUT(
+          preloadedData.colorLUT,
+          cycleProgress,
+          "mountain"
+        );
+        waterColor = getColorFromLUT(
+          preloadedData.colorLUT,
+          cycleProgress,
+          "water"
+        );
 
-    // Smooth transition between periods using eased progress
-    // Slow down transitions when light source is overhead (high parabola) to prevent jarring changes
+        // Use pre-calculated light position from lookup table
+        const lightPos = getLightPositionFromLUT(
+          preloadedData.lightPositionLUT,
+          arcProgress
+        );
+        const viewportWidth =
+          typeof window !== "undefined" ? window.innerWidth : 1920;
+        const viewportHeight =
+          typeof window !== "undefined" ? window.innerHeight : 1080;
 
-    // Calculate arc progress and parabola first (needed for transition speed and light position)
-    const isDayPhase = cycleProgress < 0.5;
-    const arcProgress = isDayPhase
-      ? cycleProgress / 0.5
-      : (cycleProgress - 0.5) / 0.5;
-    const parabola = -4 * Math.pow(arcProgress - 0.5, 2) + 1; // 0 at horizon, 1 at peak
+        // Normalize to 0-1 for compatibility
+        lightX = lightPos.x / viewportWidth;
+        lightY = lightPos.y / viewportHeight;
+      } else {
+        // Fallback to calculation if no preloaded data (shouldn't happen in production)
+        const { period, transitionProgress, nextPeriod } = timeOfDay;
 
-    // Slow down transitions when light is overhead (parabola > 0.7)
-    // When overhead, use a slower easing curve to prevent sharp changes
-    const overheadFactor = Math.max(0, (parabola - 0.7) / 0.3); // 0 when low, 1 when overhead
-    const transitionSpeed = 1 - overheadFactor * 0.6; // Slow down by up to 60% when overhead
+        // Color maps
+        const skyColors = {
+          dawn: currentConfig.dawnSkyColor,
+          day: currentConfig.daySkyColor,
+          twilight: currentConfig.twilightSkyColor,
+          dusk: currentConfig.duskSkyColor,
+          night: currentConfig.nightSkyColor,
+        };
 
-    // Apply slower transition when overhead
-    const adjustedTransitionProgress =
-      transitionProgress * transitionSpeed + (1 - transitionSpeed) * 0.5;
-    const easedTransitionProgress = smoothEase(adjustedTransitionProgress);
+        const mountainColors = {
+          dawn: currentConfig.dawnMountainColor,
+          day: currentConfig.dayMountainColor,
+          twilight: currentConfig.twilightMountainColor,
+          dusk: currentConfig.duskMountainColor,
+          night: currentConfig.nightMountainColor,
+        };
 
-    skyColor = lerpColor(
-      skyColors[period],
-      skyColors[nextPeriod],
-      easedTransitionProgress
-    );
-    mountainColor = lerpColor(
-      mountainColors[period],
-      mountainColors[nextPeriod],
-      easedTransitionProgress
-    );
-    waterColor = lerpColor(
-      waterColors[period],
-      waterColors[nextPeriod],
-      easedTransitionProgress
-    );
+        const waterColors = {
+          dawn: currentConfig.dawnWaterColor,
+          day: currentConfig.dayWaterColor,
+          twilight: currentConfig.twilightWaterColor,
+          dusk: currentConfig.duskWaterColor,
+          night: currentConfig.nightWaterColor,
+        };
 
-    // Calculate light source position (matching DayNightCycle arc exactly)
-    // This MUST match the exact calculation in DayNightCycle.tsx
-    // arcProgress and parabola already calculated above for transition speed
+        // Smooth transition between periods using eased progress
+        const overheadFactor = Math.max(0, (parabola - 0.7) / 0.3);
+        const transitionSpeed = 1 - overheadFactor * 0.6;
+        const adjustedTransitionProgress =
+          transitionProgress * transitionSpeed + (1 - transitionSpeed) * 0.5;
+        const easedTransitionProgress = smoothEase(adjustedTransitionProgress);
 
-    // Get viewport dimensions (matching DayNightCycle - use current window dimensions)
-    // This ensures we always have the latest dimensions
-    const viewportWidth =
-      typeof window !== "undefined" ? window.innerWidth : 1920;
-    const viewportHeight =
-      typeof window !== "undefined" ? window.innerHeight : 1080;
+        skyColor = lerpColor(
+          skyColors[period],
+          skyColors[nextPeriod],
+          easedTransitionProgress
+        );
+        mountainColor = lerpColor(
+          mountainColors[period],
+          mountainColors[nextPeriod],
+          easedTransitionProgress
+        );
+        waterColor = lerpColor(
+          waterColors[period],
+          waterColors[nextPeriod],
+          easedTransitionProgress
+        );
 
-    // Match DayNightCycle's EXACT arc calculation
-    // Horizontal: starts at right (east), moves to left (west)
-    const horizontalStart = viewportWidth + 200; // Start off-screen right
-    const horizontalEnd = -200; // End off-screen left
-    const lightXPixels =
-      horizontalStart + (horizontalEnd - horizontalStart) * arcProgress;
+        // Calculate light source position
+        const viewportWidth =
+          typeof window !== "undefined" ? window.innerWidth : 1920;
+        const viewportHeight =
+          typeof window !== "undefined" ? window.innerHeight : 1080;
 
-    // Vertical: parabolic arc (parabola already calculated above)
-    const skyHeight = viewportHeight * 0.7; // How high the arc goes
-    const horizonY = viewportHeight * 0.8; // Horizon line
-    const lightYPixels = horizonY - skyHeight * parabola;
+        const horizontalStart = viewportWidth + 200;
+        const horizontalEnd = -200;
+        const lightXPixels =
+          horizontalStart + (horizontalEnd - horizontalStart) * arcProgress;
 
-    // IMPORTANT: lightXPixels and lightYPixels are the EXACT center of the sun/moon SVG
-    // The SVG is positioned at (lightXPixels - centerX, lightYPixels - centerY)
-    // where centerX = centerY = 200, so the center is at (lightXPixels, lightYPixels)
+        const skyHeight = viewportHeight * 0.7;
+        const horizonY = viewportHeight * 0.8;
+        const lightYPixels = horizonY - skyHeight * parabola;
 
-    // Normalize to 0-1 for compatibility (but store pixel values too)
-    const lightX = lightXPixels / viewportWidth;
-    const lightY = lightYPixels / viewportHeight;
+        lightX = lightXPixels / viewportWidth;
+        lightY = lightYPixels / viewportHeight;
+      }
 
-    // Light angle (for shadow direction)
-    const lightAngle = Math.PI * arcProgress; // 0 to PI (east to west)
+      // Light angle (for shadow direction)
+      const lightAngle = Math.PI * arcProgress; // 0 to PI (east to west)
 
-    // Shadow direction (opposite of light)
-    const shadowDirection = {
-      x: Math.cos(lightAngle + Math.PI),
-      y: Math.sin(lightAngle + Math.PI) * 0.3, // Reduced Y for stylized shadows
-    };
+      // Shadow direction (opposite of light)
+      const shadowDirection = {
+        x: Math.cos(lightAngle + Math.PI),
+        y: Math.sin(lightAngle + Math.PI) * 0.3, // Reduced Y for stylized shadows
+      };
 
-    // Shadow opacity (stronger when sun is high/low, weaker at horizon)
-    const shadowStrength = Math.sin(lightAngle) * config.shadowOpacity;
-    const shadowOpacity = config.shadowEnabled ? Math.abs(shadowStrength) : 0;
-
-    // Mist opacity (more mist at dawn/dusk, less during day/night)
-    const mistTransitionFactor = Math.abs(
-      Math.sin(cycleProgress * Math.PI * 2)
-    );
-    const mistBaseOpacity = isDaytime
-      ? config.mistDayOpacity
-      : config.mistNightOpacity;
-    const mistOpacity = config.mistEnabled
-      ? mistBaseOpacity * (0.7 + mistTransitionFactor * 0.3)
-      : 0;
-
-    // Ambient brightness (dimmer at night)
-    const ambientBrightness = isDaytime
-      ? 1.0
-      : 0.6 + Math.sin(cycleProgress * Math.PI) * 0.2;
-
-    // Fog density (more at dawn/dusk)
-    const fogDensity = config.fogEnabled
-      ? config.fogDensity * (0.5 + mistTransitionFactor * 0.5)
-      : 0;
-
-    // God rays (only during day, strongest at dawn/dusk)
-    const godRaysIntensity =
-      config.godRaysEnabled && isDaytime
-        ? config.godRaysIntensity * (1 - Math.abs(cycleProgress - 0.25) * 2)
+      // Shadow opacity (stronger when sun is high/low, weaker at horizon)
+      const shadowStrength = Math.sin(lightAngle) * currentConfig.shadowOpacity;
+      const shadowOpacity = currentConfig.shadowEnabled
+        ? Math.abs(shadowStrength)
         : 0;
 
-    // Lens flare (only when sun/moon is high)
-    const lensFlareIntensity = config.lensFlareEnabled
-      ? config.lensFlareIntensity * parabola
-      : 0;
+      // Mist opacity (more mist at dawn/dusk, less during day/night)
+      const mistTransitionFactor = Math.abs(
+        Math.sin(cycleProgress * Math.PI * 2)
+      );
+      const mistBaseOpacity = isDaytime
+        ? currentConfig.mistDayOpacity
+        : currentConfig.mistNightOpacity;
+      const mistOpacity = currentConfig.mistEnabled
+        ? mistBaseOpacity * (0.7 + mistTransitionFactor * 0.3)
+        : 0;
 
-    // Calculate "behind mountains" darkness factor
-    // Mountains should be dark when sun/moon is behind them (low on horizon, at edges)
-    // This happens during sunrise (arcProgress ~0.0-0.15) and sunset (arcProgress ~0.85-1.0)
-    // Also during transitions between day/night cycles
+      // Ambient brightness (dimmer at night)
+      const ambientBrightness = isDaytime
+        ? 1.0
+        : 0.6 + Math.sin(cycleProgress * Math.PI) * 0.2;
 
-    // Factor 1: How close to edges (sun rising/setting behind mountains)
-    // arcProgress: 0 = sunrise (right), 1 = sunset (left), 0.5 = midday
-    // Darkness peaks at edges (0 and 1), minimum at center (0.5)
-    const distanceFromCenter = Math.abs(arcProgress - 0.5) * 2; // 0 at center, 1 at edges
-    const edgeDarkness = Math.pow(distanceFromCenter, 1.5); // Smooth curve, stronger at edges
+      // Fog density (more at dawn/dusk)
+      const fogDensity = currentConfig.fogEnabled
+        ? currentConfig.fogDensity * (0.5 + mistTransitionFactor * 0.5)
+        : 0;
 
-    // Factor 2: How low on horizon (parabola is low at edges)
-    // Lower parabola = darker (light source is behind mountains)
-    const horizonHeight = parabola; // 0-1, lower = closer to horizon
-    const lowHorizonDarkness = 1 - horizonHeight; // Inverse: lower horizon = darker
+      // God rays (only during day, strongest at dawn/dusk)
+      const godRaysIntensity =
+        currentConfig.godRaysEnabled && isDaytime
+          ? currentConfig.godRaysIntensity *
+            (1 - Math.abs(cycleProgress - 0.25) * 2)
+          : 0;
 
-    // Factor 3: Transition periods (dusk/dawn) - mountains are darker during transitions
-    // Peak darkness at cycleProgress = 0.5 (dusk) and 0.0/1.0 (dawn)
-    const transitionFactor = Math.abs(Math.sin(cycleProgress * Math.PI * 2));
-    const transitionDarkness = transitionFactor * 0.5; // Moderate contribution
+      // Lens flare (only when sun/moon is high)
+      const lensFlareIntensity = currentConfig.lensFlareEnabled
+        ? currentConfig.lensFlareIntensity * parabola
+        : 0;
 
-    // Combine factors with smooth transitions
-    // Primary: edge position (sun behind mountains), Secondary: low horizon, Tertiary: transitions
-    const behindMountainsDarkness = Math.min(
-      1,
-      edgeDarkness * 0.8 + // Primary: position at edges
-        lowHorizonDarkness * 0.6 + // Secondary: low on horizon
-        transitionDarkness // Tertiary: transition periods
-    );
+      // Calculate "behind mountains" darkness factor
+      // Mountains should be dark when sun/moon is behind them (low on horizon, at edges)
+      // This happens during sunrise (arcProgress ~0.0-0.15) and sunset (arcProgress ~0.85-1.0)
+      // Also during transitions between day/night cycles
 
-    return {
-      skyColor,
-      mountainColor,
-      waterColor,
-      timeOfDay,
-      isDaytime,
-      lightX,
-      lightY,
-      lightAngle,
-      shadowDirection,
-      shadowOpacity,
-      shadowBlur: config.shadowBlur,
-      shadowOffset: 50 * config.shadowOffsetMultiplier,
-      mistOpacity,
-      mistLayers: config.mistLayerCount,
-      mistHeight: config.mistHeight,
-      fogDensity,
-      ambientBrightness,
-      godRaysIntensity,
-      lensFlareIntensity,
-      behindMountainsDarkness,
-      config,
+      // Factor 1: How close to edges (sun rising/setting behind mountains)
+      // arcProgress: 0 = sunrise (right), 1 = sunset (left), 0.5 = midday
+      // Darkness peaks at edges (0 and 1), minimum at center (0.5)
+      const distanceFromCenter = Math.abs(arcProgress - 0.5) * 2; // 0 at center, 1 at edges
+      const edgeDarkness = Math.pow(distanceFromCenter, 1.5); // Smooth curve, stronger at edges
+
+      // Factor 2: How low on horizon (parabola is low at edges)
+      // Lower parabola = darker (light source is behind mountains)
+      const horizonHeight = parabola; // 0-1, lower = closer to horizon
+      const lowHorizonDarkness = 1 - horizonHeight; // Inverse: lower horizon = darker
+
+      // Factor 3: Transition periods (dusk/dawn) - mountains are darker during transitions
+      // Peak darkness at cycleProgress = 0.5 (dusk) and 0.0/1.0 (dawn)
+      const transitionFactor = Math.abs(Math.sin(cycleProgress * Math.PI * 2));
+      const transitionDarkness = transitionFactor * 0.5; // Moderate contribution
+
+      // Combine factors with smooth transitions
+      // Primary: edge position (sun behind mountains), Secondary: low horizon, Tertiary: transitions
+      const behindMountainsDarkness = Math.min(
+        1,
+        edgeDarkness * 0.8 + // Primary: position at edges
+          lowHorizonDarkness * 0.6 + // Secondary: low on horizon
+          transitionDarkness // Tertiary: transition periods
+      );
+
+      return {
+        skyColor,
+        mountainColor,
+        waterColor,
+        timeOfDay,
+        isDaytime,
+        lightX,
+        lightY,
+        lightAngle,
+        shadowDirection,
+        shadowOpacity,
+        shadowBlur: currentConfig.shadowBlur,
+        shadowOffset: 50 * currentConfig.shadowOffsetMultiplier,
+        mistOpacity,
+        mistLayers: currentConfig.mistLayerCount,
+        mistHeight: currentConfig.mistHeight,
+        fogDensity,
+        ambientBrightness,
+        godRaysIntensity,
+        lensFlareIntensity,
+        behindMountainsDarkness,
+        config: currentConfig,
+      };
+    },
+    [preloadedData]
+  ); // preloadedData is stable after loading
+
+  // State for React components (throttled updates)
+  // Calculate initial state inline since calculateLightingState is defined above
+  const [lightingState, setLightingState] = useState<LightingState>(() =>
+    calculateLightingState(progress, config)
+  );
+
+  // Throttled state update - only update React state at 30fps (33ms intervals)
+  // BUT: Update ref every frame so canvas components get latest values immediately
+  useEffect(() => {
+    const updateInterval = 33; // ~30fps for React state updates
+
+    // Throttled updates via requestAnimationFrame
+    let rafId: number;
+    const tick = () => {
+      const now = performance.now();
+
+      // Always update ref with latest progress (for canvas components)
+      const latestState = calculateLightingState(
+        progressRef.current,
+        configRef.current
+      );
+      lightingStateRef.current = latestState;
+
+      // Only update React state at throttled interval (for UI components)
+      if (now - lastUpdateTimeRef.current >= updateInterval) {
+        setLightingState(latestState);
+        lastUpdateTimeRef.current = now;
+      }
+
+      rafId = requestAnimationFrame(tick);
     };
-  }, [progress, config]);
+
+    // Initial calculation
+    const initialState = calculateLightingState(progress, config);
+    lightingStateRef.current = initialState;
+    setLightingState(initialState);
+    lastUpdateTimeRef.current = performance.now();
+
+    rafId = requestAnimationFrame(tick);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [calculateLightingState, config]); // Recreate when config changes
+  // Note: progress is intentionally excluded - we use progressRef.current instead
+
+  // Expose function to get current lighting state from ref (for canvas components)
+  // This allows canvas components to read the latest progress without waiting for React state
+  const getCurrentLightingState = useCallback((): LightingState => {
+    if (!lightingStateRef.current) {
+      // Fallback: calculate on demand if ref is null
+      return calculateLightingState(progressRef.current, configRef.current);
+    }
+    // Update ref with latest progress before returning
+    lightingStateRef.current = calculateLightingState(
+      progressRef.current,
+      configRef.current
+    );
+    return lightingStateRef.current;
+  }, [calculateLightingState]);
+
+  // Store getCurrentLightingState in ref so canvas components can access it
+  const getCurrentLightingStateRef = useRef(getCurrentLightingState);
+  getCurrentLightingStateRef.current = getCurrentLightingState;
 
   return [lightingState, updateConfig];
 }

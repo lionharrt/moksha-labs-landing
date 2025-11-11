@@ -62,6 +62,13 @@ export const WaterSurface = forwardRef<WaterSurfaceRef, WaterSurfaceProps>(
       ctx: CanvasRenderingContext2D;
       getShoreY: (x: number, time: number) => number;
     } | null>(null);
+    
+    // OPTIMIZED: Frame budget tracking (game dev technique)
+    const frameBudgetRef = useRef({
+      targetFrameTime: 16.67, // 60fps target
+      maxFrameTime: 33.33, // Don't exceed 30fps
+      lastFrameTime: 0,
+    });
 
     // Expose emitRippleFromElement function via ref
     useImperativeHandle(
@@ -325,6 +332,10 @@ export const WaterSurface = forwardRef<WaterSurfaceRef, WaterSurfaceProps>(
       };
 
       const render = () => {
+        // OPTIMIZED: Frame budget tracking (game dev technique)
+        const frameStart = performance.now();
+        const frameBudget = frameBudgetRef.current;
+        
         const canvasWidth = canvas.width;
         const canvasHeight = canvas.height;
 
@@ -518,8 +529,16 @@ export const WaterSurface = forwardRef<WaterSurfaceRef, WaterSurfaceProps>(
         // Update time for animation
         timeRef.current += 0.01;
 
-        // Continue animation loop
-        animationFrameRef.current = requestAnimationFrame(render);
+        // OPTIMIZED: Frame budget enforcement (game dev technique)
+        const frameTime = performance.now() - frameStart;
+        if (frameTime > frameBudget.maxFrameTime) {
+          // Skip next frame if we're over budget
+          animationFrameRef.current = requestAnimationFrame(() => {
+            animationFrameRef.current = requestAnimationFrame(render);
+          });
+        } else {
+          animationFrameRef.current = requestAnimationFrame(render);
+        }
       };
 
       // Start animation loop

@@ -105,6 +105,20 @@ function MountainBackground({
   // Store latest values in refs to avoid re-renders
   const lightingStateRef = useRef(lightingState);
   const colorRef = useRef(color);
+  
+  // OPTIMIZED: Cache mountain paths (Path2D objects) - only recalculate when dimensions/mountains change
+  const mountainPathsCacheRef = useRef<Map<string, Path2D>>(new Map());
+  const mountainPointsCacheRef = useRef<Map<string, { x: number; y: number }[]>>(new Map());
+  
+  // OPTIMIZED: Cache gradients - only recreate when lighting changes significantly
+  const gradientCacheRef = useRef<Map<string, CanvasGradient>>(new Map());
+  
+  // OPTIMIZED: Frame budget tracking
+  const frameBudgetRef = useRef({
+    targetFrameTime: 16.67, // 60fps target
+    maxFrameTime: 33.33, // Don't exceed 30fps
+    lastFrameTime: 0,
+  });
 
   // Initial mountain configurations - Updated from slider controls
   const initialMountains: MountainConfig[] = [
@@ -340,6 +354,13 @@ function MountainBackground({
     window.addEventListener("resize", updateDimensions);
     return () => window.removeEventListener("resize", updateDimensions);
   }, [width, height]);
+  
+  // OPTIMIZED: Clear caches when dimensions change
+  useEffect(() => {
+    mountainPathsCacheRef.current.clear();
+    mountainPointsCacheRef.current.clear();
+    gradientCacheRef.current.clear();
+  }, [dimensions.width, dimensions.height]);
 
   // Render function extracted for requestAnimationFrame throttling
   const renderMountains = useCallback(() => {
@@ -348,6 +369,10 @@ function MountainBackground({
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+    
+    // OPTIMIZED: Frame budget tracking (game dev technique)
+    const frameStart = performance.now();
+    const frameBudget = frameBudgetRef.current;
 
     // Use latest values from refs
     const currentLightingState = lightingStateRef.current;
@@ -457,6 +482,13 @@ function MountainBackground({
 
     // Helper function to calculate mountain points without drawing
     const calculateMountainPoints = (config: MountainConfig, layerIndex: number = 0): { x: number; y: number }[] => {
+      // OPTIMIZED: Cache mountain points - only recalculate when dimensions change
+      const cacheKey = `${config.peakX}-${config.baseHeight}-${config.peakHeight}-${displayWidth}-${displayHeight}-${layerIndex}`;
+      const cached = mountainPointsCacheRef.current.get(cacheKey);
+      if (cached) {
+        return cached;
+      }
+      
       const peakX = config.peakX * displayWidth;
       const baseLeftX =
         (config.leftX !== undefined ? config.leftX : config.baseLeft ?? -0.2) *
@@ -652,14 +684,6 @@ function MountainBackground({
         const mountainCenterX = peakX;
         const mountainCenterY = (baseY + config.peakHeight * displayHeight) / 2;
         
-        // Create gradient from lit side (facing light) to shadow side (away from light)
-        const gradient = ctx.createLinearGradient(
-          mountainCenterX + lightDirX * mountainWidth * 0.5, // Start at lit side (toward light)
-          mountainCenterY + lightDirY * displayHeight * 0.3,
-          mountainCenterX - lightDirX * mountainWidth * 0.5, // End at shadow side (away from light)
-          mountainCenterY - lightDirY * displayHeight * 0.3
-        );
-        
         // Reduce lighting contrast when light is behind mountains (less difference between lit/shadow)
         const contrastReduction = 1.0 - behindMountainsDarkness * 0.5; // Reduce contrast by up to 50%
         const adjustedLightingStrength = 1.0 + (lightingStrength - 1.0) * contrastReduction;
@@ -671,13 +695,33 @@ function MountainBackground({
         const shadowColor = adjustBrightness(finalColor, adjustedShadowStrength);
         
         // Round colors only when outputting to canvas
-        const litColorRounded = roundColor(litColor);
         const finalColorRounded = roundColor(finalColor);
+        const litColorRounded = roundColor(litColor);
         const shadowColorRounded = roundColor(shadowColor);
         
-        gradient.addColorStop(0, `rgb(${litColorRounded[0]},${litColorRounded[1]},${litColorRounded[2]})`);
-        gradient.addColorStop(0.5, `rgb(${finalColorRounded[0]},${finalColorRounded[1]},${finalColorRounded[2]})`);
-        gradient.addColorStop(1, `rgb(${shadowColorRounded[0]},${shadowColorRounded[1]},${shadowColorRounded[2]})`);
+        // OPTIMIZED: Cache gradient - only recreate when lighting changes significantly
+        const gradientKey = `${mountainCenterX}-${mountainCenterY}-${lightDirX}-${lightDirY}-${adjustedLightingStrength}-${adjustedShadowStrength}-${behindMountainsDarkness}-${finalColorRounded[0]}-${finalColorRounded[1]}-${finalColorRounded[2]}`;
+        let gradient = gradientCacheRef.current.get(gradientKey);
+        
+        if (!gradient) {
+          gradient = ctx.createLinearGradient(
+            mountainCenterX + lightDirX * mountainWidth * 0.5, // Start at lit side (toward light)
+            mountainCenterY + lightDirY * displayHeight * 0.3,
+            mountainCenterX - lightDirX * mountainWidth * 0.5, // End at shadow side (away from light)
+            mountainCenterY - lightDirY * displayHeight * 0.3
+          );
+          
+          gradient.addColorStop(0, `rgb(${litColorRounded[0]},${litColorRounded[1]},${litColorRounded[2]})`);
+          gradient.addColorStop(0.5, `rgb(${finalColorRounded[0]},${finalColorRounded[1]},${finalColorRounded[2]})`);
+          gradient.addColorStop(1, `rgb(${shadowColorRounded[0]},${shadowColorRounded[1]},${shadowColorRounded[2]})`);
+          
+          // Cache the gradient (limit cache size to prevent memory issues)
+          if (gradientCacheRef.current.size > 50) {
+            const firstKey = gradientCacheRef.current.keys().next().value;
+            gradientCacheRef.current.delete(firstKey);
+          }
+          gradientCacheRef.current.set(gradientKey, gradient);
+        }
         
         ctx.fillStyle = gradient;
       } else {
@@ -731,16 +775,29 @@ function MountainBackground({
       ctx.closePath();
 
       // Apply shadow with gradient for soft edges
-      const shadowGradient = ctx.createRadialGradient(
-        peakX + shadowOffsetX, 
-        config.peakHeight * displayHeight + shadowOffsetY,
-        0,
-        peakX + shadowOffsetX,
-        config.peakHeight * displayHeight + shadowOffsetY,
-        Math.max(displayWidth, displayHeight) * 0.5
-      );
-      shadowGradient.addColorStop(0, `rgba(0, 0, 0, ${currentLightingState.shadowOpacity})`);
-      shadowGradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+      // OPTIMIZED: Cache shadow gradient
+      const shadowGradientKey = `${peakX + shadowOffsetX}-${config.peakHeight * displayHeight + shadowOffsetY}-${currentLightingState.shadowOpacity}-${Math.max(displayWidth, displayHeight)}`;
+      let shadowGradient = gradientCacheRef.current.get(shadowGradientKey);
+      
+      if (!shadowGradient) {
+        shadowGradient = ctx.createRadialGradient(
+          peakX + shadowOffsetX, 
+          config.peakHeight * displayHeight + shadowOffsetY,
+          0,
+          peakX + shadowOffsetX,
+          config.peakHeight * displayHeight + shadowOffsetY,
+          Math.max(displayWidth, displayHeight) * 0.5
+        );
+        shadowGradient.addColorStop(0, `rgba(0, 0, 0, ${currentLightingState.shadowOpacity})`);
+        shadowGradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+        
+        // Cache the gradient (limit cache size)
+        if (gradientCacheRef.current.size > 50) {
+          const firstKey = gradientCacheRef.current.keys().next().value;
+          gradientCacheRef.current.delete(firstKey);
+        }
+        gradientCacheRef.current.set(shadowGradientKey, shadowGradient);
+      }
 
       ctx.fillStyle = shadowGradient;
       ctx.filter = `blur(${currentLightingState.shadowBlur}px)`;
@@ -751,7 +808,7 @@ function MountainBackground({
     };
 
     // Helper function to draw mist layer
-    const drawMist = (config: MountainConfig, mountainPoints: { x: number; y: number }[]) => {
+    const drawMist = (config: MountainConfig, mountainPoints: { x: number; y: number }[], layerIndex: number) => {
       if (!currentLightingState || currentLightingState.mistOpacity === 0) return;
 
       const baseLeftX =
@@ -836,6 +893,15 @@ function MountainBackground({
     // mountainData.forEach(({ config, points }) => {
     //   drawMist(config, points);
     // });
+    
+    // OPTIMIZED: Frame budget enforcement (game dev technique)
+    const frameTime = performance.now() - frameStart;
+    if (frameTime > frameBudget.maxFrameTime) {
+      // Clear caches if frame took too long (might be memory pressure)
+      if (gradientCacheRef.current.size > 20) {
+        gradientCacheRef.current.clear();
+      }
+    }
   }, [dimensions.width, dimensions.height, mountains]);
   
   // Throttled render using requestAnimationFrame for lighting state changes
@@ -899,8 +965,9 @@ function MountainBackground({
           overflowY: "auto",
           fontFamily: "monospace",
           fontSize: "12px",
-          zIndex: 1000,
+          zIndex: 10001, // Higher than canvas layers
           display: showControls ? "block" : "none",
+          pointerEvents: "auto", // Ensure controls are clickable
         }}
       >
         <div
@@ -1200,7 +1267,8 @@ function MountainBackground({
           borderRadius: "4px",
           cursor: "pointer",
           fontSize: "14px",
-          zIndex: 1001,
+          zIndex: 10001, // Match control panel z-index
+          pointerEvents: "auto", // Ensure button is clickable
         }}
       >
         {showControls ? "👁️ Hide Controls" : "⚙️ Show Controls"}

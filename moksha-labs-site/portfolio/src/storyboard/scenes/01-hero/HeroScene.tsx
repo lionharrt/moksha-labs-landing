@@ -13,6 +13,12 @@ import MountainBackground from "@/components/ui/MountainBackground";
 import { useLighting } from "@/hooks/useLighting";
 import LightingControls from "@/components/ui/LightingControls";
 import AtmosphericEffects from "@/components/ui/AtmosphericEffects";
+import { PerformanceStats } from "@/components/ui/PerformanceStats";
+import {
+  PerformancePreloader,
+  PreloadedData,
+} from "@/components/ui/PerformancePreloader";
+import { DEFAULT_CONFIG } from "@/hooks/useLighting";
 gsap.registerPlugin(MotionPathPlugin);
 // Define the structure for clarity
 interface ProgressSegment {
@@ -114,13 +120,22 @@ export function HeroScene() {
   const { sceneRef, progress } = useScene(heroSceneConfig);
   const [numberOfExtraFlowers, setNumberOfExtraFlowers] = useState(1);
   const waterSurfaceRef = useRef<WaterSurfaceRef>(null);
+  const [preloadedData, setPreloadedData] = useState<PreloadedData | null>(
+    null
+  );
+  const [isPreloading, setIsPreloading] = useState(true);
 
   const splitAndShrinkTimeline = useRef<GSAPTimeline | null>(null);
   const entranceTimeline = useRef<GSAPTimeline | null>(null);
   const aboutUsEntranceTimeline = useRef<GSAPTimeline | null>(null);
 
-  // Initialize lighting system
-  const [lightingState, updateLightingConfig] = useLighting(progress);
+  // Initialize lighting system (only after preloading)
+  const [lightingState, updateLightingConfig] = useLighting(
+    progress,
+    undefined,
+    preloadedData || undefined
+  );
+
   // --- Calculate Mapped Progress Values ---
   // Use useMemo to re-calculate only when 'progress' changes
   const mappedProgress = useMemo(() => {
@@ -495,63 +510,105 @@ export function HeroScene() {
   ]);
 
   return (
-    <section
-      ref={sceneRef}
-      id={heroSceneConfig.id}
-      data-scene={heroSceneConfig.id}
-      style={{ transform: "none !important" }}
-      className="relative h-screen overflow-hidden hero-scene-container"
-    >
-      {/* Lighting Controls Overlay */}
-      <LightingControls
-        lightingState={lightingState}
-        onConfigChange={updateLightingConfig}
-      />
-
-      {/* Layer 1: Sky Background with Day/Night colors */}
-      <div className="absolute inset-0" style={{ zIndex: 0 }}>
-        <DayNightCycle progress={progress} skyColor={lightingState.skyColor} />
-      </div>
-
-      {/* Layer 2: Atmospheric Effects BEHIND mountains (God Rays, Lens Flare) */}
-      <div
-        className="absolute inset-0"
-        style={{ zIndex: 1, pointerEvents: "none" }}
-      >
-        <AtmosphericEffects lightingState={lightingState} />
-      </div>
-
-      {/* Layer 3: Mountains (solid, occludes atmospheric effects) */}
-      <div className="absolute inset-0" style={{ zIndex: 2 }}>
-        <MountainBackground lightingState={lightingState} />
-      </div>
-
-      {/* Layer 4: Water Surface with Lighting */}
-      <div className="absolute inset-0" style={{ zIndex: 3 }}>
-        <WaterSurface
-          ref={waterSurfaceRef}
-          flowerPositions={flowerPositions}
-          splitAndShrinkProgress={splitAndShrinkProgress}
-          lightingState={lightingState}
+    <>
+      {isPreloading && (
+        <PerformancePreloader
+          config={DEFAULT_CONFIG}
+          viewportWidth={
+            typeof window !== "undefined" ? window.innerWidth : 1920
+          }
+          viewportHeight={
+            typeof window !== "undefined" ? window.innerHeight : 1080
+          }
+          onComplete={(data) => {
+            setPreloadedData(data);
+            setIsPreloading(false);
+          }}
         />
-      </div>
+      )}
 
-      {/* Layer 5: Flowers on top of everything */}
-      <div className="absolute inset-0" style={{ zIndex: 10 }}>
-        {FLOWER_CONFIG.slice(0, numberOfExtraFlowers + 1).map((flower) => (
-          <LotusFlower
-            key={flower.index}
-            progress={mappedProgress[flower.progressKey]}
-            phase={
-              flower.index === 0 ? 1 : splitAndShrinkProgress !== null ? 2 : 1
-            }
-            index={flower.index}
-            title={flower.title}
-            splitProgress={splitAndShrinkProgress}
-            finalYPosition={flower.position.y}
+      {/* Always render scene - preloader overlays on top */}
+      <section
+        ref={sceneRef}
+        id={heroSceneConfig.id}
+        data-scene={heroSceneConfig.id}
+        style={{ transform: "none !important" }}
+        className="relative h-screen overflow-hidden hero-scene-container"
+      >
+        {/* Lighting Controls Overlay */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 10000,
+            pointerEvents: "none",
+          }}
+        >
+          <div style={{ pointerEvents: "auto" }}>
+            <LightingControls
+              lightingState={lightingState}
+              onConfigChange={updateLightingConfig}
+            />
+          </div>
+        </div>
+
+        {/* Layer 1: Sky Background with Day/Night colors */}
+        <div className="absolute inset-0" style={{ zIndex: 0 }}>
+          <DayNightCycle
+            progress={progress}
+            skyColor={lightingState.skyColor}
           />
-        ))}
-      </div>
-    </section>
+        </div>
+
+        {/* Layer 2: Atmospheric Effects BEHIND mountains (God Rays, Lens Flare) */}
+        <div
+          className="absolute inset-0"
+          style={{ zIndex: 1, pointerEvents: "none" }}
+        >
+          <AtmosphericEffects lightingState={lightingState} />
+        </div>
+
+        {/* Layer 3: Mountains (solid, occludes atmospheric effects) */}
+        <div
+          className="absolute inset-0"
+          style={{ zIndex: 2, pointerEvents: "none" }}
+        >
+          <MountainBackground lightingState={lightingState} />
+        </div>
+
+        {/* Layer 4: Water Surface with Lighting */}
+        <div
+          className="absolute inset-0"
+          style={{ zIndex: 3, pointerEvents: "none" }}
+        >
+          <WaterSurface
+            ref={waterSurfaceRef}
+            flowerPositions={flowerPositions}
+            splitAndShrinkProgress={splitAndShrinkProgress}
+            lightingState={lightingState}
+          />
+        </div>
+
+        {/* Layer 5: Flowers on top of everything */}
+        <div className="absolute inset-0" style={{ zIndex: 10 }}>
+          {FLOWER_CONFIG.slice(0, numberOfExtraFlowers + 1).map((flower) => (
+            <LotusFlower
+              key={flower.index}
+              progress={mappedProgress[flower.progressKey]}
+              phase={
+                flower.index === 0 ? 1 : splitAndShrinkProgress !== null ? 2 : 1
+              }
+              index={flower.index}
+              title={flower.title}
+              splitProgress={splitAndShrinkProgress}
+              finalYPosition={flower.position.y}
+            />
+          ))}
+        </div>
+
+        {/* Performance Stats Overlay */}
+        <PerformanceStats enabled={true} position="top-right" />
+      </section>
+    </>
   );
 }
