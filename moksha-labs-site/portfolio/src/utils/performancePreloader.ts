@@ -3,6 +3,8 @@
  * Pre-calculates and caches expensive operations during loading phase
  */
 
+import { calculateLightPosition } from "./lightPosition";
+
 // Import only the interface, not the hook
 interface LightingConfig {
   // Sky colors for different times
@@ -211,27 +213,29 @@ export function precalculateLightPositionLUT(
   const y: number[] = [];
 
   for (let i = 0; i < samples; i++) {
-    const progress = i / (samples - 1);
+    // Map sample index to cycle progress (0-1 for one day/night cycle)
+    // This represents progress within a single cycle, not full progress across all cycles
+    const cycleProgress = i / (samples - 1);
     
-    // Calculate arc progress (0-1 for day, 0-1 for night)
-    const isDayPhase = progress < 0.5;
-    const arcProgress = isDayPhase ? progress / 0.5 : (progress - 0.5) / 0.5;
+    // Convert cycle progress to full progress (assuming we're in cycle 0)
+    // Full progress = cycleIndex / totalCycles + cycleProgress / totalCycles
+    // For LUT, we'll use cycleProgress directly and let calculateLightPosition handle it
+    // But we need to map cycleProgress (0-1) to a full progress value
+    // Since calculateLightPosition expects full progress, we'll use cycleProgress as if it's full progress
+    // This works because calculateLightPosition internally calculates cycleProgress from full progress
     
-    // Parabola: 0 at horizon, 1 at peak
-    const parabola = -4 * Math.pow(arcProgress - 0.5, 2) + 1;
+    // SINGLE SOURCE OF TRUTH: Use shared light position calculation
+    // Note: We're using cycleProgress as full progress here, which works because
+    // calculateLightPosition will calculate the same arcProgress for cycleProgress values
+    // that differ by whole cycles
+    const lightPosition = calculateLightPosition(
+      cycleProgress, // Use cycleProgress as full progress (works for LUT)
+      viewportWidth,
+      viewportHeight
+    );
     
-    // Horizontal: starts at right (east), moves to left (west)
-    const horizontalStart = viewportWidth + 200;
-    const horizontalEnd = -200;
-    const lightXPixels = horizontalStart + (horizontalEnd - horizontalStart) * arcProgress;
-    
-    // Vertical: parabolic arc
-    const skyHeight = viewportHeight * 0.7;
-    const horizonY = viewportHeight * 0.8;
-    const lightYPixels = horizonY - skyHeight * parabola;
-    
-    x.push(lightXPixels);
-    y.push(lightYPixels);
+    x.push(lightPosition.x);
+    y.push(lightPosition.y);
   }
 
   return { x, y, samples };

@@ -1,27 +1,28 @@
 "use client";
 
 import { useRef, useEffect, memo } from "react";
+import type React from "react";
 import { LightingState } from "@/hooks/useLighting";
 
 interface AtmosphericEffectsProps {
   lightingState: LightingState;
   width?: number;
   height?: number;
+  renderRef?: React.MutableRefObject<(() => void) | null>; // Ref to expose render function
 }
 
 function AtmosphericEffects({
   lightingState,
   width,
   height,
+  renderRef,
 }: AtmosphericEffectsProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationFrameRef = useRef<number>();
   const lightingStateRef = useRef<LightingState>(lightingState);
   const sunElementRef = useRef<HTMLElement | null>(null);
   const moonElementRef = useRef<HTMLElement | null>(null);
   const canvasRectRef = useRef<DOMRect | null>(null);
-  const sunRectRef = useRef<DOMRect | null>(null);
-  const moonRectRef = useRef<DOMRect | null>(null);
+  // Removed sunRectRef and moonRectRef - no longer needed since we use lightingState positions
 
   // OPTIMIZED: Cache gradients - only recreate when light position/intensity changes significantly
   const gradientCacheRef = useRef<{
@@ -53,7 +54,8 @@ function AtmosphericEffects({
     lightingStateRef.current = lightingState;
   }, [lightingState]);
 
-  // Cache DOM elements and update on resize
+  // Cache DOM elements and update on resize (no longer needed for position tracking,
+  // but kept for potential future use)
   useEffect(() => {
     const updateElements = () => {
       const sunEl = document.getElementById("day-night-cycle-sun");
@@ -61,8 +63,6 @@ function AtmosphericEffects({
       sunElementRef.current = sunEl;
       moonElementRef.current = moonEl;
 
-      if (sunEl) sunRectRef.current = sunEl.getBoundingClientRect();
-      if (moonEl) moonRectRef.current = moonEl.getBoundingClientRect();
       if (canvasRef.current) {
         canvasRectRef.current = canvasRef.current.getBoundingClientRect();
       }
@@ -71,12 +71,11 @@ function AtmosphericEffects({
     updateElements();
     window.addEventListener("resize", updateElements);
 
-    // Update periodically (every 100ms) to catch position changes without querying every frame
-    const interval = setInterval(updateElements, 100);
+    // No longer need periodic updates - positions come from lightingState
+    // which is synchronized with scroll progress
 
     return () => {
       window.removeEventListener("resize", updateElements);
-      clearInterval(interval);
     };
   }, []);
 
@@ -86,6 +85,9 @@ function AtmosphericEffects({
 
     const ctx = canvas.getContext("2d", { alpha: true });
     if (!ctx) return;
+
+    // Capture renderRef from props
+    const currentRenderRef = renderRef;
 
     // Set canvas size
     const resizeCanvas = () => {
@@ -100,9 +102,6 @@ function AtmosphericEffects({
     window.addEventListener("resize", resizeCanvas);
 
     let time = 0;
-    let lastFrameTime = 0;
-    const targetFPS = 30; // Reduce from 60fps to 30fps for better performance
-    const frameInterval = 1000 / targetFPS;
 
     // OPTIMIZED: Helper to create cache key for gradients
     const createGradientKey = (
@@ -118,18 +117,8 @@ function AtmosphericEffects({
       return `${roundedX},${roundedY},${roundedIntensity},${canvasHeight}`;
     };
 
-    const render = (currentTime: number = performance.now()) => {
-      // OPTIMIZED: Frame budget system (game dev technique)
-      const frameStart = performance.now();
-      const frameBudget = frameBudgetRef.current;
-
-      // Throttle to target FPS
-      const elapsed = currentTime - lastFrameTime;
-      if (elapsed < frameInterval) {
-        animationFrameRef.current = requestAnimationFrame(render);
-        return;
-      }
-      lastFrameTime = currentTime - (elapsed % frameInterval);
+    const render = () => {
+      const currentTime = performance.now();
 
       const canvasWidth = canvas.width;
       const canvasHeight = canvas.height;
@@ -141,37 +130,11 @@ function AtmosphericEffects({
       // Use cached lighting state
       const currentLightingState = lightingStateRef.current;
 
-      // Get actual DOM element positions for sun/moon centers (using cached refs)
-      const getCelestialCenter = (
-        element: HTMLElement | null,
-        cachedRect: DOMRect | null
-      ): { x: number; y: number } | null => {
-        if (!element || !cachedRect) return null;
-
-        // Use cached rect instead of calling getBoundingClientRect() every frame
-        const centerX = cachedRect.left + 150; // SVG center X offset
-        const centerY = cachedRect.top + 150; // SVG center Y offset
-
-        // Convert to canvas coordinates
-        const scaleX = canvasWidth / canvasRect.width;
-        const scaleY = canvasHeight / canvasRect.height;
-
-        return {
-          x: (centerX - canvasRect.left) * scaleX,
-          y: (centerY - canvasRect.top) * scaleY,
-        };
-      };
-
-      // Get the active celestial body (sun during day, moon during night)
-      const activeElement = currentLightingState.isDaytime
-        ? getCelestialCenter(sunElementRef.current, sunRectRef.current)
-        : getCelestialCenter(moonElementRef.current, moonRectRef.current);
-
-      // Fallback to calculated position if DOM elements not found
-      const lightX =
-        activeElement?.x ?? currentLightingState.lightX * canvasWidth;
-      const lightY =
-        activeElement?.y ?? currentLightingState.lightY * canvasHeight;
+      // GAME DEV APPROACH: Use pixel positions directly from lightingState
+      // These are calculated using the EXACT same formula as DayNightCycle
+      // Perfect sync, no coordinate conversion needed
+      const lightX = currentLightingState.lightXPixels;
+      const lightY = currentLightingState.lightYPixels;
 
       // === FOG removed - now in MountainBackground between layers ===
 
@@ -426,34 +389,25 @@ function AtmosphericEffects({
       // Render BELOW mountains (will be occluded but creates rim lighting)
       // This is already in the right layer, just keeping it subtle
 
-      // OPTIMIZED: Frame budget enforcement (game dev technique)
-      // Track frame time and skip next frame if we're over budget
-      const frameTime = performance.now() - frameStart;
-      frameBudget.frameCount++;
-
-      // If frame took too long, skip next frame to maintain smooth FPS
-      if (frameTime > frameBudget.maxFrameTime) {
-        // Skip one frame to catch up
-        animationFrameRef.current = requestAnimationFrame(() => {
-          animationFrameRef.current = requestAnimationFrame(render);
-        });
-      } else {
-        animationFrameRef.current = requestAnimationFrame(render);
-      }
-
-      // Update time for animations
-      time += frameInterval / 1000; // Adjust time increment for throttled FPS
+      // Update time for animations (use fixed delta for consistent animation speed)
+      time += 0.016; // ~60fps delta time
     };
 
-    animationFrameRef.current = requestAnimationFrame(render);
+    // Expose render function via ref for unified RAF loop
+    if (currentRenderRef) {
+      currentRenderRef.current = render;
+    }
+
+    // Initial render
+    render();
 
     return () => {
       window.removeEventListener("resize", resizeCanvas);
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
+      if (currentRenderRef) {
+        currentRenderRef.current = null;
       }
     };
-  }, [width, height]); // Removed lightingState from dependencies - using ref instead
+  }, [width, height, renderRef]); // renderRef is stable but included for lint
 
   return (
     <canvas

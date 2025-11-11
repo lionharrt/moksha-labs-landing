@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
+import { memo, useLayoutEffect, useRef } from "react";
 import { useSmoothProgress } from "@/storyboard/hooks/useSmoothProgress";
 import { gsap } from "gsap";
 
@@ -9,13 +9,15 @@ interface MoonProps {
   centerY: number;
   radius?: number;
   progress: number;
+  progressRef?: React.MutableRefObject<number>; // Optional ref for smooth RAF updates
 }
 
-export default function Moon({
+function Moon({
   centerX,
   centerY,
   radius = 50,
   progress,
+  progressRef,
 }: MoonProps) {
   const groupRef = useRef<SVGSVGElement>(null);
   const timeline = useRef<GSAPTimeline | null>(null);
@@ -25,6 +27,7 @@ export default function Moon({
   const earthShadowId = `earth-shadow-${centerX}-${centerY}`;
   const moonCircleId = `moon-circle-${centerX}-${centerY}`;
   const glowFilterId = `moon-glow-filter-${centerX}-${centerY}`;
+  const rafIdRef = useRef<number | null>(null);
 
   useLayoutEffect(() => {
     if (!groupRef.current) return;
@@ -190,9 +193,46 @@ export default function Moon({
     glowFilterId,
   ]);
 
+  // CRITICAL: If progressRef is provided, update timeline in RAF loop for smooth updates
+  // Otherwise, use useSmoothProgress hook with prop (for backward compatibility)
+  useLayoutEffect(() => {
+    if (progressRef && timeline.current) {
+      let lastProgress = progressRef.current;
+
+      const updateTimeline = () => {
+        if (timeline.current && progressRef) {
+          const currentProgress = progressRef.current;
+
+          // Only update if progress changed significantly (prevents unnecessary updates)
+          if (Math.abs(currentProgress - lastProgress) > 0.0001) {
+            // Update timeline progress directly (smooth, no React overhead)
+            gsap.to(timeline.current, {
+              duration: 0.1, // Very short duration for smooth following
+              ease: "power2.out",
+              progress: currentProgress,
+              overwrite: true,
+            });
+            lastProgress = currentProgress;
+          }
+        }
+        rafIdRef.current = requestAnimationFrame(updateTimeline);
+      };
+      rafIdRef.current = requestAnimationFrame(updateTimeline);
+      return () => {
+        if (rafIdRef.current !== null) {
+          cancelAnimationFrame(rafIdRef.current);
+        }
+      };
+    }
+  }, [progressRef]);
+
   // Map progress (0-1) to moon phase timeline progress
   // Progress 0 = Full Moon, 0.25 = First Quarter, 0.5 = New Moon, 0.75 = Last Quarter, 1.0 = Full Moon again
-  useSmoothProgress(timeline.current, progress ?? null);
+  // Only used when progressRef is not provided (backward compatibility)
+  useSmoothProgress(
+    progressRef ? null : timeline.current, // Pass null when progressRef is provided to disable prop-based updates
+    progressRef ? null : progress ?? null
+  );
 
   // Calculate viewBox to fit moon and Earth shadow movement
   const padding = radius * 4; // Enough space for Earth shadow movement
@@ -284,3 +324,7 @@ export default function Moon({
     </svg>
   );
 }
+
+// CRITICAL: Memoize to prevent re-renders when parent re-renders
+// Only re-render when progress actually changes (which is throttled)
+export default memo(Moon);

@@ -1,6 +1,13 @@
 "use client";
 
-import { useRef, useMemo, useState, useLayoutEffect, useCallback } from "react"; // Added useMemo
+import {
+  useRef,
+  useMemo,
+  useState,
+  useLayoutEffect,
+  useCallback,
+  useEffect,
+} from "react"; // Added useEffect
 import { useScene } from "../../hooks/useScene";
 import { heroSceneConfig } from "./HeroScene.config";
 import LotusFlower from "@/components/ui/LotusFlower";
@@ -10,14 +17,17 @@ import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 import { WaterSurface, WaterSurfaceRef } from "@/components/ui/WaterSurface";
 import DayNightCycle from "@/components/ui/DayNightCycle";
 import MountainBackground from "@/components/ui/MountainBackground";
-import { useLighting } from "@/hooks/useLighting";
 import LightingControls from "@/components/ui/LightingControls";
-import AtmosphericEffects from "@/components/ui/AtmosphericEffects";
+import AtmosphericEffectsWebGL from "@/components/ui/AtmosphericEffectsWebGL";
 import {
   PerformancePreloader,
   PreloadedData,
 } from "@/components/ui/PerformancePreloader";
 import { DEFAULT_CONFIG } from "@/hooks/useLighting";
+import { calculateLightPosition } from "@/utils/lightPosition";
+import { calculateLightingState } from "@/utils/calculateLightingState";
+import { LightingConfig, LightingState } from "@/hooks/useLighting";
+import { performanceLogger } from "@/utils/performanceLogger";
 gsap.registerPlugin(MotionPathPlugin);
 // Define the structure for clarity
 interface ProgressSegment {
@@ -116,24 +126,252 @@ const getResponsivePosition = (
 };
 
 export function HeroScene() {
-  const { sceneRef, progress } = useScene(heroSceneConfig);
+  performanceLogger.logRender("HeroScene");
+
+  // TEMPORARY: Timer-based progress for performance testing (0-1 over 30 seconds)
+  // Comment out scroll progress for now
+  const progressRef = useRef(0);
+  const [timerProgress, setTimerProgress] = useState(0);
+  const updateTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const startTime = performance.now();
+    const duration = 300000; // 30 seconds
+    let lastReportedProgress = -1;
+
+    const updateProgress = () => {
+      const elapsed = performance.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      // CRITICAL: Update ref immediately (for canvas components to read)
+      progressRef.current = progress;
+
+      // Only update React state when progress changes significantly (every ~1%)
+      // This prevents re-renders every frame - sun position updates via RAF anyway
+      const progressThreshold = 0.01; // 1% change = ~10 updates per second
+      if (Math.abs(progress - lastReportedProgress) >= progressThreshold) {
+        lastReportedProgress = progress;
+        setTimerProgress(progress);
+      }
+
+      if (progress < 1) {
+        requestAnimationFrame(updateProgress);
+      }
+    };
+
+    requestAnimationFrame(updateProgress);
+  }, []);
+
+  // COMMENTED OUT: Scroll-driven progress
+  // const { sceneRef, progress } = useScene(heroSceneConfig);
+  const sceneRef = useRef<HTMLElement>(null);
+  const progress = timerProgress; // Use throttled timer progress for React
   const [numberOfExtraFlowers, setNumberOfExtraFlowers] = useState(1);
   const waterSurfaceRef = useRef<WaterSurfaceRef>(null);
   const [preloadedData, setPreloadedData] = useState<PreloadedData | null>(
     null
   );
+  const preloadedDataRef = useRef<PreloadedData | null>(null);
+  preloadedDataRef.current = preloadedData;
   const [isPreloading, setIsPreloading] = useState(true);
 
   const splitAndShrinkTimeline = useRef<GSAPTimeline | null>(null);
   const entranceTimeline = useRef<GSAPTimeline | null>(null);
   const aboutUsEntranceTimeline = useRef<GSAPTimeline | null>(null);
 
-  // Initialize lighting system (only after preloading)
-  const [lightingState, updateLightingConfig] = useLighting(
-    progress,
-    undefined,
-    preloadedData || undefined
+  // Refs for canvas component render functions (unified RAF loop)
+  const atmosphericEffectsRenderRef = useRef<(() => void) | null>(null);
+  const mountainBackgroundRenderRef = useRef<(() => void) | null>(null);
+  const waterSurfaceRenderRef = useRef<(() => void) | null>(null);
+
+  // Cache flower element refs to avoid DOM queries in GSAP callbacks
+  const flowerElementRefs = useRef<Map<number, HTMLElement>>(new Map());
+
+  // CRITICAL: Calculate light positions once in HeroScene, pass as props
+  // This removes all calculation logic from DayNightCycle
+  const viewportDimensionsRef = useRef({
+    width: typeof window !== "undefined" ? window.innerWidth : 1920,
+    height: typeof window !== "undefined" ? window.innerHeight : 1080,
+  });
+
+  useEffect(() => {
+    const updateDimensions = () => {
+      viewportDimensionsRef.current = {
+        width: window.innerWidth,
+        height: window.innerHeight,
+      };
+    };
+    window.addEventListener("resize", updateDimensions);
+    return () => window.removeEventListener("resize", updateDimensions);
+  }, []);
+
+  // Lighting config state (managed separately, doesn't watch progress)
+  const [lightingConfig, setLightingConfig] =
+    useState<LightingConfig>(DEFAULT_CONFIG);
+
+  // CRITICAL: Create ref for lightingConfig so MountainBackground can read it every frame
+  const lightingConfigRef = useRef<LightingConfig>(lightingConfig);
+  lightingConfigRef.current = lightingConfig;
+
+  // CRITICAL: Memoize sunPosition and moonPosition separately to prevent re-renders
+  // React.memo does shallow comparison, so we need stable object references
+  // Also round positions to nearest pixel to prevent micro-changes from triggering re-renders
+  // BUT: Don't round too aggressively or sun will stutter - use sub-pixel precision
+  const sunPosition = useMemo(() => {
+    const totalCycles = 28;
+    const currentCycle = Math.floor(progress * totalCycles);
+    const cycleProgress = (progress * totalCycles) % 1;
+    const isDaytime = cycleProgress < 0.5;
+
+    const viewportWidth = viewportDimensionsRef.current.width;
+    const viewportHeight = viewportDimensionsRef.current.height;
+    const lightPosition = calculateLightPosition(
+      progress,
+      viewportWidth,
+      viewportHeight
+    );
+
+    if (isDaytime) {
+      // Use sub-pixel precision (0.1px) to prevent stuttering while still reducing re-renders
+      return {
+        x: Math.round(lightPosition.x * 10) / 10,
+        y: Math.round(lightPosition.y * 10) / 10,
+      };
+    } else {
+      return { x: viewportWidth + 200, y: Math.round(viewportHeight * 0.8) };
+    }
+  }, [progress]);
+
+  const moonPosition = useMemo(() => {
+    const totalCycles = 28;
+    const currentCycle = Math.floor(progress * totalCycles);
+    const cycleProgress = (progress * totalCycles) % 1;
+    const isDaytime = cycleProgress < 0.5;
+
+    const viewportWidth = viewportDimensionsRef.current.width;
+    const viewportHeight = viewportDimensionsRef.current.height;
+    const lightPosition = calculateLightPosition(
+      progress,
+      viewportWidth,
+      viewportHeight
+    );
+
+    if (isDaytime) {
+      return { x: -200, y: Math.round(viewportHeight * 0.8) };
+    } else {
+      // Use sub-pixel precision (0.1px) to prevent stuttering while still reducing re-renders
+      return {
+        x: Math.round(lightPosition.x * 10) / 10,
+        y: Math.round(lightPosition.y * 10) / 10,
+      };
+    }
+  }, [progress]);
+
+  // Calculate light positions and cycle info
+  const lightPositions = useMemo(() => {
+    performanceLogger.logEffect("HeroScene", "lightPositions-calc");
+    const totalCycles = 28;
+    const currentCycle = Math.floor(progress * totalCycles);
+    const cycleProgress = (progress * totalCycles) % 1;
+    const isDaytime = cycleProgress < 0.5;
+    const moonPhase = currentCycle / totalCycles;
+
+    return {
+      sunPosition,
+      moonPosition,
+      isDaytime,
+      moonPhase,
+    };
+  }, [progress, sunPosition, moonPosition]);
+
+  // CRITICAL: Calculate lighting state in HeroScene, pass as props
+  // This removes the useEffect watching progress in useLighting hook
+  const lightingState = useMemo(() => {
+    performanceLogger.logEffect("HeroScene", "lightingState-calc");
+    const viewportWidth = viewportDimensionsRef.current.width;
+    const viewportHeight = viewportDimensionsRef.current.height;
+
+    return calculateLightingState(
+      progress,
+      lightingConfig,
+      viewportWidth,
+      viewportHeight,
+      preloadedData || undefined
+    );
+  }, [progress, lightingConfig, preloadedData]);
+
+  // Ref for canvas components to read latest lighting state
+  const lightingStateRef = useRef<LightingState>(lightingState);
+  lightingStateRef.current = lightingState;
+
+  // CRITICAL: Memoize shadowDirection object to prevent unnecessary re-renders
+  // React.memo does shallow comparison, so object references matter
+  const shadowDirection = useMemo(
+    () => ({
+      x: lightingState.shadowDirection.x,
+      y: lightingState.shadowDirection.y,
+    }),
+    [lightingState.shadowDirection.x, lightingState.shadowDirection.y]
   );
+
+  // Unified RAF loop - coordinates all canvas updates with frame budgeting
+  useEffect(() => {
+    if (isPreloading) return; // Don't start loop until preloading is done
+
+    let rafId: number;
+    let lastFrameTime = performance.now();
+    const targetFrameTime = 16.67; // 60fps target
+    const maxFrameTime = 33.33; // 30fps minimum
+    const frameBudget = 16; // ms budget per frame
+
+    const unifiedRenderLoop = (currentTime: number) => {
+      const frameStart = performance.now();
+      const frameTime = frameStart - lastFrameTime;
+      lastFrameTime = frameStart;
+
+      // Skip frame if we're over budget (maintain smooth FPS)
+      if (frameTime > maxFrameTime) {
+        rafId = requestAnimationFrame(() => {
+          rafId = requestAnimationFrame(unifiedRenderLoop);
+        });
+        return;
+      }
+
+      // Frame budgeting: track time spent and skip expensive operations if over budget
+      let timeSpent = 0;
+      const checkBudget = () => performance.now() - frameStart;
+
+      // Call all render functions in order (back to front)
+      // 1. Atmospheric Effects (behind mountains) - WebGL only
+      if (atmosphericEffectsRenderRef.current && timeSpent < frameBudget) {
+        atmosphericEffectsRenderRef.current();
+        timeSpent = checkBudget();
+      }
+
+      // 2. Mountain Background - most expensive, skip if we're over budget
+      if (mountainBackgroundRenderRef.current && timeSpent < frameBudget) {
+        mountainBackgroundRenderRef.current();
+        timeSpent = checkBudget();
+      }
+
+      // 3. Water Surface - medium cost, skip if we're over budget
+      if (waterSurfaceRenderRef.current && timeSpent < frameBudget) {
+        waterSurfaceRenderRef.current();
+        timeSpent = checkBudget();
+      }
+
+      // Schedule next frame
+      rafId = requestAnimationFrame(unifiedRenderLoop);
+    };
+
+    rafId = requestAnimationFrame(unifiedRenderLoop);
+
+    return () => {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+    };
+  }, [isPreloading]);
 
   // --- Calculate Mapped Progress Values ---
   // Use useMemo to re-calculate only when 'progress' changes
@@ -442,9 +680,42 @@ export function HeroScene() {
   useSmoothProgress(entranceTimeline.current, entranceProgress);
 
   // Subtle bobbing and swaying animation for flowers in water
+  // CRITICAL: Only run when flowers should be animated (not on every progress change)
+  // Use refs to track previous values and only update when actually needed
+  const prevAnimationStateRef = useRef({
+    heroLotusProgress: 0,
+    splitAndShrinkProgress: null as number | null,
+    numberOfExtraFlowers: 0,
+  });
+
   useLayoutEffect(() => {
     // Only animate if flowers are positioned (hero flower is open OR split has started)
     if (heroLotusProgress < 1 && splitAndShrinkProgress === null) return;
+
+    // CRITICAL: Only recreate animations if state actually changed significantly
+    // This prevents expensive DOM queries and GSAP timeline creation on every scroll
+    const prevState = prevAnimationStateRef.current;
+    const shouldRecreate =
+      prevState.numberOfExtraFlowers !== numberOfExtraFlowers ||
+      (heroLotusProgress >= 1 && prevState.heroLotusProgress < 1) ||
+      (splitAndShrinkProgress !== null &&
+        prevState.splitAndShrinkProgress === null);
+
+    if (!shouldRecreate && prevState.numberOfExtraFlowers > 0) {
+      // Animations already set up, just update refs
+      prevAnimationStateRef.current = {
+        heroLotusProgress,
+        splitAndShrinkProgress,
+        numberOfExtraFlowers,
+      };
+      return;
+    }
+
+    prevAnimationStateRef.current = {
+      heroLotusProgress,
+      splitAndShrinkProgress,
+      numberOfExtraFlowers,
+    };
 
     const targets = Array.from(
       { length: numberOfExtraFlowers + 1 },
@@ -461,6 +732,16 @@ export function HeroScene() {
       const flower = FLOWER_CONFIG[index];
       if (!flower) return;
 
+      // PERFORMANCE: Cache element ref ONCE to avoid DOM queries in callback
+      // This prevents expensive getBoundingClientRect() calls from blocking GSAP animation
+      // CRITICAL: Only query DOM if element not already cached
+      if (!flowerElementRefs.current.has(index)) {
+        const element = document.querySelector(selector) as HTMLElement;
+        if (element) {
+          flowerElementRefs.current.set(index, element);
+        }
+      }
+
       // Vertical bobbing (up and down) with ripple emission at lowest point
       // GSAP yoyo: goes down (0->amplitude), then up (amplitude->0)
       // Lowest point is at the end of the first tween (when it completes)
@@ -471,19 +752,22 @@ export function HeroScene() {
         ease: "sine.inOut",
         onComplete: function () {
           // This fires when flower reaches lowest point (end of downward motion)
+          // PERFORMANCE: Use cached element ref and defer expensive getBoundingClientRect() call
           if (waterSurfaceRef.current && splitAndShrinkProgress === 1) {
             const phase = isFlowerInPhase2(flower.index) ? 2 : 1;
 
-            // Get the actual DOM element - its position already includes all GSAP transforms
-            const element = document.querySelector(selector) as HTMLElement;
-            if (element && waterSurfaceRef.current) {
-              // Pass the element directly - WaterSurface will use getBoundingClientRect()
-              // This automatically accounts for all transforms (bob, motion path)
-              waterSurfaceRef.current.emitRippleFromElement(
-                index,
-                element,
-                phase
-              );
+            // Use cached element ref instead of querying DOM (avoids DOM query)
+            const cachedElement = flowerElementRefs.current.get(index);
+            if (cachedElement && waterSurfaceRef.current) {
+              // Defer getBoundingClientRect() to next frame to avoid blocking GSAP animation
+              // This prevents the 150ms frame spike
+              requestAnimationFrame(() => {
+                waterSurfaceRef.current?.emitRippleFromElement(
+                  index,
+                  cachedElement,
+                  phase
+                );
+              });
             }
           }
         },
@@ -495,11 +779,16 @@ export function HeroScene() {
       });
     });
 
+    // Capture refs for cleanup
+    const elementRefsMap = flowerElementRefs.current;
+
     return () => {
       // Cleanup: kill all bobbing animations (only vertical now)
       targets.forEach((selector) => {
         gsap.killTweensOf(selector, "y");
       });
+      // Clear cached element refs
+      elementRefsMap.clear();
     };
   }, [
     numberOfExtraFlowers,
@@ -546,37 +835,59 @@ export function HeroScene() {
           <div style={{ pointerEvents: "auto" }}>
             <LightingControls
               lightingState={lightingState}
-              onConfigChange={updateLightingConfig}
+              onConfigChange={(updates) => {
+                setLightingConfig((prev) => ({ ...prev, ...updates }));
+              }}
             />
           </div>
         </div>
 
         {/* Layer 1: Sky Background with Day/Night colors */}
-        <div className="absolute inset-0" style={{ zIndex: 0 }}>
+        <div
+          className="absolute inset-0"
+          style={{ zIndex: 0 }}
+          data-component="HeroScene-Sky"
+        >
           <DayNightCycle
-            progress={progress}
+            progressRef={progressRef}
+            viewportDimensionsRef={viewportDimensionsRef}
+            isDaytime={lightPositions.isDaytime}
+            moonPhase={lightPositions.moonPhase}
             skyColor={lightingState.skyColor}
           />
         </div>
 
         {/* Layer 2: Atmospheric Effects BEHIND mountains (God Rays, Lens Flare) */}
-        <div
+        {/* TEMPORARILY DISABLED */}
+        {/* <div
           className="absolute inset-0"
           style={{ zIndex: 1, pointerEvents: "none" }}
         >
-          <AtmosphericEffects lightingState={lightingState} />
-        </div>
+          <AtmosphericEffectsWebGL
+            lightingState={lightingState}
+            lightingStateRef={lightingStateRef}
+            renderRef={atmosphericEffectsRenderRef}
+          />
+        </div> */}
 
         {/* Layer 3: Mountains (solid, occludes atmospheric effects) */}
         <div
           className="absolute inset-0"
           style={{ zIndex: 2, pointerEvents: "none" }}
+          data-component="HeroScene-Mountains"
         >
-          <MountainBackground lightingState={lightingState} />
+          <MountainBackground
+            progressRef={progressRef}
+            lightingConfigRef={lightingConfigRef}
+            viewportDimensionsRef={viewportDimensionsRef}
+            preloadedDataRef={preloadedDataRef}
+            renderRef={mountainBackgroundRenderRef}
+          />
         </div>
 
         {/* Layer 4: Water Surface with Lighting */}
-        <div
+        {/* TEMPORARILY DISABLED */}
+        {/* <div
           className="absolute inset-0"
           style={{ zIndex: 3, pointerEvents: "none" }}
         >
@@ -585,11 +896,13 @@ export function HeroScene() {
             flowerPositions={flowerPositions}
             splitAndShrinkProgress={splitAndShrinkProgress}
             lightingState={lightingState}
+            renderRef={waterSurfaceRenderRef}
           />
-        </div>
+        </div> */}
 
         {/* Layer 5: Flowers on top of everything */}
-        <div className="absolute inset-0" style={{ zIndex: 10 }}>
+        {/* TEMPORARILY DISABLED */}
+        {/* <div className="absolute inset-0" style={{ zIndex: 10 }}>
           {FLOWER_CONFIG.slice(0, numberOfExtraFlowers + 1).map((flower) => (
             <LotusFlower
               key={flower.index}
@@ -603,7 +916,7 @@ export function HeroScene() {
               finalYPosition={flower.position.y}
             />
           ))}
-        </div>
+        </div> */}
       </section>
     </>
   );

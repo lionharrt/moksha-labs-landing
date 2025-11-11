@@ -14,15 +14,49 @@ export function DevToolbar() {
     droppedFrames: 0,
   });
 
+  // CRITICAL: Use refs for DOM updates to avoid React reconciliation
+  const fpsSpanRef = useRef<HTMLSpanElement>(null);
+  const frameTimeSpanRef = useRef<HTMLSpanElement>(null);
+  const statsRef = useRef(stats);
+  statsRef.current = stats; // Keep ref in sync
+
   const frameTimesRef = useRef<number[]>([]);
-  const lastFrameTimeRef = useRef(performance.now());
+  const lastFrameTimeRef = useRef<number | null>(null);
   const frameCountRef = useRef(0);
   const droppedFramesRef = useRef(0);
   const animationFrameRef = useRef<number>();
+  const minFrameTimeRef = useRef(Infinity);
+  const maxFrameTimeRef = useRef(0);
 
   useEffect(() => {
+    // Reset stats when component mounts
+    frameTimesRef.current = [];
+    lastFrameTimeRef.current = null;
+    frameCountRef.current = 0;
+    droppedFramesRef.current = 0;
+    minFrameTimeRef.current = Infinity;
+    maxFrameTimeRef.current = 0;
+
+    setStats({
+      fps: 0,
+      frameTime: 0,
+      minFrameTime: Infinity,
+      maxFrameTime: 0,
+      avgFrameTime: 0,
+      frameCount: 0,
+      droppedFrames: 0,
+    });
+
     const updateStats = () => {
       const now = performance.now();
+
+      // Skip first frame (no previous frame to compare)
+      if (lastFrameTimeRef.current === null) {
+        lastFrameTimeRef.current = now;
+        animationFrameRef.current = requestAnimationFrame(updateStats);
+        return;
+      }
+
       const frameTime = now - lastFrameTimeRef.current;
       lastFrameTimeRef.current = now;
 
@@ -36,28 +70,82 @@ export function DevToolbar() {
           frameTimesRef.current.shift();
         }
 
+        // Update min/max tracking
+        if (frameTime < minFrameTimeRef.current) {
+          minFrameTimeRef.current = frameTime;
+        }
+        if (frameTime > maxFrameTimeRef.current) {
+          maxFrameTimeRef.current = frameTime;
+        }
+
         // Calculate stats
         const fps = 1000 / frameTime;
         const avgFrameTime =
           frameTimesRef.current.reduce((a, b) => a + b, 0) /
           frameTimesRef.current.length;
-        const minFrameTime = Math.min(...frameTimesRef.current);
-        const maxFrameTime = Math.max(...frameTimesRef.current);
 
         // Count dropped frames (frames that took longer than 33.33ms = <30fps)
         if (frameTime > 33.33) {
           droppedFramesRef.current++;
         }
 
-        setStats({
-          fps: Math.round(fps),
-          frameTime: Math.round(frameTime * 100) / 100,
-          minFrameTime: Math.round(minFrameTime * 100) / 100,
-          maxFrameTime: Math.round(maxFrameTime * 100) / 100,
-          avgFrameTime: Math.round(avgFrameTime * 100) / 100,
-          frameCount: frameCountRef.current,
-          droppedFrames: droppedFramesRef.current,
-        });
+        const roundedFps = Math.round(fps);
+        const roundedFrameTime = Math.round(frameTime * 100) / 100;
+
+        // CRITICAL: Update DOM directly to avoid React reconciliation
+        // This prevents hundreds of mutations per second from className/text changes
+        if (fpsSpanRef.current) {
+          const colorClass =
+            roundedFps >= 30
+              ? "text-green-400"
+              : roundedFps >= 20
+              ? "text-yellow-400"
+              : "text-red-400";
+          const newClassName = `font-mono ${colorClass}`;
+          // Only update if changed to avoid unnecessary mutations
+          if (fpsSpanRef.current.className !== newClassName) {
+            fpsSpanRef.current.className = newClassName;
+          }
+          const newText = roundedFps.toString();
+          if (fpsSpanRef.current.textContent !== newText) {
+            fpsSpanRef.current.textContent = newText;
+          }
+        }
+
+        if (frameTimeSpanRef.current) {
+          const colorClass =
+            roundedFrameTime <= 33.33
+              ? "text-green-400"
+              : roundedFrameTime <= 50
+              ? "text-yellow-400"
+              : "text-red-400";
+          const newClassName = `font-mono ${colorClass}`;
+          // Only update if changed to avoid unnecessary mutations
+          if (frameTimeSpanRef.current.className !== newClassName) {
+            frameTimeSpanRef.current.className = newClassName;
+          }
+          const newText = `${roundedFrameTime.toFixed(2)}ms`;
+          if (frameTimeSpanRef.current.textContent !== newText) {
+            frameTimeSpanRef.current.textContent = newText;
+          }
+        }
+
+        // Throttle React state updates to ~10fps (only for other stats that don't change frequently)
+        const shouldUpdateState = frameCountRef.current % 6 === 0; // Update every 6 frames (~10fps)
+        if (shouldUpdateState) {
+          setStats({
+            fps: roundedFps,
+            frameTime: roundedFrameTime,
+            minFrameTime:
+              minFrameTimeRef.current === Infinity
+                ? 0
+                : Math.round(minFrameTimeRef.current * 100) / 100,
+            maxFrameTime: Math.round(maxFrameTimeRef.current * 100) / 100,
+            avgFrameTime: Math.round(avgFrameTime * 100) / 100,
+            frameCount: frameCountRef.current,
+            droppedFrames: droppedFramesRef.current,
+          });
+        }
       }
 
       animationFrameRef.current = requestAnimationFrame(updateStats);
@@ -69,6 +157,8 @@ export function DevToolbar() {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
+      // Reset on cleanup
+      lastFrameTimeRef.current = null;
     };
   }, []);
 
@@ -107,28 +197,15 @@ export function DevToolbar() {
               <div className="space-y-1 text-white/60">
                 <div className="flex justify-between">
                   <span>FPS:</span>
-                  <span
-                    className={`font-mono ${
-                      stats.fps >= 30
-                        ? "text-green-400"
-                        : stats.fps >= 20
-                        ? "text-yellow-400"
-                        : "text-red-400"
-                    }`}
-                  >
+                  <span ref={fpsSpanRef} className="font-mono text-green-400">
                     {stats.fps}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Frame Time:</span>
                   <span
-                    className={`font-mono ${
-                      stats.frameTime <= 33.33
-                        ? "text-green-400"
-                        : stats.frameTime <= 50
-                        ? "text-yellow-400"
-                        : "text-red-400"
-                    }`}
+                    ref={frameTimeSpanRef}
+                    className="font-mono text-green-400"
                   >
                     {stats.frameTime.toFixed(2)}ms
                   </span>

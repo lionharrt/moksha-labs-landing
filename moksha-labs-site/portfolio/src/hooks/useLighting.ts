@@ -1,9 +1,16 @@
-import { useMemo, useState, useRef, useEffect, useCallback } from "react";
+import React, {
+  useMemo,
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+} from "react";
 import {
   PreloadedData,
   getColorFromLUT,
   getLightPositionFromLUT,
 } from "@/utils/performancePreloader";
+import { calculateLightPosition } from "@/utils/lightPosition";
 
 // Lighting configuration that can be tweaked via controls
 export interface LightingConfig {
@@ -219,6 +226,8 @@ export interface LightingState {
   // Light source (sun/moon position from DayNightCycle)
   lightX: number; // 0-1 normalized viewport position
   lightY: number; // 0-1 normalized viewport position
+  lightXPixels: number; // Pixel position in viewport (matches DayNightCycle exactly)
+  lightYPixels: number; // Pixel position in viewport (matches DayNightCycle exactly)
   lightAngle: number; // Angle of light direction in radians
 
   // Shadow parameters
@@ -249,7 +258,11 @@ export function useLighting(
   progress: number,
   initialConfig?: Partial<LightingConfig>,
   preloadedData?: PreloadedData | null
-): [LightingState, (config: Partial<LightingConfig>) => void] {
+): [
+  LightingState,
+  (config: Partial<LightingConfig>) => void,
+  React.MutableRefObject<LightingState | null>
+] {
   // Merge with default config
   const [config, setConfigState] = useState<LightingConfig>({
     ...DEFAULT_CONFIG,
@@ -260,11 +273,29 @@ export function useLighting(
     setConfigState((prev) => ({ ...prev, ...updates }));
   };
 
-  // OPTIMIZED: Store progress in ref to avoid recalculations on every change
+  // OPTIMIZED: Store progress in ref for canvas components to access latest value
   const progressRef = useRef(progress);
   const configRef = useRef(config);
   const lightingStateRef = useRef<LightingState | null>(null);
-  const lastUpdateTimeRef = useRef(0);
+
+  // CRITICAL: Cache viewport dimensions to avoid expensive DOM reads during scroll
+  const viewportDimensionsRef = useRef({
+    width: typeof window !== "undefined" ? window.innerWidth : 1920,
+    height: typeof window !== "undefined" ? window.innerHeight : 1080,
+  });
+
+  // Update viewport dimensions only on resize (not on every render)
+  useEffect(() => {
+    const updateDimensions = () => {
+      viewportDimensionsRef.current = {
+        width: window.innerWidth,
+        height: window.innerHeight,
+      };
+    };
+
+    window.addEventListener("resize", updateDimensions);
+    return () => window.removeEventListener("resize", updateDimensions);
+  }, []);
 
   // Update refs immediately (no re-render)
   progressRef.current = progress;
@@ -282,12 +313,20 @@ export function useLighting(
       const timeOfDay = getTimeOfDay(cycleProgress);
       const isDaytime = cycleProgress < 0.5;
 
-      // Calculate arc progress and parabola (needed for both lookup and calculation paths)
-      const isDayPhase = cycleProgress < 0.5;
-      const arcProgress = isDayPhase
-        ? cycleProgress / 0.5
-        : (cycleProgress - 0.5) / 0.5;
-      const parabola = -4 * Math.pow(arcProgress - 0.5, 2) + 1; // 0 at horizon, 1 at peak
+      // SINGLE SOURCE OF TRUTH: Use shared light position calculation
+      // Use cached viewport dimensions to avoid expensive DOM reads during scroll
+      const viewportWidth = viewportDimensionsRef.current.width;
+      const viewportHeight = viewportDimensionsRef.current.height;
+
+      const lightPosition = calculateLightPosition(
+        currentProgress,
+        viewportWidth,
+        viewportHeight
+      );
+      const lightXPixels = lightPosition.x;
+      const lightYPixels = lightPosition.y;
+      const arcProgress = lightPosition.arcProgress;
+      const parabola = -4 * Math.pow(arcProgress - 0.5, 2) + 1; // Needed for other calculations
 
       // OPTIMIZED: Use lookup tables if available (fast O(1) lookup instead of calculations)
       let skyColor: string;
@@ -314,19 +353,9 @@ export function useLighting(
           "water"
         );
 
-        // Use pre-calculated light position from lookup table
-        const lightPos = getLightPositionFromLUT(
-          preloadedData.lightPositionLUT,
-          arcProgress
-        );
-        const viewportWidth =
-          typeof window !== "undefined" ? window.innerWidth : 1920;
-        const viewportHeight =
-          typeof window !== "undefined" ? window.innerHeight : 1080;
-
-        // Normalize to 0-1 for compatibility
-        lightX = lightPos.x / viewportWidth;
-        lightY = lightPos.y / viewportHeight;
+        // Normalize pixel positions to 0-1 for compatibility
+        lightX = lightXPixels / viewportWidth;
+        lightY = lightYPixels / viewportHeight;
       } else {
         // Fallback to calculation if no preloaded data (shouldn't happen in production)
         const { period, transitionProgress, nextPeriod } = timeOfDay;
@@ -379,21 +408,7 @@ export function useLighting(
           easedTransitionProgress
         );
 
-        // Calculate light source position
-        const viewportWidth =
-          typeof window !== "undefined" ? window.innerWidth : 1920;
-        const viewportHeight =
-          typeof window !== "undefined" ? window.innerHeight : 1080;
-
-        const horizontalStart = viewportWidth + 200;
-        const horizontalEnd = -200;
-        const lightXPixels =
-          horizontalStart + (horizontalEnd - horizontalStart) * arcProgress;
-
-        const skyHeight = viewportHeight * 0.7;
-        const horizonY = viewportHeight * 0.8;
-        const lightYPixels = horizonY - skyHeight * parabola;
-
+        // Normalize pixel positions to 0-1 for compatibility
         lightX = lightXPixels / viewportWidth;
         lightY = lightYPixels / viewportHeight;
       }
@@ -484,6 +499,8 @@ export function useLighting(
         isDaytime,
         lightX,
         lightY,
+        lightXPixels, // GAME DEV: Expose pixel positions directly for perfect sync
+        lightYPixels, // GAME DEV: Expose pixel positions directly for perfect sync
         lightAngle,
         shadowDirection,
         shadowOpacity,
@@ -503,52 +520,40 @@ export function useLighting(
     [preloadedData]
   ); // preloadedData is stable after loading
 
-  // State for React components (throttled updates)
-  // Calculate initial state inline since calculateLightingState is defined above
+  // State for React components - initialize with a default state
   const [lightingState, setLightingState] = useState<LightingState>(() =>
     calculateLightingState(progress, config)
   );
 
-  // Throttled state update - only update React state at 30fps (33ms intervals)
-  // BUT: Update ref every frame so canvas components get latest values immediately
+  // CRITICAL: Throttle React state updates to avoid lag spikes during scroll
+  // Update ref immediately (for canvas components) but throttle React state updates
+  // This prevents React re-renders from blocking scroll
+  const updateTimeoutRef = useRef<number | null>(null);
+
   useEffect(() => {
-    const updateInterval = 33; // ~30fps for React state updates
+    // Always update ref immediately (canvas components read from this)
+    const latestState = calculateLightingState(
+      progressRef.current,
+      configRef.current
+    );
+    lightingStateRef.current = latestState;
 
-    // Throttled updates via requestAnimationFrame
-    let rafId: number;
-    const tick = () => {
-      const now = performance.now();
+    // Throttle React state updates to max 30fps (33ms) to prevent lag spikes
+    if (updateTimeoutRef.current !== null) {
+      clearTimeout(updateTimeoutRef.current);
+    }
 
-      // Always update ref with latest progress (for canvas components)
-      const latestState = calculateLightingState(
-        progressRef.current,
-        configRef.current
-      );
-      lightingStateRef.current = latestState;
-
-      // Only update React state at throttled interval (for UI components)
-      if (now - lastUpdateTimeRef.current >= updateInterval) {
-        setLightingState(latestState);
-        lastUpdateTimeRef.current = now;
-      }
-
-      rafId = requestAnimationFrame(tick);
-    };
-
-    // Initial calculation
-    const initialState = calculateLightingState(progress, config);
-    lightingStateRef.current = initialState;
-    setLightingState(initialState);
-    lastUpdateTimeRef.current = performance.now();
-
-    rafId = requestAnimationFrame(tick);
+    updateTimeoutRef.current = window.setTimeout(() => {
+      setLightingState(latestState);
+      updateTimeoutRef.current = null;
+    }, 33); // ~30fps max update rate
 
     return () => {
-      cancelAnimationFrame(rafId);
+      if (updateTimeoutRef.current !== null) {
+        clearTimeout(updateTimeoutRef.current);
+      }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [calculateLightingState, config]); // Recreate when config changes
-  // Note: progress is intentionally excluded - we use progressRef.current instead
+  }, [progress, config, calculateLightingState]);
 
   // Expose function to get current lighting state from ref (for canvas components)
   // This allows canvas components to read the latest progress without waiting for React state
@@ -569,5 +574,6 @@ export function useLighting(
   const getCurrentLightingStateRef = useRef(getCurrentLightingState);
   getCurrentLightingStateRef.current = getCurrentLightingState;
 
-  return [lightingState, updateConfig];
+  // Expose the ref so canvas components can read latest values synchronously
+  return [lightingState, updateConfig, lightingStateRef];
 }

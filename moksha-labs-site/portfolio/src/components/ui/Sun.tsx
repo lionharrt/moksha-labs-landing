@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef, memo } from "react";
 import { gsap } from "gsap";
 // Function to create a ray path that extends radially outward
 function createRayPath(
@@ -77,7 +77,7 @@ interface SunProps {
   numRays?: number;
 }
 
-export default function Sun({
+function Sun({
   centerX,
   centerY,
   sunRadius = 15,
@@ -268,3 +268,7 @@ export default function Sun({
     </svg>
   );
 }
+
+// CRITICAL: Memoize to prevent re-renders when parent re-renders
+// Sun props (centerX, centerY) are constants, so it should never re-render
+export default memo(Sun);

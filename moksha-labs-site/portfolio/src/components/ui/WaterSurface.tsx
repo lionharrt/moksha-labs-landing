@@ -29,6 +29,7 @@ interface WaterSurfaceProps {
   }>; // Flower positions and animation parameters
   splitAndShrinkProgress?: number | null; // Progress of split animation (0-1 or null)
   lightingState?: LightingState; // Optional lighting integration
+  renderRef?: React.MutableRefObject<(() => void) | null>; // Ref to expose render function
 }
 
 export interface WaterSurfaceRef {
@@ -46,7 +47,7 @@ export interface WaterSurfaceRef {
  */
 export const WaterSurface = forwardRef<WaterSurfaceRef, WaterSurfaceProps>(
   (
-    { flowerPositions = [], splitAndShrinkProgress = null, lightingState },
+    { flowerPositions = [], splitAndShrinkProgress = null, lightingState, renderRef },
     ref
   ) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -63,12 +64,10 @@ export const WaterSurface = forwardRef<WaterSurfaceRef, WaterSurfaceProps>(
       getShoreY: (x: number, time: number) => number;
     } | null>(null);
     
-    // OPTIMIZED: Frame budget tracking (game dev technique)
-    const frameBudgetRef = useRef({
-      targetFrameTime: 16.67, // 60fps target
-      maxFrameTime: 33.33, // Don't exceed 30fps
-      lastFrameTime: 0,
-    });
+    // MEMORY LEAK FIX: Throttle ripple emission per flower to prevent accumulation
+    const lastRippleTimeRef = useRef<Map<number, number>>(new Map());
+    const MIN_RIPPLE_INTERVAL = 2000; // Minimum 2 seconds between ripples per flower
+    
 
     // Expose emitRippleFromElement function via ref
     useImperativeHandle(
@@ -129,7 +128,17 @@ export const WaterSurface = forwardRef<WaterSurfaceRef, WaterSurfaceProps>(
 
           // Only emit if flower is in water (element bottom is at or below water surface)
           if (elementBottomY >= shoreYScreen) {
-            const baseRadius = isPhase2 ? 1250 : 250;
+            // MEMORY LEAK FIX: Throttle ripple emission to prevent too many ripples
+            const now = Date.now();
+            const lastRippleTime = lastRippleTimeRef.current.get(flowerIndex) || 0;
+            if (now - lastRippleTime < MIN_RIPPLE_INTERVAL) {
+              return; // Skip this ripple - too soon since last one
+            }
+            lastRippleTimeRef.current.set(flowerIndex, now);
+            
+            // MEMORY LEAK FIX: Reduce phase 2 max radius to prevent long-lived ripples
+            // Phase 2 ripples were lasting ~42 seconds, causing accumulation
+            const baseRadius = isPhase2 ? 600 : 250; // Reduced from 1250 to 600 (~20 seconds instead of 42)
 
             // For phase 2, calculate initial radius based on flower size at water surface
             // Phase 2 flowers are much larger and partially submerged
@@ -158,15 +167,18 @@ export const WaterSurface = forwardRef<WaterSurfaceRef, WaterSurfaceProps>(
               startTimeOffset = -0.3; // Negative = in the past
             }
 
-            ripplesRef.current.push({
+            const initialOpacityValue = phase === 2 ? 0.35 : 0.5;
+            const newRipple: Ripple = {
               x: canvasX,
               y: rippleY,
               radius: initialRadius, // Initial radius (0 for phase 1, calculated for phase 2)
               initialRadius: initialRadius, // Store separately to preserve it
               maxRadius: baseRadius,
-              opacity: phase === 2 ? 0.35 : 0.5,
+              opacity: initialOpacityValue, // Current opacity (will be recalculated each frame)
+              initialOpacity: initialOpacityValue, // Store initial opacity for LUT-based calculation - MUST be set!
               startTime: timeRef.current + startTimeOffset,
-            });
+            };
+            ripplesRef.current.push(newRipple);
           }
         },
       }),
@@ -332,10 +344,6 @@ export const WaterSurface = forwardRef<WaterSurfaceRef, WaterSurfaceProps>(
       };
 
       const render = () => {
-        // OPTIMIZED: Frame budget tracking (game dev technique)
-        const frameStart = performance.now();
-        const frameBudget = frameBudgetRef.current;
-        
         const canvasWidth = canvas.width;
         const canvasHeight = canvas.height;
 
@@ -352,7 +360,9 @@ export const WaterSurface = forwardRef<WaterSurfaceRef, WaterSurfaceProps>(
         ctx.moveTo(0, getShoreY(0, timeRef.current));
 
         // Draw wavy top edge with smooth curves
-        const step = 1; // Smaller step for smoother curves
+        // PERFORMANCE: Increase step size to reduce function calls
+        // Step of 2px is still smooth enough visually but halves the calls
+        const step = 2; // Reduced from 1px to 2px for performance
         let prevY = getShoreY(0, timeRef.current);
 
         for (let x = step; x <= canvasWidth; x += step) {
@@ -387,9 +397,9 @@ export const WaterSurface = forwardRef<WaterSurfaceRef, WaterSurfaceProps>(
         ctx.lineJoin = "round";
 
         // Generate wave lines using configurable function
-        // Adjust parameters below to change the pattern
+        // PERFORMANCE: Reduced line count from 12 to 8 for better performance
         const waveLines = generateWaveLines({
-          lineCount: 12, // Number of wave lines
+          lineCount: 8, // Reduced from 12 for performance
           depthRange: [0.05, 1.0], // [shore, bottom] - extend all the way to bottom
           opacityRange: [0.1, 0.25], // [shore, bottom] - higher opacity closer to viewer
           lineWidthRange: [0.7, 0.7], // [bottom, shore] - thinner at bottom, thicker at shore
@@ -468,6 +478,7 @@ export const WaterSurface = forwardRef<WaterSurfaceRef, WaterSurfaceProps>(
         // Clear ripples if split phase hasn't completed
         if (splitProgressRef.current !== 1) {
           ripplesRef.current = [];
+          lastRippleTimeRef.current.clear(); // Also clear throttle map
         }
 
         // Update and draw ripples with 2.5D perspective effect
@@ -529,20 +540,27 @@ export const WaterSurface = forwardRef<WaterSurfaceRef, WaterSurfaceProps>(
         // Update time for animation
         timeRef.current += 0.01;
 
-        // OPTIMIZED: Frame budget enforcement (game dev technique)
-        const frameTime = performance.now() - frameStart;
-        if (frameTime > frameBudget.maxFrameTime) {
-          // Skip next frame if we're over budget
-          animationFrameRef.current = requestAnimationFrame(() => {
-            animationFrameRef.current = requestAnimationFrame(render);
-          });
-        } else {
+        // Continue animation loop (will be called by unified RAF loop via renderRef)
+        if (!renderRef) {
           animationFrameRef.current = requestAnimationFrame(render);
         }
       };
 
-      // Start animation loop
-      animationFrameRef.current = requestAnimationFrame(render);
+      // Capture renderRef from props
+      const currentRenderRef = renderRef;
+
+      // Expose render function via ref for unified RAF loop
+      if (currentRenderRef) {
+        currentRenderRef.current = render;
+      }
+
+      // Initial render
+      render();
+
+      // Start animation loop only if not using unified RAF loop
+      if (!currentRenderRef) {
+        animationFrameRef.current = requestAnimationFrame(render);
+      }
 
       return () => {
         window.removeEventListener("resize", resizeCanvas);
@@ -550,8 +568,11 @@ export const WaterSurface = forwardRef<WaterSurfaceRef, WaterSurfaceProps>(
         if (animationFrameRef.current) {
           cancelAnimationFrame(animationFrameRef.current);
         }
+        if (currentRenderRef) {
+          currentRenderRef.current = null;
+        }
       };
-    }, [flowerPositions, splitAndShrinkProgress]); // Removed lightingState - using ref instead
+    }, [flowerPositions, splitAndShrinkProgress, renderRef]); // renderRef is captured in closure
 
     return (
       <canvas
