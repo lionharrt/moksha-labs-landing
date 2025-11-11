@@ -28,10 +28,16 @@ export function useScrollReveal<T extends HTMLElement = HTMLDivElement>(
   config: ScrollRevealConfig = {}
 ) {
   const elementRef = useRef<T>(null);
+  const configRef = useRef(config);
+  
+  // Update ref when config changes
+  configRef.current = config;
 
   useLayoutEffect(() => {
     const element = elementRef.current;
     if (!element) return;
+    
+    const config = configRef.current;
 
     const {
       start = 'top 80%',
@@ -63,7 +69,21 @@ export function useScrollReveal<T extends HTMLElement = HTMLDivElement>(
     return () => {
       animation.kill();
     };
-  }, [JSON.stringify(config)]);
+  }, [
+    config.start,
+    config.end,
+    config.scrub,
+    config.toggleActions,
+    config.markers,
+    // Deep comparison for from/to objects - accept that these might cause extra renders
+    // but better than JSON.stringify in dependencies
+    config.from?.opacity,
+    config.from?.y,
+    config.to?.opacity,
+    config.to?.y,
+    config.to?.duration,
+    config.to?.ease,
+  ]);
 
   return elementRef;
 }
@@ -73,10 +93,16 @@ export function useScrollRevealBatch(
 ) {
   const parentRef = useRef<HTMLDivElement>(null);
   const childClass = config.selector || 'scroll-reveal-item';
+  const configRef = useRef(config);
+  
+  // Update ref when config changes
+  configRef.current = config;
 
   useLayoutEffect(() => {
     const parent = parentRef.current;
     if (!parent) return;
+    
+    const config = configRef.current;
 
     const children = parent.querySelectorAll(`.${childClass}`);
     if (children.length === 0) return;
@@ -113,7 +139,22 @@ export function useScrollRevealBatch(
     return () => {
       animation.kill();
     };
-  }, [childClass, JSON.stringify(config)]);
+  }, [
+    childClass,
+    config.start,
+    config.end,
+    config.scrub,
+    config.toggleActions,
+    config.stagger,
+    config.markers,
+    // Deep comparison for from/to objects
+    config.from?.opacity,
+    config.from?.y,
+    config.to?.opacity,
+    config.to?.y,
+    config.to?.duration,
+    config.to?.ease,
+  ]);
 
   return { parentRef, childClass };
 }

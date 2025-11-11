@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback, memo } from "react";
 import { LightingState } from "@/hooks/useLighting";
 
 interface MountainBackgroundProps {
@@ -88,7 +88,7 @@ class SimpleNoise {
   }
 }
 
-export default function MountainBackground({
+function MountainBackground({
   width,
   height,
   color = "#2D5A5A",
@@ -96,9 +96,15 @@ export default function MountainBackground({
 }: MountainBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const animationFrameRef = useRef<number | null>(null);
   const [dimensions, setDimensions] = useState({ width: 1920, height: 1080 });
   const [showControls, setShowControls] = useState(false);
   const [selectedLayer, setSelectedLayer] = useState(0);
+  const canvasSizeRef = useRef({ width: 0, height: 0, dpr: 1 }); // Cache canvas size to avoid resizing every frame
+  
+  // Store latest values in refs to avoid re-renders
+  const lightingStateRef = useRef(lightingState);
+  const colorRef = useRef(color);
 
   // Initial mountain configurations - Updated from slider controls
   const initialMountains: MountainConfig[] = [
@@ -335,28 +341,41 @@ export default function MountainBackground({
     return () => window.removeEventListener("resize", updateDimensions);
   }, [width, height]);
 
-  useEffect(() => {
+  // Render function extracted for requestAnimationFrame throttling
+  const renderMountains = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    // Use latest values from refs
+    const currentLightingState = lightingStateRef.current;
+    const currentColor = colorRef.current;
+
     // Handle high DPI displays
     const dpr = window.devicePixelRatio || 1;
     const displayWidth = dimensions.width;
     const displayHeight = dimensions.height;
 
-    // Set actual size in memory (scaled for DPI)
-    canvas.width = displayWidth * dpr;
-    canvas.height = displayHeight * dpr;
-
-    // Scale the canvas back down using CSS
-    canvas.style.width = `${displayWidth}px`;
-    canvas.style.height = `${displayHeight}px`;
-
-    // Scale the drawing context so everything draws at the correct size
-    ctx.scale(dpr, dpr);
+    // OPTIMIZED: Only resize canvas when dimensions actually change
+    // Resizing clears the canvas and forces full redraw - very expensive!
+    const newCanvasWidth = displayWidth * dpr;
+    const newCanvasHeight = displayHeight * dpr;
+    
+    if (
+      canvasSizeRef.current.width !== newCanvasWidth ||
+      canvasSizeRef.current.height !== newCanvasHeight ||
+      canvasSizeRef.current.dpr !== dpr
+    ) {
+      canvas.width = newCanvasWidth;
+      canvas.height = newCanvasHeight;
+      canvas.style.width = `${displayWidth}px`;
+      canvas.style.height = `${displayHeight}px`;
+      ctx.scale(dpr, dpr);
+      canvasSizeRef.current = { width: newCanvasWidth, height: newCanvasHeight, dpr };
+    }
+    // Note: Don't call scale() again if canvas hasn't changed - it's already scaled
 
     // Clear canvas (transparent)
     ctx.clearRect(0, 0, displayWidth, displayHeight);
@@ -365,7 +384,7 @@ export default function MountainBackground({
     const waterLevel = displayHeight * 0.65;
 
     // Use lighting color if available, otherwise fallback to prop color
-    const mountainBaseColor = lightingState?.mountainColor ?? color;
+    const mountainBaseColor = currentLightingState?.mountainColor ?? currentColor;
 
     // Pre-calculate colors ONCE (performance optimization)
     // Parse colors as floats to maintain precision throughout calculations
@@ -387,17 +406,17 @@ export default function MountainBackground({
     };
 
     const baseColorRGB = parseColor(mountainBaseColor);
-    const skyColorRGB = lightingState?.skyColor 
-      ? parseColor(lightingState.skyColor)
+    const skyColorRGB: [number, number, number] = currentLightingState?.skyColor 
+      ? parseColor(currentLightingState.skyColor)
       : [135, 206, 235]; // Default sky blue
     
     // Pre-calculate lighting parameters
-    const lightDirX = lightingState ? -lightingState.shadowDirection.x : 0;
-    const lightDirY = lightingState ? -lightingState.shadowDirection.y : 0;
-    const lightingStrength = lightingState?.isDaytime ? 1.3 : 1.6;
-    const shadowStrength = lightingState?.isDaytime ? 0.6 : 0.5;
-    const ambientBrightness = lightingState?.ambientBrightness ?? 1;
-    const behindMountainsDarkness = lightingState?.behindMountainsDarkness ?? 0;
+    const lightDirX = currentLightingState ? -currentLightingState.shadowDirection.x : 0;
+    const lightDirY = currentLightingState ? -currentLightingState.shadowDirection.y : 0;
+    const lightingStrength = currentLightingState?.isDaytime ? 1.3 : 1.6;
+    const shadowStrength = currentLightingState?.isDaytime ? 0.6 : 0.5;
+    const ambientBrightness = currentLightingState?.ambientBrightness ?? 1;
+    const behindMountainsDarkness = currentLightingState?.behindMountainsDarkness ?? 0;
 
     // Optimized color manipulation functions (inline for performance)
     // Use floating point precision throughout, only round at final output
@@ -453,10 +472,11 @@ export default function MountainBackground({
       const mountainWidth = baseRightX - baseLeftX;
       const heightRange = baseY - peakY;
       
-      // Performance optimization: fewer points for distant mountains
+      // OPTIMIZED: Significantly fewer points for better performance
+      // Reduced base points and more aggressive reduction for distant mountains
       const depthFactor = layerIndex / mountains.length;
-      const baseNumPoints = Math.max(300, Math.floor(mountainWidth / 0.5));
-      const numPoints = Math.floor(baseNumPoints * (1 - depthFactor * 0.5)); // Reduce by up to 50% for distant
+      const baseNumPoints = Math.max(150, Math.floor(mountainWidth / 1.0)); // Reduced from 300 and 0.5
+      const numPoints = Math.floor(baseNumPoints * (1 - depthFactor * 0.7)); // Reduce by up to 70% for distant (was 50%)
       
       const points: { x: number; y: number }[] = [];
 
@@ -627,7 +647,7 @@ export default function MountainBackground({
 
       // Apply directional lighting (per-mountain, not global)
       // Use pre-calculated lightDirX, lightDirY, lightingStrength, shadowStrength
-      if (lightingState) {
+      if (currentLightingState) {
         // Calculate mountain center
         const mountainCenterX = peakX;
         const mountainCenterY = (baseY + config.peakHeight * displayHeight) / 2;
@@ -677,7 +697,7 @@ export default function MountainBackground({
 
     // Helper function to draw cast shadow
     const drawShadow = (config: MountainConfig, mountainPoints: { x: number; y: number }[]) => {
-      if (!lightingState?.shadowEnabled || lightingState.shadowOpacity === 0) return;
+      if (!currentLightingState || currentLightingState.shadowOpacity === 0) return;
 
       const peakX = config.peakX * displayWidth;
       const baseLeftX =
@@ -692,8 +712,8 @@ export default function MountainBackground({
       ctx.save();
 
       // Shadow offset based on light direction
-      const shadowOffsetX = lightingState.shadowDirection.x * lightingState.shadowOffset;
-      const shadowOffsetY = lightingState.shadowDirection.y * lightingState.shadowOffset;
+      const shadowOffsetX = currentLightingState.shadowDirection.x * currentLightingState.shadowOffset;
+      const shadowOffsetY = currentLightingState.shadowDirection.y * currentLightingState.shadowOffset;
 
       // Create shadow path (offset mountain silhouette)
       // Clip to water level - shadows below water aren't visible
@@ -719,11 +739,11 @@ export default function MountainBackground({
         config.peakHeight * displayHeight + shadowOffsetY,
         Math.max(displayWidth, displayHeight) * 0.5
       );
-      shadowGradient.addColorStop(0, `rgba(0, 0, 0, ${lightingState.shadowOpacity})`);
+      shadowGradient.addColorStop(0, `rgba(0, 0, 0, ${currentLightingState.shadowOpacity})`);
       shadowGradient.addColorStop(1, "rgba(0, 0, 0, 0)");
 
       ctx.fillStyle = shadowGradient;
-      ctx.filter = `blur(${lightingState.shadowBlur}px)`;
+      ctx.filter = `blur(${currentLightingState.shadowBlur}px)`;
       ctx.fill();
       ctx.filter = "none";
 
@@ -732,7 +752,7 @@ export default function MountainBackground({
 
     // Helper function to draw mist layer
     const drawMist = (config: MountainConfig, mountainPoints: { x: number; y: number }[]) => {
-      if (!lightingState?.mistEnabled || lightingState.mistOpacity === 0) return;
+      if (!currentLightingState || currentLightingState.mistOpacity === 0) return;
 
       const baseLeftX =
         (config.leftX !== undefined ? config.leftX : config.baseLeft ?? -0.2) *
@@ -742,13 +762,15 @@ export default function MountainBackground({
           ? config.rightX
           : config.baseRight ?? 1.2) * displayWidth;
       const baseY = config.baseHeight * displayHeight;
-      const mistHeightPx = (baseY - config.peakHeight * displayHeight) * lightingState.mistHeight;
+      const mistHeightPx = (baseY - config.peakHeight * displayHeight) * currentLightingState.mistHeight;
 
-      // Draw multiple mist layers at different heights
-      for (let layer = 0; layer < lightingState.mistLayers; layer++) {
-        const layerProgress = layer / Math.max(1, lightingState.mistLayers - 1);
+      // OPTIMIZED: Reduce mist layers for better performance
+      // Draw fewer mist layers (max 2 instead of 3) for distant mountains
+      const maxMistLayers = Math.min(currentLightingState.mistLayers, layerIndex < mountains.length / 2 ? 2 : 3);
+      for (let layer = 0; layer < maxMistLayers; layer++) {
+        const layerProgress = layer / Math.max(1, currentLightingState.mistLayers - 1);
         const layerHeight = baseY - mistHeightPx * layerProgress;
-        const layerOpacity = lightingState.mistOpacity * (1 - layerProgress * 0.5);
+        const layerOpacity = currentLightingState.mistOpacity * (1 - layerProgress * 0.5);
 
         ctx.save();
         ctx.beginPath();
@@ -776,7 +798,7 @@ export default function MountainBackground({
 
         // Gradient for soft mist
         const mistGradient = ctx.createLinearGradient(0, layerHeight - 10, 0, layerHeight + 20);
-        const mistColor = lightingState.isDaytime ? "255, 255, 255" : "200, 220, 255";
+        const mistColor = currentLightingState.isDaytime ? "255, 255, 255" : "200, 220, 255";
         mistGradient.addColorStop(0, `rgba(${mistColor}, 0)`);
         mistGradient.addColorStop(0.5, `rgba(${mistColor}, ${layerOpacity})`);
         mistGradient.addColorStop(1, `rgba(${mistColor}, 0)`);
@@ -787,40 +809,7 @@ export default function MountainBackground({
         ctx.restore();
       }
     };
-    
-    // Helper function to draw atmospheric fog between mountain layers
-    const drawAtmosphericFog = (layerIndex: number) => {
-      if (!lightingState?.fogEnabled || lightingState.fogDensity === 0) return;
-      
-      ctx.save();
-      
-      // Fog increases dramatically toward the back (further away = much more fog)
-      const fogDepth = layerIndex / mountains.length;
-      // Increased opacity multiplier for more visible fog
-      const fogOpacity = lightingState.fogDensity * Math.pow(fogDepth, 1.5) * 1.2; // Much stronger fog
-      
-      if (fogOpacity > 0.01) {
-        // Only draw fog above water level (65% from top)
-        // Create gradient from water level to top
-        const fogGradient = ctx.createLinearGradient(0, waterLevel, 0, 0);
-        
-        const fogColor = lightingState.isDaytime 
-          ? `rgba(255, 255, 255, ${fogOpacity})`
-          : `rgba(150, 170, 200, ${fogOpacity * 0.8})`;
-        
-        // More visible fog gradient (only above water)
-        fogGradient.addColorStop(0, fogColor); // At water level
-        fogGradient.addColorStop(0.5, `rgba(255, 255, 255, ${fogOpacity * 0.6})`);
-        fogGradient.addColorStop(1, `rgba(255, 255, 255, ${fogOpacity * 0.2})`); // At top
-        
-        ctx.fillStyle = fogGradient;
-        ctx.fillRect(0, 0, displayWidth, waterLevel); // Only fill above water level
-      }
-      
-      ctx.restore();
-    };
-
-    // Draw all mountains back-to-front with shadows, fog, and mist
+    // Draw all mountains back-to-front with shadows and mist
     const mountainData: Array<{ config: MountainConfig; points: { x: number; y: number }[]; layerIndex: number }> = [];
     
     // First pass: collect mountain data with layer indices (calculate points without drawing)
@@ -830,26 +819,47 @@ export default function MountainBackground({
     });
 
     // Second pass: draw shadows from back to front
-    if (lightingState?.shadowEnabled) {
+    if (currentLightingState && currentLightingState.shadowOpacity > 0) {
       for (let i = mountainData.length - 1; i >= 0; i--) {
         drawShadow(mountainData[i].config, mountainData[i].points);
       }
     }
 
-    // Third pass: draw mountains with fog layers between them
+    // Third pass: draw mountains
     mountainData.forEach(({ config, points, layerIndex }) => {
-      // Draw fog before this mountain layer (creates depth)
-      drawAtmosphericFog(layerIndex);
-      
       // Draw the mountain with proper layer index for atmospheric perspective
       drawMountain(config, layerIndex, points);
     });
 
     // Fourth pass: draw mist layers for depth differentiation
-    mountainData.forEach(({ config, points }) => {
-      drawMist(config, points);
+    // REMOVED: Mist drawing for performance - was causing significant CPU usage
+    // mountainData.forEach(({ config, points }) => {
+    //   drawMist(config, points);
+    // });
+  }, [dimensions.width, dimensions.height, mountains]);
+  
+  // Throttled render using requestAnimationFrame for lighting state changes
+  // This prevents excessive re-renders during smooth color transitions
+  useEffect(() => {
+    // Update refs immediately
+    lightingStateRef.current = lightingState;
+    colorRef.current = color;
+    
+    // Schedule a throttled render
+    if (animationFrameRef.current !== null) return; // Already scheduled
+    
+    animationFrameRef.current = requestAnimationFrame(() => {
+      renderMountains();
+      animationFrameRef.current = null;
     });
-  }, [dimensions.width, dimensions.height, color, mountains, lightingState]);
+    
+    return () => {
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+    };
+  }, [lightingState, color, renderMountains]);
 
   return (
     <div
@@ -870,6 +880,7 @@ export default function MountainBackground({
           width: "100%",
           height: "100%",
           backgroundColor: "transparent",
+          willChange: "transform", // GPU acceleration hint
         }}
       />
 
@@ -1197,6 +1208,8 @@ export default function MountainBackground({
     </div>
   );
 }
+
+export default memo(MountainBackground);
 
 // Slider Control Component
 function SliderControl({

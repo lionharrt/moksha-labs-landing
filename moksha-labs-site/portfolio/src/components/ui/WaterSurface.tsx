@@ -55,6 +55,8 @@ export const WaterSurface = forwardRef<WaterSurfaceRef, WaterSurfaceProps>(
     const ripplesRef = useRef<Ripple[]>([]);
     const flowerPositionsRef = useRef(flowerPositions);
     const splitProgressRef = useRef(splitAndShrinkProgress);
+    const lightingStateRef = useRef<LightingState | undefined>(lightingState);
+    const canvasRectRef = useRef<DOMRect | null>(null);
     const canvasContextRef = useRef<{
       canvas: HTMLCanvasElement;
       ctx: CanvasRenderingContext2D;
@@ -73,7 +75,8 @@ export const WaterSurface = forwardRef<WaterSurfaceRef, WaterSurfaceProps>(
           if (!canvasContextRef.current) return;
 
           const { canvas, getShoreY } = canvasContextRef.current;
-          const canvasRect = canvas.getBoundingClientRect();
+          // Use cached rect or get fresh one
+          const canvasRect = canvasRectRef.current || canvas.getBoundingClientRect();
           const elementRect = element.getBoundingClientRect();
 
           // Get element's center X position in screen coordinates
@@ -163,11 +166,12 @@ export const WaterSurface = forwardRef<WaterSurfaceRef, WaterSurfaceProps>(
       []
     );
 
-    // Update refs when props change
+    // Update refs when props change (no re-render needed)
     useLayoutEffect(() => {
       flowerPositionsRef.current = flowerPositions;
       splitProgressRef.current = splitAndShrinkProgress;
-    }, [flowerPositions, splitAndShrinkProgress]);
+      lightingStateRef.current = lightingState;
+    }, [flowerPositions, splitAndShrinkProgress, lightingState]);
 
     useLayoutEffect(() => {
       const canvas = canvasRef.current;
@@ -181,10 +185,18 @@ export const WaterSurface = forwardRef<WaterSurfaceRef, WaterSurfaceProps>(
         const rect = canvas.getBoundingClientRect();
         canvas.width = rect.width;
         canvas.height = rect.height;
+        canvasRectRef.current = rect; // Cache the rect
       };
 
       resizeCanvas();
       window.addEventListener("resize", resizeCanvas);
+      
+      // Update cached rect periodically (every 100ms) to catch position changes
+      const interval = setInterval(() => {
+        if (canvasRef.current) {
+          canvasRectRef.current = canvasRef.current.getBoundingClientRect();
+        }
+      }, 100);
 
       // Store canvas context for emitRipple function
       canvasContextRef.current = {
@@ -319,8 +331,9 @@ export const WaterSurface = forwardRef<WaterSurfaceRef, WaterSurfaceProps>(
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
         // Draw water area with wavy top edge
-        // Use lighting color if available, otherwise default blue
-        const waterColor = lightingState?.waterColor ?? "rgb(4, 148, 180)";
+        // Use lighting color if available, otherwise default blue (from ref)
+        const currentLightingState = lightingStateRef.current;
+        const waterColor = currentLightingState?.waterColor ?? "rgb(4, 148, 180)";
         ctx.fillStyle = waterColor;
         ctx.beginPath();
 
@@ -514,11 +527,12 @@ export const WaterSurface = forwardRef<WaterSurfaceRef, WaterSurfaceProps>(
 
       return () => {
         window.removeEventListener("resize", resizeCanvas);
+        clearInterval(interval);
         if (animationFrameRef.current) {
           cancelAnimationFrame(animationFrameRef.current);
         }
       };
-    }, [flowerPositions, splitAndShrinkProgress, lightingState]);
+    }, [flowerPositions, splitAndShrinkProgress]); // Removed lightingState - using ref instead
 
     return (
       <canvas
@@ -532,6 +546,7 @@ export const WaterSurface = forwardRef<WaterSurfaceRef, WaterSurfaceProps>(
           height: "35%",
           pointerEvents: "none",
           display: "block",
+          willChange: "transform", // GPU acceleration hint
         }}
       />
     );

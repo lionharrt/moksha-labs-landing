@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, memo } from "react";
 import Sun from "./Sun";
 import Moon from "./Moon";
 
@@ -9,10 +9,7 @@ interface DayNightCycleProps {
   skyColor?: string; // Optional sky color from lighting system
 }
 
-export default function DayNightCycle({
-  progress,
-  skyColor,
-}: DayNightCycleProps) {
+function DayNightCycle({ progress, skyColor }: DayNightCycleProps) {
   // SVG is 400x400, so center is at 200, 200
   const centerX = 200;
   const centerY = 200;
@@ -182,3 +179,5 @@ export default function DayNightCycle({
     </div>
   );
 }
+
+export default memo(DayNightCycle);

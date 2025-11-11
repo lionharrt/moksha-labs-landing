@@ -255,6 +255,27 @@ export function HeroScene() {
       contactUsLotusProgress,
     ]
   );
+
+  // Memoize flowerPositions array to prevent unnecessary re-renders
+  const flowerPositions = useMemo(() => {
+    return FLOWER_CONFIG.slice(0, numberOfExtraFlowers + 1).map(
+      (flower, index) => {
+        // Match the bobbing parameters from the animation
+        const verticalBob = 5 + index * 0.2;
+        const duration = 3 + index * 0.3;
+        const delay = index * 0.2;
+
+        return {
+          x: flower.position.x,
+          y: flower.position.y,
+          phase: isFlowerInPhase2(flower.index) ? 2 : 1,
+          verticalBob,
+          bobDuration: duration / 2, // Vertical bob uses half duration
+          bobDelay: delay,
+        };
+      }
+    );
+  }, [numberOfExtraFlowers, isFlowerInPhase2]);
   //Entrace scale up and fall from the top
   useLayoutEffect(() => {
     gsap.set(".lotus-flower-container-0", {
@@ -509,23 +530,7 @@ export function HeroScene() {
       <div className="absolute inset-0" style={{ zIndex: 3 }}>
         <WaterSurface
           ref={waterSurfaceRef}
-          flowerPositions={FLOWER_CONFIG.slice(0, numberOfExtraFlowers + 1).map(
-            (flower, index) => {
-              // Match the bobbing parameters from the animation
-              const verticalBob = 5 + index * 0.2;
-              const duration = 3 + index * 0.3;
-              const delay = index * 0.2;
-
-              return {
-                x: flower.position.x,
-                y: flower.position.y,
-                phase: isFlowerInPhase2(flower.index) ? 2 : 1,
-                verticalBob,
-                bobDuration: duration / 2, // Vertical bob uses half duration
-                bobDelay: delay,
-              };
-            }
-          )}
+          flowerPositions={flowerPositions}
           splitAndShrinkProgress={splitAndShrinkProgress}
           lightingState={lightingState}
         />

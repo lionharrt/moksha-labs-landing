@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, memo } from "react";
 import { LightingState } from "@/hooks/useLighting";
 
 interface AtmosphericEffectsProps {
@@ -9,13 +9,51 @@ interface AtmosphericEffectsProps {
   height?: number;
 }
 
-export default function AtmosphericEffects({
+function AtmosphericEffects({
   lightingState,
   width,
   height,
 }: AtmosphericEffectsProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameRef = useRef<number>();
+  const lightingStateRef = useRef<LightingState>(lightingState);
+  const sunElementRef = useRef<HTMLElement | null>(null);
+  const moonElementRef = useRef<HTMLElement | null>(null);
+  const canvasRectRef = useRef<DOMRect | null>(null);
+  const sunRectRef = useRef<DOMRect | null>(null);
+  const moonRectRef = useRef<DOMRect | null>(null);
+
+  // Update lighting state ref immediately (no re-render needed)
+  useEffect(() => {
+    lightingStateRef.current = lightingState;
+  }, [lightingState]);
+
+  // Cache DOM elements and update on resize
+  useEffect(() => {
+    const updateElements = () => {
+      const sunEl = document.getElementById("day-night-cycle-sun");
+      const moonEl = document.getElementById("day-night-cycle-moon");
+      sunElementRef.current = sunEl;
+      moonElementRef.current = moonEl;
+
+      if (sunEl) sunRectRef.current = sunEl.getBoundingClientRect();
+      if (moonEl) moonRectRef.current = moonEl.getBoundingClientRect();
+      if (canvasRef.current) {
+        canvasRectRef.current = canvasRef.current.getBoundingClientRect();
+      }
+    };
+
+    updateElements();
+    window.addEventListener("resize", updateElements);
+
+    // Update periodically (every 100ms) to catch position changes without querying every frame
+    const interval = setInterval(updateElements, 100);
+
+    return () => {
+      window.removeEventListener("resize", updateElements);
+      clearInterval(interval);
+    };
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -30,37 +68,45 @@ export default function AtmosphericEffects({
       const h = height || window.innerHeight;
       canvas.width = w;
       canvas.height = h;
+      canvasRectRef.current = canvas.getBoundingClientRect();
     };
 
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
 
     let time = 0;
+    let lastFrameTime = 0;
+    const targetFPS = 30; // Reduce from 60fps to 30fps for better performance
+    const frameInterval = 1000 / targetFPS;
 
-    const render = () => {
+    const render = (currentTime: number = performance.now()) => {
+      // Throttle to target FPS
+      const elapsed = currentTime - lastFrameTime;
+      if (elapsed < frameInterval) {
+        animationFrameRef.current = requestAnimationFrame(render);
+        return;
+      }
+      lastFrameTime = currentTime - (elapsed % frameInterval);
       const canvasWidth = canvas.width;
       const canvasHeight = canvas.height;
-      const canvasRect = canvas.getBoundingClientRect();
+      const canvasRect =
+        canvasRectRef.current || canvas.getBoundingClientRect();
 
       ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-      // Get actual DOM element positions for sun/moon centers
-      // This is the most reliable way to get exact positions
+      // Use cached lighting state
+      const currentLightingState = lightingStateRef.current;
+
+      // Get actual DOM element positions for sun/moon centers (using cached refs)
       const getCelestialCenter = (
-        elementId: string
+        element: HTMLElement | null,
+        cachedRect: DOMRect | null
       ): { x: number; y: number } | null => {
-        const element = document.getElementById(elementId);
-        if (!element) return null;
+        if (!element || !cachedRect) return null;
 
-        const rect = element.getBoundingClientRect();
-        // The SVG center is at (200, 200) within the 300x300 SVG
-        // So the center point is: element position + (200 - 0) = element position + 200
-        // But since the element is positioned at (sunPosition.x - 200), the center is at sunPosition.x
-        // Actually, the SVG is 300x300, so the center is at element.left + 150, element.top + 150
-        // But wait - the Sun/Moon SVG has centerX=200, centerY=200, so center is at element.left + 200, element.top + 200
-
-        const centerX = rect.left + 150; // SVG center X offset
-        const centerY = rect.top + 150; // SVG center Y offset
+        // Use cached rect instead of calling getBoundingClientRect() every frame
+        const centerX = cachedRect.left + 150; // SVG center X offset
+        const centerY = cachedRect.top + 150; // SVG center Y offset
 
         // Convert to canvas coordinates
         const scaleX = canvasWidth / canvasRect.width;
@@ -73,18 +119,23 @@ export default function AtmosphericEffects({
       };
 
       // Get the active celestial body (sun during day, moon during night)
-      const activeElement = lightingState.isDaytime
-        ? getCelestialCenter("day-night-cycle-sun")
-        : getCelestialCenter("day-night-cycle-moon");
+      const activeElement = currentLightingState.isDaytime
+        ? getCelestialCenter(sunElementRef.current, sunRectRef.current)
+        : getCelestialCenter(moonElementRef.current, moonRectRef.current);
 
       // Fallback to calculated position if DOM elements not found
-      const lightX = activeElement?.x ?? lightingState.lightX * canvasWidth;
-      const lightY = activeElement?.y ?? lightingState.lightY * canvasHeight;
+      const lightX =
+        activeElement?.x ?? currentLightingState.lightX * canvasWidth;
+      const lightY =
+        activeElement?.y ?? currentLightingState.lightY * canvasHeight;
 
       // === FOG removed - now in MountainBackground between layers ===
 
       // === GOD RAYS (only during daytime) ===
-      if (lightingState.godRaysIntensity > 0 && lightingState.isDaytime) {
+      if (
+        currentLightingState.godRaysIntensity > 0 &&
+        currentLightingState.isDaytime
+      ) {
         ctx.save();
 
         // Create radial gradient emanating from light source
@@ -97,7 +148,7 @@ export default function AtmosphericEffects({
           canvasHeight * 1.2
         );
 
-        const rayOpacity = lightingState.godRaysIntensity;
+        const rayOpacity = currentLightingState.godRaysIntensity;
         rayGradient.addColorStop(0, `rgba(255, 230, 150, ${rayOpacity * 0.8})`);
         rayGradient.addColorStop(
           0.3,
@@ -110,7 +161,8 @@ export default function AtmosphericEffects({
         rayGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
 
         // Draw animated god rays using rotating beams
-        const rayCount = 12;
+        // OPTIMIZED: Reduced from 12 to 8 rays for better performance
+        const rayCount = 8;
         const rayWidth = (Math.PI * 2) / rayCount;
 
         for (let i = 0; i < rayCount; i++) {
@@ -143,7 +195,7 @@ export default function AtmosphericEffects({
       }
 
       // === LENS FLARE ===
-      if (lightingState.lensFlareIntensity > 0) {
+      if (currentLightingState.lensFlareIntensity > 0) {
         ctx.save();
 
         // Main flare (bright center)
@@ -156,18 +208,24 @@ export default function AtmosphericEffects({
           200
         );
 
-        const flareColor = lightingState.isDaytime
-          ? `rgba(255, 220, 150, ${lightingState.lensFlareIntensity})`
-          : `rgba(200, 220, 255, ${lightingState.lensFlareIntensity * 0.6})`;
+        const flareColor = currentLightingState.isDaytime
+          ? `rgba(255, 220, 150, ${currentLightingState.lensFlareIntensity})`
+          : `rgba(200, 220, 255, ${
+              currentLightingState.lensFlareIntensity * 0.6
+            })`;
 
         flareGradient.addColorStop(0, flareColor);
         flareGradient.addColorStop(
           0.2,
-          `rgba(255, 240, 200, ${lightingState.lensFlareIntensity * 0.5})`
+          `rgba(255, 240, 200, ${
+            currentLightingState.lensFlareIntensity * 0.5
+          })`
         );
         flareGradient.addColorStop(
           0.5,
-          `rgba(255, 250, 220, ${lightingState.lensFlareIntensity * 0.2})`
+          `rgba(255, 250, 220, ${
+            currentLightingState.lensFlareIntensity * 0.2
+          })`
         );
         flareGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
 
@@ -176,40 +234,44 @@ export default function AtmosphericEffects({
         ctx.fillRect(lightX - 200, lightY - 200, 400, 400);
 
         // Secondary flares (lens artifacts)
-        const centerX = canvasWidth / 2;
-        const centerY = canvasHeight / 2;
-        const dx = lightX - centerX;
-        const dy = lightY - centerY;
+        // OPTIMIZED: Only draw secondary flares if intensity is high enough
+        if (currentLightingState.lensFlareIntensity > 0.15) {
+          const centerX = canvasWidth / 2;
+          const centerY = canvasHeight / 2;
+          const dx = lightX - centerX;
+          const dy = lightY - centerY;
 
-        // Draw 3 secondary flares along the line from light to center
-        for (let i = 1; i <= 3; i++) {
-          const t = i * 0.25;
-          const x = lightX - dx * t;
-          const y = lightY - dy * t;
-          const size = 50 + i * 30;
-          const opacity = lightingState.lensFlareIntensity * (0.3 - i * 0.08);
+          // Draw 2 secondary flares (reduced from 3) along the line from light to center
+          for (let i = 1; i <= 2; i++) {
+            const t = i * 0.25;
+            const x = lightX - dx * t;
+            const y = lightY - dy * t;
+            const size = 50 + i * 30;
+            const opacity =
+              currentLightingState.lensFlareIntensity * (0.3 - i * 0.08);
 
-          const secondaryGradient = ctx.createRadialGradient(
-            x,
-            y,
-            0,
-            x,
-            y,
-            size
-          );
-          const hue = i * 60; // Rainbow effect
-          secondaryGradient.addColorStop(
-            0,
-            `hsla(${hue}, 80%, 70%, ${opacity})`
-          );
-          secondaryGradient.addColorStop(
-            0.5,
-            `hsla(${hue}, 80%, 60%, ${opacity * 0.5})`
-          );
-          secondaryGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+            const secondaryGradient = ctx.createRadialGradient(
+              x,
+              y,
+              0,
+              x,
+              y,
+              size
+            );
+            const hue = i * 60; // Rainbow effect
+            secondaryGradient.addColorStop(
+              0,
+              `hsla(${hue}, 80%, 70%, ${opacity})`
+            );
+            secondaryGradient.addColorStop(
+              0.5,
+              `hsla(${hue}, 80%, 60%, ${opacity * 0.5})`
+            );
+            secondaryGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
 
-          ctx.fillStyle = secondaryGradient;
-          ctx.fillRect(x - size, y - size, size * 2, size * 2);
+            ctx.fillStyle = secondaryGradient;
+            ctx.fillRect(x - size, y - size, size * 2, size * 2);
+          }
         }
 
         ctx.globalCompositeOperation = "source-over";
@@ -217,33 +279,55 @@ export default function AtmosphericEffects({
       }
 
       // === ATMOSPHERIC GLOW (subtle ambient color) ===
-      // Add a subtle color wash based on time of day
-      const glowGradient = ctx.createRadialGradient(
-        lightX,
-        lightY,
-        0,
-        lightX,
-        lightY,
-        canvasHeight * 0.8
-      );
+      // OPTIMIZED: Only draw if intensity is significant, and use smaller area
+      // Full-screen fillRect is very expensive - only draw around light source
+      // Further optimized: Skip entirely if light source is off-screen or very dim
+      if (
+        (currentLightingState.godRaysIntensity > 0.3 ||
+          currentLightingState.lensFlareIntensity > 0.2) &&
+        lightX > -200 &&
+        lightX < canvasWidth + 200 &&
+        lightY > -200 &&
+        lightY < canvasHeight + 200
+      ) {
+        // Reduced radius further - only draw immediate area around light
+        const glowRadius = Math.min(canvasWidth, canvasHeight) * 0.4; // Reduced from 0.6
+        const glowGradient = ctx.createRadialGradient(
+          lightX,
+          lightY,
+          0,
+          lightX,
+          lightY,
+          glowRadius
+        );
 
-      const glowOpacity = lightingState.isDaytime ? 0.05 : 0.03;
-      glowGradient.addColorStop(0, `rgba(255, 240, 200, ${glowOpacity})`);
-      glowGradient.addColorStop(
-        0.7,
-        `rgba(200, 220, 255, ${glowOpacity * 0.5})`
-      );
-      glowGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+        const glowOpacity = currentLightingState.isDaytime ? 0.05 : 0.03;
+        glowGradient.addColorStop(0, `rgba(255, 240, 200, ${glowOpacity})`);
+        glowGradient.addColorStop(
+          0.7,
+          `rgba(200, 220, 255, ${glowOpacity * 0.5})`
+        );
+        glowGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
 
-      ctx.fillStyle = glowGradient;
-      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+        ctx.fillStyle = glowGradient;
+        // Only draw around light source, not full screen
+        // Clamp to canvas bounds to avoid drawing off-screen
+        const drawX = Math.max(0, lightX - glowRadius);
+        const drawY = Math.max(0, lightY - glowRadius);
+        const drawWidth = Math.min(canvasWidth - drawX, glowRadius * 2);
+        const drawHeight = Math.min(canvasHeight - drawY, glowRadius * 2);
+
+        if (drawWidth > 0 && drawHeight > 0) {
+          ctx.fillRect(drawX, drawY, drawWidth, drawHeight);
+        }
+      }
 
       // === SUN CORONA / BACKLIGHT (visible when behind mountains) ===
       // Render BELOW mountains (will be occluded but creates rim lighting)
       // This is already in the right layer, just keeping it subtle
 
       // Update time for animations
-      time += 0.016; // ~60fps
+      time += frameInterval / 1000; // Adjust time increment for throttled FPS
 
       animationFrameRef.current = requestAnimationFrame(render);
     };
@@ -256,7 +340,7 @@ export default function AtmosphericEffects({
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [lightingState, width, height]);
+  }, [width, height]); // Removed lightingState from dependencies - using ref instead
 
   return (
     <canvas
@@ -269,7 +353,10 @@ export default function AtmosphericEffects({
         height: "100%",
         pointerEvents: "none",
         zIndex: 5,
+        willChange: "transform", // GPU acceleration hint
       }}
     />
   );
 }
+
+export default memo(AtmosphericEffects);
