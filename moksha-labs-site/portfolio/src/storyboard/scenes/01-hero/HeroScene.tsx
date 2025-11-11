@@ -6,9 +6,13 @@ import { heroSceneConfig } from "./HeroScene.config";
 import LotusFlower from "@/components/ui/LotusFlower";
 import { gsap } from "gsap"; // Ensure gsap/GSAPTimeline is imported
 import { useSmoothProgress } from "@/storyboard/hooks/useSmoothProgress";
-import bgImage from "@/media/BG.png";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 import { WaterSurface, WaterSurfaceRef } from "@/components/ui/WaterSurface";
+import DayNightCycle from "@/components/ui/DayNightCycle";
+import MountainBackground from "@/components/ui/MountainBackground";
+import { useLighting } from "@/hooks/useLighting";
+import LightingControls from "@/components/ui/LightingControls";
+import AtmosphericEffects from "@/components/ui/AtmosphericEffects";
 gsap.registerPlugin(MotionPathPlugin);
 // Define the structure for clarity
 interface ProgressSegment {
@@ -114,6 +118,9 @@ export function HeroScene() {
   const splitAndShrinkTimeline = useRef<GSAPTimeline | null>(null);
   const entranceTimeline = useRef<GSAPTimeline | null>(null);
   const aboutUsEntranceTimeline = useRef<GSAPTimeline | null>(null);
+
+  // Initialize lighting system
+  const [lightingState, updateLightingConfig] = useLighting(progress);
   // --- Calculate Mapped Progress Values ---
   // Use useMemo to re-calculate only when 'progress' changes
   const mappedProgress = useMemo(() => {
@@ -474,51 +481,72 @@ export function HeroScene() {
       style={{ transform: "none !important" }}
       className="relative h-screen overflow-hidden hero-scene-container"
     >
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{
-          //moksha-labs-site/portfolio/src/media/BG.png
-          backgroundImage: `url(${bgImage.src})`,
-          backgroundSize: "cover",
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "50% 175%",
-        }}
+      {/* Lighting Controls Overlay */}
+      <LightingControls
+        lightingState={lightingState}
+        onConfigChange={updateLightingConfig}
       />
-      <WaterSurface
-        ref={waterSurfaceRef}
-        flowerPositions={FLOWER_CONFIG.slice(0, numberOfExtraFlowers + 1).map(
-          (flower, index) => {
-            // Match the bobbing parameters from the animation
-            const verticalBob = 5 + index * 0.2;
-            const duration = 3 + index * 0.3;
-            const delay = index * 0.2;
 
-            return {
-              x: flower.position.x,
-              y: flower.position.y,
-              phase: isFlowerInPhase2(flower.index) ? 2 : 1,
-              verticalBob,
-              bobDuration: duration / 2, // Vertical bob uses half duration
-              bobDelay: delay,
-            };
-          }
-        )}
-        splitAndShrinkProgress={splitAndShrinkProgress}
-      />
-      {/* Render flowers based on configuration */}
-      {FLOWER_CONFIG.slice(0, numberOfExtraFlowers + 1).map((flower) => (
-        <LotusFlower
-          key={flower.index}
-          progress={mappedProgress[flower.progressKey]}
-          phase={
-            flower.index === 0 ? 1 : splitAndShrinkProgress !== null ? 2 : 1
-          }
-          index={flower.index}
-          title={flower.title}
-          splitProgress={splitAndShrinkProgress}
-          finalYPosition={flower.position.y}
+      {/* Layer 1: Sky Background with Day/Night colors */}
+      <div className="absolute inset-0" style={{ zIndex: 0 }}>
+        <DayNightCycle progress={progress} skyColor={lightingState.skyColor} />
+      </div>
+
+      {/* Layer 2: Atmospheric Effects BEHIND mountains (God Rays, Lens Flare) */}
+      <div
+        className="absolute inset-0"
+        style={{ zIndex: 1, pointerEvents: "none" }}
+      >
+        <AtmosphericEffects lightingState={lightingState} />
+      </div>
+
+      {/* Layer 3: Mountains (solid, occludes atmospheric effects) */}
+      <div className="absolute inset-0" style={{ zIndex: 2 }}>
+        <MountainBackground lightingState={lightingState} />
+      </div>
+
+      {/* Layer 4: Water Surface with Lighting */}
+      <div className="absolute inset-0" style={{ zIndex: 3 }}>
+        <WaterSurface
+          ref={waterSurfaceRef}
+          flowerPositions={FLOWER_CONFIG.slice(0, numberOfExtraFlowers + 1).map(
+            (flower, index) => {
+              // Match the bobbing parameters from the animation
+              const verticalBob = 5 + index * 0.2;
+              const duration = 3 + index * 0.3;
+              const delay = index * 0.2;
+
+              return {
+                x: flower.position.x,
+                y: flower.position.y,
+                phase: isFlowerInPhase2(flower.index) ? 2 : 1,
+                verticalBob,
+                bobDuration: duration / 2, // Vertical bob uses half duration
+                bobDelay: delay,
+              };
+            }
+          )}
+          splitAndShrinkProgress={splitAndShrinkProgress}
+          lightingState={lightingState}
         />
-      ))}
+      </div>
+
+      {/* Layer 5: Flowers on top of everything */}
+      <div className="absolute inset-0" style={{ zIndex: 10 }}>
+        {FLOWER_CONFIG.slice(0, numberOfExtraFlowers + 1).map((flower) => (
+          <LotusFlower
+            key={flower.index}
+            progress={mappedProgress[flower.progressKey]}
+            phase={
+              flower.index === 0 ? 1 : splitAndShrinkProgress !== null ? 2 : 1
+            }
+            index={flower.index}
+            title={flower.title}
+            splitProgress={splitAndShrinkProgress}
+            finalYPosition={flower.position.y}
+          />
+        ))}
+      </div>
     </section>
   );
 }

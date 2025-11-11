@@ -6,6 +6,7 @@ import {
   useImperativeHandle,
   forwardRef,
 } from "react";
+import { LightingState } from "@/hooks/useLighting";
 
 interface Ripple {
   x: number; // X position in canvas coordinates
@@ -27,6 +28,7 @@ interface WaterSurfaceProps {
     bobDelay?: number; // Delay before bobbing starts in seconds
   }>; // Flower positions and animation parameters
   splitAndShrinkProgress?: number | null; // Progress of split animation (0-1 or null)
+  lightingState?: LightingState; // Optional lighting integration
 }
 
 export interface WaterSurfaceRef {
@@ -43,7 +45,10 @@ export interface WaterSurfaceRef {
  * Uses Gerstner waves for surface undulation and sky reflection
  */
 export const WaterSurface = forwardRef<WaterSurfaceRef, WaterSurfaceProps>(
-  ({ flowerPositions = [], splitAndShrinkProgress = null }, ref) => {
+  (
+    { flowerPositions = [], splitAndShrinkProgress = null, lightingState },
+    ref
+  ) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const animationFrameRef = useRef<number>();
     const timeRef = useRef(0);
@@ -314,7 +319,9 @@ export const WaterSurface = forwardRef<WaterSurfaceRef, WaterSurfaceProps>(
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
         // Draw water area with wavy top edge
-        ctx.fillStyle = "rgb(4 148 180)";
+        // Use lighting color if available, otherwise default blue
+        const waterColor = lightingState?.waterColor ?? "rgb(4, 148, 180)";
+        ctx.fillStyle = waterColor;
         ctx.beginPath();
 
         // Start from top-left
@@ -511,7 +518,7 @@ export const WaterSurface = forwardRef<WaterSurfaceRef, WaterSurfaceProps>(
           cancelAnimationFrame(animationFrameRef.current);
         }
       };
-    }, [flowerPositions, splitAndShrinkProgress]);
+    }, [flowerPositions, splitAndShrinkProgress, lightingState]);
 
     return (
       <canvas
