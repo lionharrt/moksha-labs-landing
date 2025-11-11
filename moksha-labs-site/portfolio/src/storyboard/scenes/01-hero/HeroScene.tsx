@@ -888,8 +888,7 @@ export function HeroScene() {
         </div>
 
         {/* Layer 4: Water Surface with Lighting */}
-        {/* TEMPORARILY DISABLED */}
-        {/* <div
+        <div
           className="absolute inset-0"
           style={{ zIndex: 3, pointerEvents: "none" }}
         >
@@ -898,9 +897,13 @@ export function HeroScene() {
             flowerPositions={flowerPositions}
             splitAndShrinkProgress={splitAndShrinkProgress}
             lightingState={lightingState}
+            progressRef={progressRef}
+            lightingConfigRef={lightingConfigRef}
+            preloadedDataRef={preloadedDataRef}
+            viewportDimensionsRef={viewportDimensionsRef}
             renderRef={waterSurfaceRenderRef}
           />
-        </div> */}
+        </div>
 
         {/* Layer 5: Flowers on top of everything */}
         {/* TEMPORARILY DISABLED */}

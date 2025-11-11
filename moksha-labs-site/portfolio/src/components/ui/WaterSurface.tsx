@@ -7,6 +7,9 @@ import {
   forwardRef,
 } from "react";
 import { LightingState } from "@/hooks/useLighting";
+import { LightingConfig } from "@/hooks/useLighting";
+import { PreloadedData, getColorFromLUT } from "@/utils/performancePreloader";
+import { calculateLightingState } from "@/utils/calculateLightingState";
 
 interface Ripple {
   x: number; // X position in canvas coordinates
@@ -28,7 +31,14 @@ interface WaterSurfaceProps {
     bobDelay?: number; // Delay before bobbing starts in seconds
   }>; // Flower positions and animation parameters
   splitAndShrinkProgress?: number | null; // Progress of split animation (0-1 or null)
-  lightingState?: LightingState; // Optional lighting integration
+  lightingState?: LightingState; // Optional lighting integration (fallback)
+  progressRef?: React.MutableRefObject<number>; // For direct color calculation
+  lightingConfigRef?: React.MutableRefObject<LightingConfig>; // For direct color calculation
+  preloadedDataRef?: React.MutableRefObject<PreloadedData | null>; // For color LUT lookup
+  viewportDimensionsRef?: React.MutableRefObject<{
+    width: number;
+    height: number;
+  }>; // Viewport dimensions for color calculation
   renderRef?: React.MutableRefObject<(() => void) | null>; // Ref to expose render function
 }
 
@@ -47,7 +57,16 @@ export interface WaterSurfaceRef {
  */
 export const WaterSurface = forwardRef<WaterSurfaceRef, WaterSurfaceProps>(
   (
-    { flowerPositions = [], splitAndShrinkProgress = null, lightingState, renderRef },
+    {
+      flowerPositions = [],
+      splitAndShrinkProgress = null,
+      lightingState,
+      progressRef,
+      lightingConfigRef,
+      preloadedDataRef,
+      viewportDimensionsRef,
+      renderRef,
+    },
     ref
   ) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -63,11 +82,32 @@ export const WaterSurface = forwardRef<WaterSurfaceRef, WaterSurfaceProps>(
       ctx: CanvasRenderingContext2D;
       getShoreY: (x: number, time: number) => number;
     } | null>(null);
-    
+
+    // CRITICAL: Store water color in refs for smooth interpolation
+    const waterColorRef = useRef<[number, number, number] | null>(null);
+    const targetWaterColorRef = useRef<[number, number, number] | null>(null);
+
+    // Parse color helper
+    const parseColor = (color: string): [number, number, number] => {
+      if (color.startsWith("rgb")) {
+        const match = color.match(/\d+/g);
+        if (match) {
+          return [parseInt(match[0]), parseInt(match[1]), parseInt(match[2])];
+        }
+      } else if (color.startsWith("#")) {
+        const hex = color.slice(1);
+        return [
+          parseInt(hex.slice(0, 2), 16),
+          parseInt(hex.slice(2, 4), 16),
+          parseInt(hex.slice(4, 6), 16),
+        ];
+      }
+      return [4, 148, 180]; // Default water blue
+    };
+
     // MEMORY LEAK FIX: Throttle ripple emission per flower to prevent accumulation
     const lastRippleTimeRef = useRef<Map<number, number>>(new Map());
     const MIN_RIPPLE_INTERVAL = 2000; // Minimum 2 seconds between ripples per flower
-    
 
     // Expose emitRippleFromElement function via ref
     useImperativeHandle(
@@ -82,7 +122,8 @@ export const WaterSurface = forwardRef<WaterSurfaceRef, WaterSurfaceProps>(
 
           const { canvas, getShoreY } = canvasContextRef.current;
           // Use cached rect or get fresh one
-          const canvasRect = canvasRectRef.current || canvas.getBoundingClientRect();
+          const canvasRect =
+            canvasRectRef.current || canvas.getBoundingClientRect();
           const elementRect = element.getBoundingClientRect();
 
           // Get element's center X position in screen coordinates
@@ -130,12 +171,13 @@ export const WaterSurface = forwardRef<WaterSurfaceRef, WaterSurfaceProps>(
           if (elementBottomY >= shoreYScreen) {
             // MEMORY LEAK FIX: Throttle ripple emission to prevent too many ripples
             const now = Date.now();
-            const lastRippleTime = lastRippleTimeRef.current.get(flowerIndex) || 0;
+            const lastRippleTime =
+              lastRippleTimeRef.current.get(flowerIndex) || 0;
             if (now - lastRippleTime < MIN_RIPPLE_INTERVAL) {
               return; // Skip this ripple - too soon since last one
             }
             lastRippleTimeRef.current.set(flowerIndex, now);
-            
+
             // MEMORY LEAK FIX: Reduce phase 2 max radius to prevent long-lived ripples
             // Phase 2 ripples were lasting ~42 seconds, causing accumulation
             const baseRadius = isPhase2 ? 600 : 250; // Reduced from 1250 to 600 (~20 seconds instead of 42)
@@ -175,7 +217,6 @@ export const WaterSurface = forwardRef<WaterSurfaceRef, WaterSurfaceProps>(
               initialRadius: initialRadius, // Store separately to preserve it
               maxRadius: baseRadius,
               opacity: initialOpacityValue, // Current opacity (will be recalculated each frame)
-              initialOpacity: initialOpacityValue, // Store initial opacity for LUT-based calculation - MUST be set!
               startTime: timeRef.current + startTimeOffset,
             };
             ripplesRef.current.push(newRipple);
@@ -209,7 +250,7 @@ export const WaterSurface = forwardRef<WaterSurfaceRef, WaterSurfaceProps>(
 
       resizeCanvas();
       window.addEventListener("resize", resizeCanvas);
-      
+
       // Update cached rect periodically (every 100ms) to catch position changes
       const interval = setInterval(() => {
         if (canvasRef.current) {
@@ -350,10 +391,88 @@ export const WaterSurface = forwardRef<WaterSurfaceRef, WaterSurfaceProps>(
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
         // Draw water area with wavy top edge
-        // Use lighting color if available, otherwise default blue (from ref)
-        const currentLightingState = lightingStateRef.current;
-        const waterColor = currentLightingState?.waterColor ?? "rgb(4, 148, 180)";
-        ctx.fillStyle = waterColor;
+        // CRITICAL: Calculate water color directly from progressRef for smooth transitions
+        let calculatedWaterColor: string | null = null;
+
+        if (
+          progressRef &&
+          lightingConfigRef?.current &&
+          preloadedDataRef?.current &&
+          viewportDimensionsRef?.current
+        ) {
+          // Use color lookup table for fast, smooth color calculation
+          const cycleProgress = (progressRef.current * 28) % 1;
+          calculatedWaterColor = getColorFromLUT(
+            preloadedDataRef.current.colorLUT,
+            cycleProgress,
+            "water"
+          );
+        } else if (
+          progressRef &&
+          lightingConfigRef?.current &&
+          viewportDimensionsRef?.current
+        ) {
+          // Fallback: calculate directly using lighting state
+          const lightingState = calculateLightingState(
+            progressRef.current,
+            lightingConfigRef.current,
+            viewportDimensionsRef.current.width,
+            viewportDimensionsRef.current.height
+          );
+          calculatedWaterColor = lightingState.waterColor;
+        } else {
+          // Final fallback: use prop (but this will be discrete)
+          const currentLightingState = lightingStateRef.current;
+          calculatedWaterColor =
+            currentLightingState?.waterColor ?? "rgb(4, 148, 180)";
+        }
+
+        // Update target color smoothly
+        if (calculatedWaterColor) {
+          const newColor = parseColor(calculatedWaterColor);
+
+          // Update target color (this will smoothly interpolate)
+          if (
+            !targetWaterColorRef.current ||
+            newColor[0] !== targetWaterColorRef.current[0] ||
+            newColor[1] !== targetWaterColorRef.current[1] ||
+            newColor[2] !== targetWaterColorRef.current[2]
+          ) {
+            targetWaterColorRef.current = newColor;
+            // Initialize current color if not set
+            if (!waterColorRef.current) {
+              waterColorRef.current = newColor;
+            }
+          }
+
+          // Smooth interpolation between current and target
+          if (waterColorRef.current && targetWaterColorRef.current) {
+            const current = waterColorRef.current;
+            const target = targetWaterColorRef.current;
+
+            // Use very slow interpolation for smooth transitions (same as DayNightCycle)
+            const lerpFactor = 0.02; // Very slow - 2% per frame
+
+            // Interpolate each RGB component smoothly
+            const r = Math.round(
+              current[0] + (target[0] - current[0]) * lerpFactor
+            );
+            const g = Math.round(
+              current[1] + (target[1] - current[1]) * lerpFactor
+            );
+            const b = Math.round(
+              current[2] + (target[2] - current[2]) * lerpFactor
+            );
+
+            // Update current color for next frame
+            waterColorRef.current = [r, g, b];
+
+            // Use interpolated color
+            calculatedWaterColor = `rgb(${r}, ${g}, ${b})`;
+          }
+        }
+
+        ctx.fillStyle = calculatedWaterColor ?? "rgb(4, 148, 180)";
         ctx.beginPath();
 
         // Start from top-left
@@ -572,7 +691,15 @@ export const WaterSurface = forwardRef<WaterSurfaceRef, WaterSurfaceProps>(
           currentRenderRef.current = null;
         }
       };
-    }, [flowerPositions, splitAndShrinkProgress, renderRef]); // renderRef is captured in closure
+    }, [
+      flowerPositions,
+      splitAndShrinkProgress,
+      renderRef,
+      progressRef,
+      lightingConfigRef,
+      preloadedDataRef,
+      viewportDimensionsRef,
+    ]); // Refs are stable, but include for linting
 
     return (
       <canvas
