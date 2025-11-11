@@ -188,15 +188,6 @@ export function DevToolbar() {
               </div>
             </div>
           </div>
-
-          {/* Instructions */}
-          <div className="space-y-2 pt-3 border-t border-white/20">
-            <div className="text-xs text-white/60 space-y-1">
-              <div>💡 Drag to rotate camera</div>
-              <div>💡 Scroll to zoom</div>
-              <div>💡 Shape preserved from original</div>
-            </div>
-          </div>
         </div>
       </div>
 
