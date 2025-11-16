@@ -5,7 +5,7 @@
 interface PerformanceLog {
   component: string;
   timestamp: number;
-  type: 'render' | 'mutation' | 'effect';
+  type: "render" | "mutation" | "effect";
   details?: Record<string, any>;
 }
 
@@ -27,27 +27,27 @@ class PerformanceLogger {
   }
 
   private startMutationTracking() {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
 
     this.mutationObserver = new MutationObserver((mutations) => {
       if (!this.enabled) return;
 
       mutations.forEach((mutation) => {
         const target = mutation.target as HTMLElement;
-        let componentName = target.getAttribute('data-component');
-        
+        let componentName = target.getAttribute("data-component");
+
         // If no data-component, try to identify by other attributes
         if (!componentName) {
           const id = target.id;
           const className = target.className;
           const parent = target.parentElement;
-          const parentComponent = parent?.getAttribute('data-component');
-          
+          const parentComponent = parent?.getAttribute("data-component");
+
           // Create a more descriptive name
           if (id) {
             componentName = `unknown-${id}`;
-          } else if (className && typeof className === 'string') {
-            const firstClass = className.split(' ')[0];
+          } else if (className && typeof className === "string") {
+            const firstClass = className.split(" ")[0];
             componentName = `unknown-${target.tagName.toLowerCase()}.${firstClass}`;
           } else if (parentComponent) {
             componentName = `unknown-child-of-${parentComponent}`;
@@ -55,21 +55,23 @@ class PerformanceLogger {
             componentName = `unknown-${target.tagName.toLowerCase()}`;
           }
         }
-        
+
         const count = this.mutationCounts.get(componentName) || 0;
         this.mutationCounts.set(componentName, count + 1);
 
         this.log({
           component: componentName,
           timestamp: performance.now(),
-          type: 'mutation',
+          type: "mutation",
           details: {
             type: mutation.type,
             attributeName: mutation.attributeName,
             target: target.tagName,
             id: target.id,
-            className: typeof target.className === 'string' ? target.className : '',
-            parentComponent: target.parentElement?.getAttribute('data-component') || null,
+            className:
+              typeof target.className === "string" ? target.className : "",
+            parentComponent:
+              target.parentElement?.getAttribute("data-component") || null,
           },
         });
       });
@@ -80,7 +82,7 @@ class PerformanceLogger {
       attributeOldValue: true,
       childList: true,
       subtree: true,
-      attributeFilter: ['style', 'class'],
+      attributeFilter: ["style", "class"],
     });
   }
 
@@ -100,18 +102,22 @@ class PerformanceLogger {
     this.log({
       component: componentName,
       timestamp: performance.now(),
-      type: 'render',
+      type: "render",
       details: props,
     });
   }
 
-  logEffect(componentName: string, effectName: string, details?: Record<string, any>) {
+  logEffect(
+    componentName: string,
+    effectName: string,
+    details?: Record<string, any>
+  ) {
     if (!this.enabled) return;
 
     this.log({
       component: componentName,
       timestamp: performance.now(),
-      type: 'effect',
+      type: "effect",
       details: { effectName, ...details },
     });
   }
@@ -129,18 +135,26 @@ class PerformanceLogger {
     const now = performance.now();
     const recentLogs = this.logs.filter((log) => now - log.timestamp < 1000); // Last second
 
-    const renderStats = Array.from(this.renderCounts.entries()).map(([name, count]) => ({
-      component: name,
-      renders: count,
-    }));
+    const renderStats = Array.from(this.renderCounts.entries()).map(
+      ([name, count]) => ({
+        component: name,
+        renders: count,
+      })
+    );
 
-    const mutationStats = Array.from(this.mutationCounts.entries()).map(([name, count]) => ({
-      component: name,
-      mutations: count,
-    }));
+    const mutationStats = Array.from(this.mutationCounts.entries()).map(
+      ([name, count]) => ({
+        component: name,
+        mutations: count,
+      })
+    );
 
-    const recentRenders = recentLogs.filter((log) => log.type === 'render').length;
-    const recentMutations = recentLogs.filter((log) => log.type === 'mutation').length;
+    const recentRenders = recentLogs.filter(
+      (log) => log.type === "render"
+    ).length;
+    const recentMutations = recentLogs.filter(
+      (log) => log.type === "mutation"
+    ).length;
 
     return {
       renderStats: renderStats.sort((a, b) => b.renders - a.renders),
@@ -153,32 +167,34 @@ class PerformanceLogger {
 
   printStats() {
     const stats = this.getStats();
-    console.group('🔍 Performance Stats (Last Second)');
-    console.log('Recent Renders:', stats.recentRenders);
-    console.log('Recent Mutations:', stats.recentMutations);
-    console.group('Top Rendering Components');
+    console.group("🔍 Performance Stats (Last Second)");
+    console.log("Recent Renders:", stats.recentRenders);
+    console.log("Recent Mutations:", stats.recentMutations);
+    console.group("Top Rendering Components");
     stats.renderStats.slice(0, 10).forEach((stat) => {
       console.log(`${stat.component}: ${stat.renders} renders`);
     });
     console.groupEnd();
-    console.group('Top Mutating Components');
+    console.group("Top Mutating Components");
     stats.mutationStats.slice(0, 10).forEach((stat) => {
       console.log(`${stat.component}: ${stat.mutations} mutations`);
     });
     console.groupEnd();
-    
+
     // Show details about unknown mutations
     const unknownMutations = stats.recentLogs
-      .filter((log) => log.type === 'mutation' && log.component.startsWith('unknown'))
+      .filter(
+        (log) => log.type === "mutation" && log.component.startsWith("unknown")
+      )
       .slice(0, 5);
     if (unknownMutations.length > 0) {
-      console.group('🔍 Unknown Mutation Details (Sample)');
+      console.group("🔍 Unknown Mutation Details (Sample)");
       unknownMutations.forEach((log) => {
         console.log(log.component, log.details);
       });
       console.groupEnd();
     }
-    
+
     console.groupEnd();
   }
 
@@ -192,16 +208,15 @@ class PerformanceLogger {
 export const performanceLogger = new PerformanceLogger();
 
 // Enable in development
-if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
   // Enable logging
   performanceLogger.enable();
 
   // Print stats every 2 seconds
-  setInterval(() => {
-    performanceLogger.printStats();
-  }, 2000);
+  // setInterval(() => {
+  //   performanceLogger.printStats();
+  // }, 2000);
 
   // Expose to window for manual inspection
   (window as any).performanceLogger = performanceLogger;
 }
-

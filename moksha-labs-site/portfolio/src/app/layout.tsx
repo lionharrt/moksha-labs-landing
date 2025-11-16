@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Providers } from "@/components/providers/Providers";
 import { DevToolbar } from "@/components/dev/DevToolbar";
 
 export const metadata: Metadata = {
@@ -16,10 +15,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Providers>
           {children}
           <DevToolbar />
-        </Providers>
       </body>
     </html>
   );

@@ -1,17 +1,17 @@
 /**
- * Scene 1: Hero
+ * Scene 4: Our Services
  *
- * Clean, centered hero with large typography
- * Minimal animation on scroll
+ * Deeper underwater scene showcasing services
+ * Continued underwater gradient with service offerings
  */
 
 import { SceneConfig } from "../../types/Scene.types";
 
-export const heroSceneConfig: SceneConfig = {
-  id: "hero",
-  name: "Hero",
-  order: 1,
-  duration: "+=0vh", // Pin for 1 extra screen
+export const ourServicesSceneConfig: SceneConfig = {
+  id: "our-services",
+  name: "Our Services",
+  order: 4,
+  duration: "+=500vh", // Pin for 1 extra screen
 
   phases: {
     intro: {
@@ -38,7 +38,7 @@ export const heroSceneConfig: SceneConfig = {
   scrub: 1,
 
   metadata: {
-    description: "Hero section with brand introduction",
-    tags: ["hero", "intro", "brand"],
+    description: "Our Services section with underwater theme",
+    tags: ["our-services", "services"],
   },
 };

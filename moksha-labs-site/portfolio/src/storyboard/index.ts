@@ -90,3 +90,15 @@ export { useStoryboardEffect, useComposedEffects } from './hooks/useEffect';
 export { heroSceneConfig } from './scenes/01-hero/HeroScene.config';
 export { HeroScene } from './scenes/01-hero/HeroScene';
 
+export { aboutUsSceneConfig } from './scenes/02-about-us/AboutUsScene.config';
+export { default as AboutUsScene } from './scenes/02-about-us/AbouUsScene';
+
+export { ourWorkSceneConfig } from './scenes/03-our-work/OurWorkScene.config';
+export { default as OurWorkScene } from './scenes/03-our-work/OurWorkScene';
+
+export { ourServicesSceneConfig } from './scenes/04-our-services/OurServicesScene.config';
+export { default as OurServicesScene } from './scenes/04-our-services/OurServicesScene';
+
+export { contactUsSceneConfig } from './scenes/05-contact-us/ContactUsScene.config';
+export { default as ContactUsScene } from './scenes/05-contact-us/ContactUsScene';
+

@@ -1,14 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import {
-  precalculateColorLUT,
-  precalculateLightPositionLUT,
-  precalculateNoiseLUT,
-  ColorLUT,
-  LightPositionLUT,
-  NoiseLUT,
-} from "@/utils/performancePreloader";
+import { useState } from "react";
 
 // Define config interface locally to avoid circular dependency
 interface LightingConfig {
@@ -33,74 +25,15 @@ interface PerformancePreloaderProps {
   config: LightingConfig;
   viewportWidth: number;
   viewportHeight: number;
-  onComplete: (preloaded: PreloadedData) => void;
-}
-
-export interface PreloadedData {
-  colorLUT: ColorLUT;
-  lightPositionLUT: LightPositionLUT;
-  noiseLUT: NoiseLUT;
 }
 
 export function PerformancePreloader({
   config,
   viewportWidth,
   viewportHeight,
-  onComplete,
 }: PerformancePreloaderProps) {
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState("Initializing...");
-  const preloadedDataRef = useRef<PreloadedData | null>(null);
-
-  useEffect(() => {
-    let startTime = performance.now();
-    const totalSteps = 3;
-    let currentStep = 0;
-
-    const preload = async () => {
-      // Step 1: Pre-calculate color lookup tables
-      setStatus("Pre-calculating colors...");
-      setProgress(0);
-      const colorLUT = precalculateColorLUT(config, 1000);
-      currentStep++;
-      setProgress(currentStep / totalSteps);
-
-      // Step 2: Pre-calculate light position lookup table
-      setStatus("Pre-calculating light positions...");
-      await new Promise((resolve) => setTimeout(resolve, 0)); // Yield to UI
-      const lightPositionLUT = precalculateLightPositionLUT(
-        viewportWidth,
-        viewportHeight,
-        1000
-      );
-      currentStep++;
-      setProgress(currentStep / totalSteps);
-
-      // Step 3: Pre-calculate noise lookup tables
-      setStatus("Pre-calculating noise patterns...");
-      await new Promise((resolve) => setTimeout(resolve, 0)); // Yield to UI
-      const noiseLUT = precalculateNoiseLUT(0.01, 10000);
-      currentStep++;
-      setProgress(currentStep / totalSteps);
-
-      const preloaded: PreloadedData = {
-        colorLUT,
-        lightPositionLUT,
-        noiseLUT,
-      };
-
-      preloadedDataRef.current = preloaded;
-      const elapsed = performance.now() - startTime;
-      setStatus(`Ready! (${elapsed.toFixed(0)}ms)`);
-      
-      // Small delay to show completion, then notify
-      setTimeout(() => {
-        onComplete(preloaded);
-      }, 200);
-    };
-
-    preload();
-  }, [config, viewportWidth, viewportHeight, onComplete]);
 
   return (
     <div
@@ -117,9 +50,7 @@ export function PerformancePreloader({
         fontFamily: "monospace",
       }}
     >
-      <div style={{ marginBottom: "20px", fontSize: "18px" }}>
-        {status}
-      </div>
+      <div style={{ marginBottom: "20px", fontSize: "18px" }}>{status}</div>
       <div
         style={{
           width: "400px",
@@ -144,4 +75,3 @@ export function PerformancePreloader({
     </div>
   );
 }
-

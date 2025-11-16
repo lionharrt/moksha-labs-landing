@@ -1,17 +1,17 @@
 /**
- * Scene 1: Hero
+ * Scene 5: Contact Us
  *
- * Clean, centered hero with large typography
- * Minimal animation on scroll
+ * Sea floor scene with contact information
+ * Deepest part of underwater gradient - sea floor
  */
 
 import { SceneConfig } from "../../types/Scene.types";
 
-export const heroSceneConfig: SceneConfig = {
-  id: "hero",
-  name: "Hero",
-  order: 1,
-  duration: "+=0vh", // Pin for 1 extra screen
+export const contactUsSceneConfig: SceneConfig = {
+  id: "contact-us",
+  name: "Contact Us",
+  order: 5,
+  duration: "+=500vh", // Pin for 1 extra screen
 
   phases: {
     intro: {
@@ -38,7 +38,7 @@ export const heroSceneConfig: SceneConfig = {
   scrub: 1,
 
   metadata: {
-    description: "Hero section with brand introduction",
-    tags: ["hero", "intro", "brand"],
+    description: "Contact Us section at the sea floor with contact information",
+    tags: ["contact-us", "contact"],
   },
 };

@@ -24,8 +24,16 @@ interface StoryboardProviderProps {
 export function StoryboardProvider({ children, config }: StoryboardProviderProps) {
   const storyboardRef = useRef<StoryboardManager | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const initializedRef = useRef(false);
 
   useEffect(() => {
+    // Only initialize once - ignore config changes after initial mount
+    if (initializedRef.current) {
+      return;
+    }
+
+    initializedRef.current = true;
+
     // Initialize storyboard
     const storyboard = new StoryboardManager(config);
     storyboard.initialize();
@@ -40,6 +48,7 @@ export function StoryboardProvider({ children, config }: StoryboardProviderProps
     return () => {
       storyboard.cleanup();
       storyboardRef.current = null;
+      initializedRef.current = false;
     };
   }, [config]);
 

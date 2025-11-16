@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useEffect, useRef } from 'react';
+import { ReactNode, useEffect, useRef, createContext, useContext } from 'react';
 import Lenis from '@studio-freight/lenis';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -13,11 +13,28 @@ if (typeof window !== 'undefined') {
   (window as any).ScrollTrigger = ScrollTrigger;
 }
 
-interface LenisProviderProps {
-  children: ReactNode;
+interface LenisContextValue {
+  lenis: Lenis | null;
+  stopScroll: () => void;
+  startScroll: () => void;
 }
 
-export function LenisProvider({ children }: LenisProviderProps) {
+const LenisContext = createContext<LenisContextValue>({
+  lenis: null,
+  stopScroll: () => {},
+  startScroll: () => {},
+});
+
+export function useLenis() {
+  return useContext(LenisContext);
+}
+
+interface LenisProviderProps {
+  children: ReactNode;
+  scrollLocked?: boolean;
+}
+
+export function LenisProvider({ children, scrollLocked = false }: LenisProviderProps) {
   const lenisRef = useRef<Lenis | null>(null);
 
   useEffect(() => {
@@ -59,5 +76,44 @@ export function LenisProvider({ children }: LenisProviderProps) {
     };
   }, []);
 
-  return <>{children}</>;
+  // Handle scroll lock state
+  useEffect(() => {
+    if (!lenisRef.current) return;
+
+    if (scrollLocked) {
+      lenisRef.current.stop();
+      // Also disable scroll on body
+      document.body.style.overflow = 'hidden';
+    } else {
+      lenisRef.current.start();
+      // Re-enable scroll on body
+      document.body.style.overflow = '';
+    }
+  }, [scrollLocked]);
+
+  const stopScroll = () => {
+    if (lenisRef.current) {
+      lenisRef.current.stop();
+      document.body.style.overflow = 'hidden';
+    }
+  };
+
+  const startScroll = () => {
+    if (lenisRef.current) {
+      lenisRef.current.start();
+      document.body.style.overflow = '';
+    }
+  };
+
+  const contextValue: LenisContextValue = {
+    lenis: lenisRef.current,
+    stopScroll,
+    startScroll,
+  };
+
+  return (
+    <LenisContext.Provider value={contextValue}>
+      {children}
+    </LenisContext.Provider>
+  );
 }
