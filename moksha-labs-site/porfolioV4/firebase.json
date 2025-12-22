@@ -1,0 +1,20 @@
+{
+  "hosting": {
+    "public": ".output/public",
+    "cleanUrls": true,
+    "rewrites": [
+      {
+        "source": "**",
+        "run": {
+          "serviceId": "server",
+          "region": "us-central1"
+        }
+      }
+    ]
+  },
+  "functions": {
+    "source": ".output/server",
+    "runtime": "nodejs20"
+  }
+}
+
