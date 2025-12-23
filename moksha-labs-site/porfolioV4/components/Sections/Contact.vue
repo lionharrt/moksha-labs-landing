@@ -1,5 +1,5 @@
 <template>
-  <BaseSection theme-color="#1A1A1A" id="contact">
+  <BaseSection theme-color="#1A1A1A" class="!text-cream pt-[30vh] pb-[20vh]" id="contact">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-20">
       <div>
         <h2 class="text-7xl font-bold mb-8 leading-tight">Ready to <span class="text-saffron italic">Ascend?</span></h2>
@@ -7,7 +7,7 @@
         
         <div class="space-y-6">
           <a href="mailto:hello@mokshalabs.com" class="block text-3xl font-serif hover:text-saffron transition-colors">hello@mokshalabs.com</a>
-          <p class="text-cream/40 uppercase tracking-widest text-sm">San Francisco — Global</p>
+          <p class="text-cream/40 uppercase tracking-widest text-sm">Dublin — Global</p>
         </div>
       </div>
 

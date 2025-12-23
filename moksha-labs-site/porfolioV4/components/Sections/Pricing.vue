@@ -5,9 +5,9 @@
       <p class="text-charcoal/60 uppercase tracking-widest text-sm">Tailored solutions for every scale</p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-5xl mx-auto">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-5xl mx-auto items-stretch">
       <div v-for="plan in plans" :key="plan.name" 
-           class="relative p-12 border border-charcoal/10 rounded-[50px] overflow-hidden group">
+           class="relative p-12 border border-charcoal/10 rounded-[50px] overflow-hidden group flex flex-col h-full">
         <div class="absolute top-0 right-0 p-8 text-saffron/10 group-hover:text-saffron/20 transition-colors">
           <component :is="plan.icon" :size="120" stroke-width="0.5" />
         </div>
@@ -15,14 +15,14 @@
         <h3 class="text-3xl font-bold mb-2">{{ plan.name }}</h3>
         <p class="text-saffron font-semibold mb-6">{{ plan.price }}</p>
         
-        <ul class="space-y-4 mb-10">
+        <ul class="space-y-4 mb-10 flex-grow">
           <li v-for="feature in plan.features" :key="feature" class="flex items-center text-charcoal/70">
             <span class="w-1.5 h-1.5 bg-saffron rounded-full mr-3"></span>
             {{ feature }}
           </li>
         </ul>
         
-        <button class="w-full py-4 border border-charcoal text-charcoal hover:bg-charcoal hover:text-cream transition-colors rounded-full font-bold uppercase tracking-wider text-sm">
+        <button class="w-full py-4 border border-charcoal text-charcoal hover:bg-charcoal hover:text-cream transition-colors rounded-full font-bold uppercase tracking-wider text-sm mt-auto">
           Get Started
         </button>
       </div>

@@ -1,8 +1,8 @@
 <template>
   <BaseSection
     ref="heroSection"
-    theme-color="#1A1A1A"
-    class="hero-section flex items-center justify-center overflow-hidden !py-0 min-h-screen transition-colors duration-700"
+    theme-color="#FDFBF7"
+    class="hero-section flex items-center justify-center overflow-hidden !py-0 min-h-screen"
   >
     <div
       ref="heroContainer"
@@ -22,7 +22,7 @@
             class="hero-char inline-block opacity-0 translate-x-[100vw]"
             :class="char === ' ' ? 'mx-[2vw]' : ''"
           >
-            <span class="text-element text-cream">
+            <span class="text-charcoal">
               {{ char }}
             </span>
           </span>
@@ -40,9 +40,7 @@
           >
             Digital Evolution
           </p>
-          <h2
-            class="text-4xl md:text-6xl font-bold mb-8 text-element text-cream"
-          >
+          <h2 class="text-4xl md:text-6xl font-bold mb-8 text-charcoal">
             Crafting high-end digital experiences for the modern era.
           </h2>
         </div>
@@ -66,7 +64,7 @@
 
           <!-- The "Explore" Focal Point -->
           <span
-            class="text-element text-cream text-[10px] uppercase tracking-[1em] font-bold z-10 pl-[1em]"
+            class="text-charcoal text-[10px] uppercase tracking-[1em] font-bold z-10 pl-[1em]"
           >
             Explore
           </span>
@@ -119,19 +117,6 @@ onMounted(() => {
       anticipatePin: 1,
     },
   });
-
-  // Gradual Theme Transition: Tied directly to the start of the scroll
-  // Starts at 0 and completes as the "Explore" centerpiece fades out
-  tl.to(
-    "body",
-    {
-      backgroundColor: "#FDFBF7",
-      color: "#1A1A1A",
-      duration: 1.5,
-      ease: "none", // Linear for direct scroll response
-    },
-    0
-  ).to(".text-element", { color: "#1A1A1A", duration: 1.5, ease: "none" }, 0);
 
   // The "Track" Animation for each character
   // Path: [Start Right] -> [Center Left] -> [Curve 90 Down] -> [Exit Bottom]

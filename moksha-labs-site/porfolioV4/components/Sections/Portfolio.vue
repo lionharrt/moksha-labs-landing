@@ -1,5 +1,5 @@
 <template>
-  <BaseSection theme-color="#EBC18D" id="portfolio">
+  <BaseSection theme-color="#F5F2ED" id="portfolio">
     <div class="flex flex-col md:flex-row justify-between items-end mb-16">
       <h2 class="text-6xl font-bold max-w-xl">Selected Works That Define Excellence</h2>
       <div class="hidden md:block text-right">

@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-charcoal text-cream font-sans antialiased;
+    @apply bg-cream text-charcoal font-sans antialiased;
     overflow-x: hidden;
   }
 

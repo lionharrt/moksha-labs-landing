@@ -33,30 +33,16 @@ const { gsap, ScrollTrigger } = useGsap()
 
 onMounted(() => {
   if (props.themeColor && sectionRef.value) {
-    // Determine text color based on background (basic light/dark check)
-    const isDark = props.themeColor === '#1A1A1A'
-    const targetTextColor = isDark ? '#FDFBF7' : '#1A1A1A'
-
-    // Fade background and text color of the body
+    // Fade background color of the body or a global overlay when this section is active
     ScrollTrigger.create({
       trigger: sectionRef.value,
-      start: 'top 40%',
-      end: 'bottom 40%',
+      start: 'top 80%',
+      end: 'bottom 20%',
       onEnter: () => {
-        gsap.to('body', { 
-          backgroundColor: props.themeColor, 
-          color: targetTextColor,
-          duration: 1, 
-          ease: 'power2.inOut' 
-        })
+        gsap.to('body', { backgroundColor: props.themeColor, duration: 1, ease: 'power2.inOut' })
       },
       onEnterBack: () => {
-        gsap.to('body', { 
-          backgroundColor: props.themeColor, 
-          color: targetTextColor,
-          duration: 1, 
-          ease: 'power2.inOut' 
-        })
+        gsap.to('body', { backgroundColor: props.themeColor, duration: 1, ease: 'power2.inOut' })
       }
     })
   }
