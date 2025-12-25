@@ -1,0 +1,225 @@
+{
+  "nav": {
+    "services": "Servizi",
+    "pricing": "Prezzi",
+    "portfolio": "Portfolio",
+    "team": "Team",
+    "contact": "Contatto",
+    "start_project": "Inizia Progetto"
+  },
+  "hero": {
+    "main_text": "MOKSHA",
+    "subtitle": "Evoluzione Digitale",
+    "title": "Creazione di esperienze digitali di alto livello per l'era moderna."
+  },
+  "sections": {
+    "services": {
+      "title": "I Nostri Servizi",
+      "subtitle": "Soluzioni complete per il brand moderno",
+      "items": [
+        {
+          "title": "Esperienza Digitale",
+          "subtitle": "Web Design e Sviluppo",
+          "description": "Creazione di applicazioni web immersive che spingono i confini del design e della tecnologia moderni."
+        },
+        {
+          "title": "Identità del Brand",
+          "subtitle": "Sistemi di Design Visivo",
+          "description": "Definizione di linguaggi visivi unici che risuonano con il tuo pubblico e costruiscono una fiducia duratura."
+        },
+        {
+          "title": "Innovazione Strategica",
+          "subtitle": "Trasformazione Digitale",
+          "description": "Trasformare sfide aziendali complesse in soluzioni digitali eleganti e scalabili."
+        },
+        {
+          "title": "Architettura Sociale",
+          "subtitle": "Social Media e Strategia dei Contenuti",
+          "description": "Creazione di narrazioni digitali di alto livello che favoriscono il coinvolgimento della comunità e amplificano la presenza del tuo brand negli ecosistemi social."
+        },
+        {
+          "title": "Ingegneria della Crescita",
+          "subtitle": "SEO, Annunci e Performance",
+          "description": "Ottimizzazione della tua impronta digitale attraverso strategie basate sui dati che scalano la visibilità, guidano la conversione e assicurano l'autorità di mercato a lungo termine."
+        },
+        {
+          "title": "Movimento e Storytelling Visivo",
+          "subtitle": "Video e Animazione",
+          "description": "Dare vita al tuo brand attraverso il motion design cinematico e visual ad alta fedeltà che catturano l'attenzione ed evocano emozioni."
+        }
+      ]
+    },
+    "portfolio": {
+      "title": "Portfolio Selezionato",
+      "subtitle": "Lavori scelti che definiscono l'eccellenza",
+      "placeholder": "[ Immagine Progetto ]",
+      "projects": [
+        { "title": "Ethereal Collective", "category": "Direzione Creativa" },
+        { "title": "Nexus FinTech", "category": "Design UI/UX" },
+        { "title": "Aura Wellness", "category": "Identità del Brand" },
+        { "title": "Architettura Lumina", "category": "Sviluppo Web" }
+      ]
+    },
+    "pricing": {
+      "title": "Investimento",
+      "subtitle": "Soluzioni su misura per ogni scala",
+      "get_started": "Inizia Ora",
+      "trust_note": "Tutti i lavori sono progettati su misura. Gli add-on sono valutati e prezzati separatamente. I pacchetti Web e Design possono essere combinati o acquistati indipendentemente.",
+      "plans": [
+        {
+          "name": "Essenziale",
+          "price": "A partire da €1k",
+          "features": [
+            "Web Design Personalizzato",
+            "Sviluppo Responsive",
+            "SEO di Base",
+            "Strategia dei Contenuti"
+          ]
+        },
+        {
+          "name": "Firma",
+          "price": "A partire da €3k",
+          "features": [
+            "Animazioni Avanzate",
+            "Identità Completa del Brand",
+            "Interazioni Personalizzate",
+            "Ottimizzazione delle Performance",
+            "Supporto Prioritario"
+          ]
+        }
+      ]
+    },
+    "offerings": {
+      "title": "Offerte Personalizzate",
+      "subtitle": "Elevare ogni punto di contatto del tuo brand",
+      "key_deliverables": "Deliverable Chiave",
+      "highlights": "Punti Salienti",
+      "branding": {
+        "title": "Branding",
+        "items": [
+          {
+            "name": "Essenziali dell'Identità",
+            "description": "Per visionari ai blocchi di partenza. Si concentra sul DNA principale del tuo brand.",
+            "deliverables": "Logo Primario, Palette Core, Kit Iniziale per i Social Media."
+          },
+          {
+            "name": "L'Identità Completa",
+            "description": "Il gold standard per i brand in crescita. Un ecosistema visivo completo.",
+            "deliverables": "Brandbook Completo, Texture Personalizzate, Suite Completa di Mockup."
+          },
+          {
+            "name": "Presenza Aziendale",
+            "description": "Implementazione su larga scala per entità consolidate che traducono il brand nel mondo fisico.",
+            "deliverables": "Cancelleria Esecutiva, Design di Menu/Brochure, Sistemi di Presentazione."
+          }
+        ]
+      },
+      "social_media": {
+        "title": "Social Media",
+        "items": [
+          {
+            "name": "Presenza Sociale",
+            "description": "Focalizzato sulla coerenza estetica e sul coinvolgimento essenziale.",
+            "highlights": ["8 Post Personalizzati", "2 Reels Cinematici", "Copywriting su Misura"]
+          },
+          {
+            "name": "Autorità di Mercato",
+            "description": "Crescita strategica attraverso contenuti costanti e di alto valore.",
+            "highlights": ["12 Post Personalizzati", "4 Reels Cinematici", "Gestione Completa dei Commenti"]
+          },
+          {
+            "name": "L'Edit Premium",
+            "description": "Strategia digitale ad alte prestazioni per i settori corporate e luxury.",
+            "highlights": ["16 Post Personalizzati", "6 Reels", "Gestione Multi-Campagna"]
+          }
+        ]
+      },
+      "growth_marketing": {
+        "title": "Growth Marketing",
+        "items": [
+          {
+            "name": "Strategia SEO",
+            "description": "Visibilità di precisione sui motori di ricerca.",
+            "tiers": [
+              { "label": "Lite", "desc": "Indicizzazione di base e ottimizzazione dei metadati." },
+              { "label": "Pro", "desc": "Conquista attiva delle parole chiave e ottimizzazione tecnica mensile." },
+              { "label": "Elite", "desc": "Dominio totale del mercato con backlink outreach." }
+            ]
+          },
+          {
+            "name": "Acquisizione Strategica",
+            "description": "Guidare la conversione attraverso il posizionamento digitale mirato.",
+            "tiers": [
+              { "label": "Starter", "desc": "Portata mirata con creatività ad alta conversione." },
+              { "label": "Growth", "desc": "A/B test e retargeting per massimizzare la spesa pubblicitaria." },
+              { "label": "Premium", "desc": "Architettura full-funnel dalla consapevolezza alla conversione." }
+            ]
+          },
+          {
+            "name": "Retention Marketing",
+            "description": "Costruire relazioni durature attraverso messaggi personalizzati sul ciclo di vita.",
+            "tiers": [
+              { "label": "Flussi", "desc": "Sequenze automatizzate di benvenuto e post-acquisto." },
+              { "label": "CRM", "desc": "Segmentazione avanzata e trigger basati sul comportamento." },
+              { "label": "Lealtà", "desc": "Analisi predittiva e sistemi di ricompensa premium." }
+            ]
+          }
+        ]
+      },
+      "add_ons": {
+        "title": "Add-on su Misura",
+        "items": [
+          {
+            "name": "Digitale",
+            "description": "Aggiornamenti tecnici per la tua sede digitale.",
+            "highlights": ["E-commerce Upgrade", "AI Chatbot", "Sistemi Multilingue"]
+          },
+          {
+            "name": "Visivo",
+            "description": "Asset artistici per espandere il tuo linguaggio visivo.",
+            "highlights": ["Design del Packaging", "Video Intro del Brand", "Branding di Eventi"]
+          },
+          {
+            "name": "Contenuto",
+            "description": "Produzione professionale per uno storytelling premium.",
+            "highlights": ["Fotografia Professionale", "Coordinamento Influencer", "Riprese Video"]
+          }
+        ]
+      }
+    },
+    "team": {
+      "title": "Le Menti Dietro Moksha",
+      "members": [
+        { "name": "Dylan Mahony", "role": "Fondatore e Responsabile Tecnico" },
+        { "name": "Zeynep Mahony", "role": "Co-fondatrice, Assistente Esecutiva e al Design" },
+        { "name": "Berkay Erte", "role": "Co-fondatrice, Designer Multimediale e Produttore Creativo" },
+        { "name": "Ecenaz Demircan", "role": "Co-fondatrice, Architetto Digitale e Web Designer Principale" }
+      ]
+    },
+    "contact": {
+      "title": "Pronti a",
+      "ascend": "Salire?",
+      "subtitle": "Discutiamo di come possiamo elevare la tua presenza digitale a nuove vette.",
+      "location": "Dublino — Globale",
+      "form": {
+        "name": "Nome",
+        "name_placeholder": "Il tuo nome",
+        "email": "Email",
+        "email_placeholder": "ciao{'@'}esempio.com",
+        "topic": "Argomento",
+        "topic_placeholder": "es. Pacchetto Firma / Strategia del Brand",
+        "message": "Messaggio",
+        "message_placeholder": "Raccontaci la tua visione...",
+        "submit": "Invia Richiesta",
+        "sending": "Invio in corso...",
+        "success_title": "Richiesta Ricevuta",
+        "success_text": "Ti contatteremo entro 24 ore per iniziare il tuo viaggio.",
+        "another": "Invia un'altra",
+        "validation_error": "* Completa tutti i campi con un'email valida per salire."
+      }
+    }
+  },
+  "footer": {
+    "copyright": "© 2025 Moksha Labs. Tutti i diritti riservati."
+  }
+}

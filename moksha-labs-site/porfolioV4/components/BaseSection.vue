@@ -36,15 +36,27 @@ onMounted(() => {
     // Fade background color of the body or a global overlay when this section is active
     ScrollTrigger.create({
       trigger: sectionRef.value,
-      start: 'top 80%',
-      end: 'bottom 20%',
-      onEnter: () => {
-        gsap.to('body', { backgroundColor: props.themeColor, duration: 1, ease: 'power2.inOut' })
+      start: "top center",
+      end: "bottom center",
+      onRefresh: (self) => {
+        if (self.isActive) {
+          gsap.to("body", {
+            backgroundColor: props.themeColor,
+            duration: 1,
+            ease: "power2.inOut",
+          });
+        }
       },
-      onEnterBack: () => {
-        gsap.to('body', { backgroundColor: props.themeColor, duration: 1, ease: 'power2.inOut' })
-      }
-    })
+      onToggle: (self) => {
+        if (self.isActive) {
+          gsap.to("body", {
+            backgroundColor: props.themeColor,
+            duration: 1,
+            ease: "power2.inOut",
+          });
+        }
+      },
+    });
   }
 })
 </script>

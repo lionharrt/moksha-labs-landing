@@ -1,0 +1,225 @@
+{
+  "nav": {
+    "services": "Hizmetler",
+    "pricing": "Fiyatlandırma",
+    "portfolio": "Portfolyo",
+    "team": "Ekibimiz",
+    "contact": "İletişim",
+    "start_project": "Projeye Başla"
+  },
+  "hero": {
+    "main_text": "MOKSHA",
+    "subtitle": "Dijital Evrim",
+    "title": "Modern çağ için üst düzey dijital deneyimler hazırlıyoruz."
+  },
+  "sections": {
+    "services": {
+      "title": "Hizmetlerimiz",
+      "subtitle": "Modern Marka İçin Kapsamlı Çözümler",
+      "items": [
+        {
+          "title": "Dijital Deneyim",
+          "subtitle": "Web Tasarım ve Geliştirme",
+          "description": "Modern tasarım ve teknolojinin sınırlarını zorlayan sürükleyici web uygulamaları oluşturuyoruz."
+        },
+        {
+          "title": "Marka Kimliği",
+          "subtitle": "Görsel Tasarım Sistemleri",
+          "description": "Hedef kitlenizle rezonansa giren ve kalıcı güven inşa eden benzersiz görsel diller tanımlıyoruz."
+        },
+        {
+          "title": "Stratejik İnovasyon",
+          "subtitle": "Dijital Dönüşüm",
+          "description": "Karmaşık iş zorluklarını zarif, ölçeklenebilir dijital çözümlere dönüştürüyoruz."
+        },
+        {
+          "title": "Sosyal Mimari",
+          "subtitle": "Sosyal Medya ve İçerik Stratejisi",
+          "description": "Topluluk etkileşimini artıran ve markanızın sosyal ekosistemlerdeki varlığını güçlendiren üst düzey dijital anlatılar hazırlıyoruz."
+        },
+        {
+          "title": "Büyüme Mühendisliği",
+          "subtitle": "SEO, Reklamlar ve Performans",
+          "description": "Görünürlüğü artıran, dönüşümü yönlendiren ve uzun vadeli pazar otoritesi sağlayan veri odaklı stratejilerle dijital ayak izinizi optimize ediyoruz."
+        },
+        {
+          "title": "Hareket ve Görsel Hikaye Anlatımı",
+          "subtitle": "Video ve Animasyon",
+          "description": "İlgi çeken ve duygu uyandıran sinematik hareketli grafikler ve yüksek kaliteli görsellerle markanıza hayat veriyoruz."
+        }
+      ]
+    },
+    "portfolio": {
+      "title": "Seçilmiş Portfolyo",
+      "subtitle": "Mükemmelliği Tanımlayan Seçilmiş Çalışmalar",
+      "placeholder": "[ Proje Görseli ]",
+      "projects": [
+        { "title": "Ethereal Collective", "category": "Kreatif Direktörlük" },
+        { "title": "Nexus FinTech", "category": "UI/UX Tasarım" },
+        { "title": "Aura Wellness", "category": "Marka Kimliği" },
+        { "title": "Lumina Mimarlık", "category": "Web Geliştirme" }
+      ]
+    },
+    "pricing": {
+      "title": "Yatırım",
+      "subtitle": "Her ölçek için özel çözümler",
+      "get_started": "Hemen Başla",
+      "trust_note": "Tüm çalışmalar özel olarak tasarlanmıştır. Ekstralar ayrı olarak kapsamlandırılır ve fiyatlandırılır. Web ve Tasarım paketleri birleştirilebilir veya bağımsız olarak satın alınabilir.",
+      "plans": [
+        {
+          "name": "Temel",
+          "price": "1 bin €'dan başlayan fiyatlarla",
+          "features": [
+            "Özel Web Tasarımı",
+            "Duyarlı Geliştirme",
+            "Temel SEO",
+            "İçerik Stratejisi"
+          ]
+        },
+        {
+          "name": "İmza",
+          "price": "3 bin €'dan başlayan fiyatlarla",
+          "features": [
+            "Gelişmiş Animasyonlar",
+            "Tam Marka Kimliği",
+            "Özel Etkileşimler",
+            "Performans Optimizasyonu",
+            "Öncelikli Destek"
+          ]
+        }
+      ]
+    },
+    "offerings": {
+      "title": "Özel Teklifler",
+      "subtitle": "Markanızın her temas noktasını yükseltiyoruz",
+      "key_deliverables": "Temel Çıktılar",
+      "highlights": "Öne Çıkanlar",
+      "branding": {
+        "title": "Markalaşma",
+        "items": [
+          {
+            "name": "Kimlik Esasları",
+            "description": "Başlangıç çizgisindeki vizyonerler için. Markanızın temel DNA'sına odaklanır.",
+            "deliverables": "Birincil Logo, Temel Palet, Sosyal Medya Başlangıç Seti."
+          },
+          {
+            "name": "Tam Kimlik",
+            "description": "Büyüyen markalar için altın standart. Kapsamlı bir görsel ekosistem.",
+            "deliverables": "Kapsamlı Marka Kitabı, Özel Dokular, Tam Mockup Seti."
+          },
+          {
+            "name": "Kurumsal Varlık",
+            "description": "Kurulu yapılar için tam ölçekli uygulama. Markayı fiziksel dünyaya taşır.",
+            "deliverables": "Yönetici Kırtasiye, Menü/Broşür Tasarımı, Sunum Sistemleri."
+          }
+        ]
+      },
+      "social_media": {
+        "title": "Sosyal Medya",
+        "items": [
+          {
+            "name": "Sosyal Varlık",
+            "description": "Estetik tutarlılık ve temel etkileşime odaklanır.",
+            "highlights": ["8 Özel Gönderi", "2 Sinematik Reels", "Özel Metin Yazımı"]
+          },
+          {
+            "name": "Pazar Otoritesi",
+            "description": "Tutarlı, yüksek değerli içerik yoluyla stratejik büyüme.",
+            "highlights": ["12 Özel Gönderi", "4 Sinematik Reels", "Tam Yorum Yönetimi"]
+          },
+          {
+            "name": "Premium Düzenleme",
+            "description": "Kurumsal ve lüks sektörler için yüksek performanslı dijital strateji.",
+            "highlights": ["16 Özel Gönderi", "6 Reels", "Çoklu Kampanya Yönetimi"]
+          }
+        ]
+      },
+      "growth_marketing": {
+        "title": "Büyüme Pazarlaması",
+        "items": [
+          {
+            "name": "SEO Stratejisi",
+            "description": "Arama motorlarında hassas mühendislik ürünü görünürlük.",
+            "tiers": [
+              { "label": "Lite", "desc": "Temel indeksleme ve meta veri optimizasyonu." },
+              { "label": "Pro", "desc": "Aktif anahtar kelime fethi ve teknik optimizasyon." },
+              { "label": "Elite", "desc": "Geri bağlantı erişimi ile toplam pazar hakimiyeti." }
+            ]
+          },
+          {
+            "name": "Stratejik Edinme",
+            "description": "Hedefli dijital yerleştirme yoluyla dönüşümü teşvik etme.",
+            "tiers": [
+              { "label": "Starter", "desc": "Yüksek dönüşümlü kreatiflerle hedefli erişim." },
+              { "label": "Büyüme", "desc": "Reklam harcamasını maksimize etmek için A/B testi ve yeniden hedefleme." },
+              { "label": "Premium", "desc": "Farkındalıktan dönüşüme tam huni mimarisi." }
+            ]
+          },
+          {
+            "name": "Bağlılık Pazarlaması",
+            "description": "Kişiselleştirilmiş yaşam döngüsü mesajlaşması yoluyla kalıcı ilişkiler kurma.",
+            "tiers": [
+              { "label": "Akışlar", "desc": "Otomatik karşılama ve satın alma sonrası diziler." },
+              { "label": "CRM", "desc": "Gelişmiş segmentasyon ve davranış temelli tetikleyiciler." },
+              { "label": "Sadakat", "desc": "Tahminleyici analitik ve premium ödül sistemleri." }
+            ]
+          }
+        ]
+      },
+      "add_ons": {
+        "title": "Bespoke Ekstralar",
+        "items": [
+          {
+            "name": "Dijital",
+            "description": "Dijital merkeziniz için teknik yükseltmeler.",
+            "highlights": ["E-commerce Yükseltmeleri", "AI Chatbotları", "Çok Dilli Sistemler"]
+          },
+          {
+            "name": "Görsel",
+            "description": "Görsel dilinizi genişletmek için sanatsal varlıklar.",
+            "highlights": ["Paketleme Tasarımı", "Marka Tanıtım Videoları", "Etkinlik Markalaması"]
+          },
+          {
+            "name": "İçerik",
+            "description": "Premium hikaye anlatımı için profesyonel prodüksiyon.",
+            "highlights": ["Profesyonel Fotoğrafçılık", "Influencer Koordinasyonu", "Video Çekimleri"]
+          }
+        ]
+      }
+    },
+    "team": {
+      "title": "Moksha'nın Arkasındaki Zihinler",
+      "members": [
+        { "name": "Dylan Mahony", "role": "Kurucu ve Teknoloji Lideri" },
+        { "name": "Zeynep Mahony", "role": "Kurucu Ortak, Yönetici ve Tasarım Asistanı" },
+        { "name": "Berkay Erte", "role": "Kurucu Ortak, Multimedya Tasarımcısı ve Kreatif Yapımcı" },
+        { "name": "Ecenaz Demircan", "role": "Kurucu Ortak, Dijital Mimar ve Baş Web Tasarımcısı" }
+      ]
+    },
+    "contact": {
+      "title": "Hazır mısınız?",
+      "ascend": "Yükselmeye",
+      "subtitle": "Dijital varlığınızı nasıl yeni zirvelere taşıyabileceğimizi tartışalım.",
+      "location": "Dublin — Küresel",
+      "form": {
+        "name": "İsim",
+        "name_placeholder": "İsminiz",
+        "email": "E-posta",
+        "email_placeholder": "merhaba{'@'}ornek.com",
+        "topic": "Konu",
+        "topic_placeholder": "örn. İmza Paketi / Marka Stratejisi",
+        "message": "Mesaj",
+        "message_placeholder": "Vizyonunuzdan bahsedin...",
+        "submit": "Gönder",
+        "sending": "Gönderiliyor...",
+        "success_title": "Talep Alındı",
+        "success_text": "Yolculuğunuza başlamak için 24 saat içinde iletişime geçeceğiz.",
+        "another": "Başka Bir Mesaj Gönder",
+        "validation_error": "* Lütfen tüm alanları geçerli bir e-posta ile doldurun."
+      }
+    }
+  },
+  "footer": {
+    "copyright": "© 2025 Moksha Labs. Tüm hakları saklıdır."
+  }
+}

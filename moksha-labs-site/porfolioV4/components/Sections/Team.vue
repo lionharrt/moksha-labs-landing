@@ -2,13 +2,13 @@
   <BaseSection theme-color="#FDFBF7" id="team">
     <div class="text-center mb-20">
       <h2 class="text-5xl font-bold italic font-serif">
-        The Minds Behind Moksha
+        {{ $t("sections.team.title") }}
       </h2>
     </div>
 
     <div class="flex flex-wrap justify-center gap-x-16 gap-y-24">
       <div
-        v-for="(member, index) in team"
+        v-for="(member, index) in teamList"
         :key="member.name"
         class="text-center group max-w-[220px]"
       >
@@ -52,30 +52,42 @@
 </template>
 
 <script setup lang="ts">
-const team = [
+const { t, tm, rt } = useI18n();
+
+const teamWithImages = [
   {
     name: "Dylan Mahony",
-    role: "Founder & Tech Lead",
     initials: "DM",
     image: "/image/dylan.jpg",
   },
   {
     name: "Zeynep Mahony",
-    role: "Co-Founder, Executive & Design Assistant",
     initials: "ZM",
     image: "/image/zeynep.jpg",
   },
   {
     name: "Berkay Erte",
-    role: "Co-Founder, Multimedia Designer & Creative Producer",
     initials: "BE",
     image: "/image/berkay.jpg",
   },
   {
     name: "Ecenaz Demircan",
-    role: "Co-Founder, Digital Architect & Lead Web Designer",
     initials: "ED",
     image: "/image/ecenaz.jpg",
   },
 ];
+
+const teamList = computed(() => {
+  const members = tm("sections.team.members");
+  if (!Array.isArray(members)) return [];
+  return teamWithImages.map((member, index) => {
+    const tMember: any = members[index];
+    const resolve = (val: any) => (!val ? "" : (typeof val === 'string' ? val : rt(val)));
+    return {
+      ...member,
+      name: tMember ? resolve(tMember.name) : member.name,
+      role: tMember ? resolve(tMember.role) : "",
+    };
+  });
+});
 </script>

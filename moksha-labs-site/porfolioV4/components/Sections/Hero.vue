@@ -1,6 +1,7 @@
 <template>
   <BaseSection
     ref="heroSection"
+    :key="locale"
     theme-color="#FDFBF7"
     class="hero-section flex items-center justify-center overflow-hidden !py-0 min-h-screen"
   >
@@ -38,10 +39,10 @@
           <p
             class="text-saffron uppercase tracking-[0.5em] text-sm font-bold mb-6"
           >
-            Digital Evolution
+            {{ $t("hero.subtitle") }}
           </p>
           <h2 class="text-4xl md:text-6xl font-bold mb-8 text-charcoal">
-            Crafting high-end digital experiences for the modern era.
+            {{ $t("hero.title") }}
           </h2>
         </div>
       </div>
@@ -53,34 +54,36 @@
         <div class="relative flex items-center justify-center">
           <!-- Multi-layered Pulsing Rings -->
           <div
-            class="w-40 h-40 border border-saffron/30 rounded-full animate-ripple-1 absolute"
+            class="w-64 h-64 border border-saffron/30 rounded-full animate-ripple-1 absolute"
           ></div>
           <div
-            class="w-40 h-40 border border-saffron/20 rounded-full animate-ripple-2 absolute"
+            class="w-64 h-64 border border-saffron/20 rounded-full animate-ripple-2 absolute"
           ></div>
           <div
-            class="w-40 h-40 border border-saffron/10 rounded-full animate-ripple-3 absolute"
+            class="w-64 h-64 border border-saffron/10 rounded-full animate-ripple-3 absolute"
           ></div>
 
-          <!-- The "Explore" Focal Point -->
-          <span
-            class="text-charcoal text-[10px] uppercase tracking-[1em] font-bold z-10 pl-[1em]"
-          >
-            Explore
-          </span>
+          <!-- The Focal Point with Logo -->
+          <div class="flex flex-col items-center justify-center z-10">
+            <img
+              src="~/assets/image/Logo1a1a1a.png"
+              class="w-48 h-48 opacity-90 animate-bounce-subtle"
+              alt="Moksha Logo"
+            />
+          </div>
 
-          <!-- Downward Flow Indicator (Subtle Arrows) -->
+          <!-- Downward Flow Indicator (Elegant Arrows) -->
           <div
-            class="absolute top-[60px] flex flex-col items-center space-y-1 opacity-40"
+            class="absolute top-[135px] flex flex-col items-center space-y-2 opacity-60"
           >
             <div
-              class="w-2 h-2 border-r border-b border-saffron rotate-45 animate-arrow-flow-1"
+              class="w-2.5 h-2.5 border-r-2 border-b-2 border-saffron rotate-45 animate-arrow-flow-1"
             ></div>
             <div
-              class="w-2 h-2 border-r border-b border-saffron rotate-45 animate-arrow-flow-2"
+              class="w-2.5 h-2.5 border-r-2 border-b-2 border-saffron rotate-45 animate-arrow-flow-2"
             ></div>
             <div
-              class="w-2 h-2 border-r border-b border-saffron rotate-45 animate-arrow-flow-3"
+              class="w-2.5 h-2.5 border-r-2 border-b-2 border-saffron rotate-45 animate-arrow-flow-3"
             ></div>
           </div>
         </div>
@@ -96,10 +99,11 @@ const textContainer = ref<HTMLElement | null>(null);
 const subContent = ref<HTMLElement | null>(null);
 const scrollIndicator = ref<HTMLElement | null>(null);
 
-const text = "Moksha";
-const heroChars = text.split("");
-
+const { locale, t } = useI18n();
 const { gsap, ScrollTrigger } = useGsap();
+
+const text = "MOKSHA";
+const heroChars = computed(() => text.split(""));
 
 onMounted(() => {
   const triggerElement = heroSection.value?.$el || heroSection.value;
@@ -220,15 +224,25 @@ onMounted(() => {
 }
 @keyframes arrow-flow {
   0% {
-    transform: translateY(-10px) rotate(45deg);
+    transform: translateY(-15px) rotate(45deg);
     opacity: 0;
   }
   50% {
     opacity: 1;
   }
   100% {
-    transform: translateY(10px) rotate(45deg);
+    transform: translateY(15px) rotate(45deg);
     opacity: 0;
+  }
+}
+
+@keyframes bounce-subtle {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
   }
 }
 
@@ -250,5 +264,15 @@ onMounted(() => {
 }
 .animate-arrow-flow-3 {
   animation: arrow-flow 2s infinite 0.6s;
+}
+.animate-arrow-flow-4 {
+  animation: arrow-flow 2s infinite 0.9s;
+}
+.animate-arrow-flow-5 {
+  animation: arrow-flow 2s infinite 1.2s;
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 2s ease-in-out infinite;
 }
 </style>

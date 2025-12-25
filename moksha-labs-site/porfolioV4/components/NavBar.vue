@@ -1,34 +1,146 @@
 <template>
-  <nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center py-8 px-10 mix-blend-difference">
-    <div class="text-2xl font-bold text-white uppercase tracking-tighter">
+  <nav
+    class="fixed top-0 left-0 w-full z-50 flex justify-between items-center py-8 px-10 mix-blend-difference"
+  >
+    <!-- Logo -->
+    <NuxtLink 
+      :to="localePath('/')"
+      class="text-2xl font-bold text-white uppercase tracking-tighter no-cursor-scale"
+    >
       Moksha<span class="italic font-serif">Labs</span>
-    </div>
-    
+    </NuxtLink>
+
+    <!-- Desktop Navigation -->
     <div class="hidden md:flex gap-10 items-center">
-      <a v-for="link in navLinks" :key="link.name" :href="link.href" class="text-white/70 hover:text-white uppercase tracking-widest text-[10px] font-bold transition-colors">
-        {{ link.name }}
-      </a>
-      <button class="bg-white text-black px-6 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-saffron transition-colors">
-        Start Project
+      <div class="flex gap-8 items-center">
+        <NuxtLink
+          v-for="link in navLinks"
+          :key="link.key"
+          :to="localePath(link.href)"
+          class="nav-link text-white/70 hover:text-white uppercase tracking-widest text-[10px] font-bold transition-colors whitespace-nowrap min-w-fit"
+        >
+          {{ $t(`nav.${link.key}`) }}
+        </NuxtLink>
+      </div>
+
+      <!-- Redesigned Language Switcher -->
+      <div 
+        class="relative flex items-center border-l border-white/10 pl-10"
+        @mouseenter="openPicker"
+        @mouseleave="closePicker"
+      >
+        <div 
+          ref="pickerContainer"
+          class="flex items-center gap-4 overflow-hidden"
+          style="width: 40px;"
+        >
+          <!-- Current Locale (Always Visible) -->
+          <div 
+            class="text-[10px] font-bold uppercase tracking-widest text-saffron whitespace-nowrap cursor-pointer min-w-[25px]"
+          >
+            {{ locale }}
+          </div>
+
+          <!-- Other Locales (Animate In/Out) -->
+          <div 
+            ref="otherLocales"
+            class="flex items-center gap-4 opacity-0"
+          >
+            <NuxtLink
+              v-for="loc in availableLocales"
+              :key="loc.code"
+              :to="switchLocalePath(loc.code)"
+              class="text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-white transition-colors whitespace-nowrap"
+            >
+              {{ loc.code }}
+            </NuxtLink>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA Button -->
+      <button
+        @click="prefillAndScroll($t('nav.start_project'))"
+        class="relative overflow-hidden group/btn bg-white text-black px-6 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-300 active:scale-90 active:bg-saffron/20"
+      >
+        <span class="relative z-10 group-hover/btn:text-white transition-colors duration-500 pointer-events-none">
+          {{ $t("nav.start_project") }}
+        </span>
+        <div class="absolute inset-0 bg-saffron translate-y-full group-hover/btn:translate-y-0 transition-transform duration-500 pointer-events-none"></div>
       </button>
     </div>
 
-    <!-- Mobile Menu Toggle (simplified) -->
-    <button class="md:hidden text-white">
+    <!-- Mobile Menu Toggle -->
+    <button class="md:hidden text-white no-cursor-scale">
       <Menu :size="24" />
     </button>
   </nav>
 </template>
 
 <script setup lang="ts">
-import { Menu } from 'lucide-vue-next'
+import { Menu } from "lucide-vue-next";
+
+const { prefillAndScroll } = useContactForm();
+const { locale, locales, t } = useI18n();
+const switchLocalePath = useSwitchLocalePath();
+const localePath = useLocalePath();
+const { gsap } = useGsap();
 
 const navLinks = [
-  { name: 'Services', href: '#services' },
-  { name: 'Pricing', href: '#pricing' },
-  { name: 'Portfolio', href: '#portfolio' },
-  { name: 'Team', href: '#team' },
-  { name: 'Contact', href: '#contact' }
-]
+  { href: "#services", key: "services" },
+  { href: "#pricing", key: "pricing" },
+  { href: "#portfolio", key: "portfolio" },
+  { href: "#team", key: "team" },
+  { href: "#contact", key: "contact" },
+];
+
+const availableLocales = computed(() => {
+  return locales.value.filter((loc: any) => loc.code !== locale.value);
+});
+
+const pickerContainer = ref<HTMLElement | null>(null);
+const otherLocales = ref<HTMLElement | null>(null);
+
+const openPicker = () => {
+  if (!pickerContainer.value || !otherLocales.value) return;
+  
+  gsap.to(pickerContainer.value, {
+    width: "auto",
+    duration: 0.5,
+    ease: "expo.out"
+  });
+  
+  gsap.to(otherLocales.value, {
+    opacity: 1,
+    x: 0,
+    duration: 0.4,
+    delay: 0.1,
+    ease: "power2.out"
+  });
+};
+
+const closePicker = () => {
+  if (!pickerContainer.value || !otherLocales.value) return;
+  
+  gsap.to(otherLocales.value, {
+    opacity: 0,
+    duration: 0.3,
+    ease: "power2.in"
+  });
+  
+  gsap.to(pickerContainer.value, {
+    width: 40,
+    duration: 0.5,
+    delay: 0.1,
+    ease: "expo.inOut"
+  });
+};
 </script>
 
+<style scoped>
+/* Prevent Arabic navigation links from trying to uppercase (no-op but safer) 
+   while allowing language codes (EN, TR, etc.) to remain uppercase */
+:deep([dir="rtl"]) .nav-link {
+  text-transform: none;
+}
+</style>

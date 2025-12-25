@@ -1,0 +1,225 @@
+{
+  "nav": {
+    "services": "Services",
+    "pricing": "Pricing",
+    "portfolio": "Portfolio",
+    "team": "Team",
+    "contact": "Contact",
+    "start_project": "Start Project"
+  },
+  "hero": {
+    "main_text": "MOKSHA",
+    "subtitle": "Digital Evolution",
+    "title": "Crafting high-end digital experiences for the modern era."
+  },
+  "sections": {
+    "services": {
+      "title": "Our Services",
+      "subtitle": "Comprehensive Solutions for the Modern Brand",
+      "items": [
+        {
+          "title": "Digital Experience",
+          "subtitle": "Web Design & Development",
+          "description": "Creating immersive web applications that push the boundaries of modern design and technology."
+        },
+        {
+          "title": "Brand Identity",
+          "subtitle": "Visual Design Systems",
+          "description": "Defining unique visual languages that resonate with your audience and build lasting trust."
+        },
+        {
+          "title": "Strategic Innovation",
+          "subtitle": "Digital Transformation",
+          "description": "Transforming complex business challenges into elegant, scalable digital solutions."
+        },
+        {
+          "title": "Social Architecture",
+          "subtitle": "Social Media & Content Strategy",
+          "description": "Crafting high-end digital narratives that foster community engagement and amplify your brand’s presence across social ecosystems."
+        },
+        {
+          "title": "Growth Engineering",
+          "subtitle": "SEO, Ads & Performance",
+          "description": "Optimizing your digital footprint through data-driven strategies that scale visibility, drive conversion, and ensure long-term market authority."
+        },
+        {
+          "title": "Motion & Visual Storytelling",
+          "subtitle": "Video & Animation",
+          "description": "Bringing your brand to life through cinematic motion design and high-fidelity visuals that capture attention and evoke emotion."
+        }
+      ]
+    },
+    "portfolio": {
+      "title": "Selected Portfolio",
+      "subtitle": "Selected Works That Define Excellence",
+      "placeholder": "[ Project Image ]",
+      "projects": [
+        { "title": "The Ethereal Collective", "category": "Creative Direction" },
+        { "title": "Nexus FinTech", "category": "UI/UX Design" },
+        { "title": "Aura Wellness", "category": "Brand Identity" },
+        { "title": "Lumina Architecture", "category": "Web Development" }
+      ]
+    },
+    "pricing": {
+      "title": "Investment",
+      "subtitle": "Tailored solutions for every scale",
+      "get_started": "Get Started",
+      "trust_note": "All work is custom-designed. Add-ons are scoped and priced separately. Web and Design packages can be combined or purchased independently.",
+      "plans": [
+        {
+          "name": "Essential",
+          "price": "Starting at €1k",
+          "features": [
+            "Custom Web Design",
+            "Responsive Development",
+            "Basic SEO",
+            "Content Strategy"
+          ]
+        },
+        {
+          "name": "Signature",
+          "price": "Starting at €3k",
+          "features": [
+            "Advanced Animations",
+            "Full Brand Identity",
+            "Custom Interactions",
+            "Performance Optimization",
+            "Priority Support"
+          ]
+        }
+      ]
+    },
+    "offerings": {
+      "title": "Tailored Offerings",
+      "subtitle": "Elevating every touchpoint of your brand",
+      "key_deliverables": "Key Deliverables",
+      "highlights": "Highlights",
+      "branding": {
+        "title": "Branding",
+        "items": [
+          {
+            "name": "Identity Essentials",
+            "description": "For visionaries at the starting line. Focuses on the core DNA of your brand.",
+            "deliverables": "Primary Logo, Core Palette, Social Media Starter Kit."
+          },
+          {
+            "name": "The Full Identity",
+            "description": "The gold standard for growing brands. A comprehensive visual ecosystem.",
+            "deliverables": "Comprehensive Brandbook, Custom Textures, Full Mockup Suite."
+          },
+          {
+            "name": "Corporate Presence",
+            "description": "Full-scale implementation for established entities translating brand into the physical world.",
+            "deliverables": "Executive Stationery, Menu/Brochure Design, Presentation Systems."
+          }
+        ]
+      },
+      "social_media": {
+        "title": "Social Media",
+        "items": [
+          {
+            "name": "Social Presence",
+            "description": "Focused on aesthetic consistency and essential engagement.",
+            "highlights": ["8 Custom Posts", "2 Cinematic Reels", "Bespoke Copywriting"]
+          },
+          {
+            "name": "Market Authority",
+            "description": "Strategic growth through consistent, high-value content.",
+            "highlights": ["12 Custom Posts", "4 Cinematic Reels", "Full Comment Management"]
+          },
+          {
+            "name": "The Premium Edit",
+            "description": "High-performance digital strategy for corporate and luxury sectors.",
+            "highlights": ["16 Custom Posts", "6 Reels", "Multi-Campaign Management"]
+          }
+        ]
+      },
+      "growth_marketing": {
+        "title": "Growth Marketing",
+        "items": [
+          {
+            "name": "SEO Strategy",
+            "description": "Precision-engineered visibility across search engines.",
+            "tiers": [
+              { "label": "Lite", "desc": "Foundational indexing and metadata optimization." },
+              { "label": "Pro", "desc": "Active keyword conquest and technical optimization." },
+              { "label": "Elite", "desc": "Total market dominance with backlink outreach." }
+            ]
+          },
+          {
+            "name": "Strategic Acquisition",
+            "description": "Driving conversion through targeted digital placement.",
+            "tiers": [
+              { "label": "Starter", "desc": "Targeted reach with high-conversion creatives." },
+              { "label": "Growth", "desc": "A/B testing and retargeting to maximize spend." },
+              { "label": "Premium", "desc": "Full-funnel architecture from awareness to conversion." }
+            ]
+          },
+          {
+            "name": "Retention Marketing",
+            "description": "Building lasting relationships through personalized lifecycle messaging.",
+            "tiers": [
+              { "label": "Flows", "desc": "Automated welcome and post-purchase sequences." },
+              { "label": "CRM", "desc": "Advanced segmentation and behavior-based triggers." },
+              { "label": "Loyalty", "desc": "Predictive analytics and premium reward systems." }
+            ]
+          }
+        ]
+      },
+      "add_ons": {
+        "title": "Bespoke Add-ons",
+        "items": [
+          {
+            "name": "Digital",
+            "description": "Technical upgrades for your digital headquarters.",
+            "highlights": ["E-commerce Upgrades", "AI Chatbots", "Multilingual Systems"]
+          },
+          {
+            "name": "Visual",
+            "description": "Artistic assets to expand your visual language.",
+            "highlights": ["Packaging Design", "Brand Intro Videos", "Event Branding"]
+          },
+          {
+            "name": "Content",
+            "description": "Professional production for premium storytelling.",
+            "highlights": ["Professional Photography", "Influencer Coordination", "Video Shoots"]
+          }
+        ]
+      }
+    },
+    "team": {
+      "title": "The Minds Behind Moksha",
+      "members": [
+        { "name": "Dylan Mahony", "role": "Founder & Tech Lead" },
+        { "name": "Zeynep Mahony", "role": "Co-Founder, Executive & Design Assistant" },
+        { "name": "Berkay Erte", "role": "Co-Founder, Multimedia Designer & Creative Producer" },
+        { "name": "Ecenaz Demircan", "role": "Co-Founder, Digital Architect & Lead Web Designer" }
+      ]
+    },
+    "contact": {
+      "title": "Ready to",
+      "ascend": "Ascend?",
+      "subtitle": "Let's discuss how we can elevate your digital presence to new heights.",
+      "location": "Dublin — Global",
+      "form": {
+        "name": "Name",
+        "name_placeholder": "Your name",
+        "email": "Email",
+        "email_placeholder": "hello{'@'}example.com",
+        "topic": "Inquiry Topic",
+        "topic_placeholder": "e.g. Signature Package / Brand Strategy",
+        "message": "Message",
+        "message_placeholder": "Tell us about your vision...",
+        "submit": "Send Inquiry",
+        "sending": "Sending...",
+        "success_title": "Inquiry Received",
+        "success_text": "We'll reach out within 24 hours to begin your journey.",
+        "another": "Send Another",
+        "validation_error": "* Please complete all fields with a valid email to ascend."
+      }
+    }
+  },
+  "footer": {
+    "copyright": "© 2025 Moksha Labs. All rights reserved."
+  }
+}

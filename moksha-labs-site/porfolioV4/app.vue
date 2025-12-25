@@ -3,24 +3,35 @@
     <FloatingBackground />
     <NavBar />
     <CustomCursor />
-    
-    <main class="relative z-10">
-      <SectionsHero />
-      <SectionsServices />
-      <SectionsPortfolio />
-      <SectionsPricing />
-      <SectionsTeam />
-      <SectionsContact />
-    </main>
 
-    <footer class="bg-charcoal text-cream py-10 px-10 text-center border-t border-cream/5">
-      <p class="text-[10px] uppercase tracking-[0.5em] opacity-30">© 2025 Moksha Labs. All rights reserved.</p>
+    <NuxtPage />
+
+    <footer
+      class="bg-charcoal text-cream py-10 px-10 text-center border-t border-cream/5 relative z-10"
+    >
+      <p class="text-[10px] uppercase tracking-[0.5em] opacity-30">
+        {{ $t("footer.copyright") }}
+      </p>
     </footer>
   </div>
 </template>
 
 <script setup lang="ts">
-// Nuxt will automatically import components from the components/ directory
+const { locale } = useI18n();
+const i18nHead = useLocaleHead({
+  addDirAttribute: true,
+  identifierAttribute: "id",
+  addSeoAttributes: true,
+});
+
+useHead({
+  htmlAttrs: {
+    lang: computed(() => i18nHead.value.htmlAttrs?.lang || locale.value),
+    dir: computed(() => i18nHead.value.htmlAttrs?.dir || "ltr"),
+  },
+  link: computed(() => i18nHead.value.link || []),
+  meta: computed(() => i18nHead.value.meta || []),
+});
 </script>
 
 <style>
