@@ -50,8 +50,12 @@
       ]
     },
     "portfolio": {
-      "title": "Seçilmiş Portfolyo",
+      "title": "Portfolyo",
       "subtitle": "Mükemmelliği Tanımlayan Seçilmiş Çalışmalar",
+      "loading_assets": "Sürükleyici İçerik Yükleniyor",
+      "ready": "Vizyonunuzu Yükseltmeye Hazır mısınız?",
+      "start": "Projeyi Başlat",
+      "outro_text": "Vizyonunuzu Yükseltmeye Hazır mısınız?",
       "placeholder": "[ Proje Görseli ]",
       "projects": [
         { "title": "Ethereal Collective", "category": "Kreatif Direktörlük" },
@@ -68,7 +72,7 @@
       "plans": [
         {
           "name": "Temel",
-          "price": "1 bin €'dan başlayan fiyatlarla",
+          "price": "1k €'dan başlayan fiyatlarla",
           "features": [
             "Özel Web Tasarımı",
             "Duyarlı Geliştirme",
@@ -78,7 +82,7 @@
         },
         {
           "name": "İmza",
-          "price": "3 bin €'dan başlayan fiyatlarla",
+          "price": "3k €'dan başlayan fiyatlarla",
           "features": [
             "Gelişmiş Animasyonlar",
             "Tam Marka Kimliği",
@@ -120,17 +124,29 @@
           {
             "name": "Sosyal Varlık",
             "description": "Estetik tutarlılık ve temel etkileşime odaklanır.",
-            "highlights": ["8 Özel Gönderi", "2 Sinematik Reels", "Özel Metin Yazımı"]
+            "highlights": [
+              "8 Özel Gönderi",
+              "2 Sinematik Reels",
+              "Özel Metin Yazımı"
+            ]
           },
           {
             "name": "Pazar Otoritesi",
             "description": "Tutarlı, yüksek değerli içerik yoluyla stratejik büyüme.",
-            "highlights": ["12 Özel Gönderi", "4 Sinematik Reels", "Tam Yorum Yönetimi"]
+            "highlights": [
+              "12 Özel Gönderi",
+              "4 Sinematik Reels",
+              "Tam Yorum Yönetimi"
+            ]
           },
           {
             "name": "Premium Düzenleme",
             "description": "Kurumsal ve lüks sektörler için yüksek performanslı dijital strateji.",
-            "highlights": ["16 Özel Gönderi", "6 Reels", "Çoklu Kampanya Yönetimi"]
+            "highlights": [
+              "16 Özel Gönderi",
+              "6 Reels",
+              "Çoklu Kampanya Yönetimi"
+            ]
           }
         ]
       },
@@ -141,48 +157,87 @@
             "name": "SEO Stratejisi",
             "description": "Arama motorlarında hassas mühendislik ürünü görünürlük.",
             "tiers": [
-              { "label": "Lite", "desc": "Temel indeksleme ve meta veri optimizasyonu." },
-              { "label": "Pro", "desc": "Aktif anahtar kelime fethi ve teknik optimizasyon." },
-              { "label": "Elite", "desc": "Geri bağlantı erişimi ile toplam pazar hakimiyeti." }
+              {
+                "label": "Lite",
+                "desc": "Temel indeksleme ve meta veri optimizasyonu."
+              },
+              {
+                "label": "Pro",
+                "desc": "Aktif anahtar kelime fethi ve teknik optimizasyon."
+              },
+              {
+                "label": "Elite",
+                "desc": "Geri bağlantı erişimi ile toplam pazar hakimiyeti."
+              }
             ]
           },
           {
             "name": "Stratejik Edinme",
             "description": "Hedefli dijital yerleştirme yoluyla dönüşümü teşvik etme.",
             "tiers": [
-              { "label": "Starter", "desc": "Yüksek dönüşümlü kreatiflerle hedefli erişim." },
-              { "label": "Büyüme", "desc": "Reklam harcamasını maksimize etmek için A/B testi ve yeniden hedefleme." },
-              { "label": "Premium", "desc": "Farkındalıktan dönüşüme tam huni mimarisi." }
+              {
+                "label": "Starter",
+                "desc": "Yüksek dönüşümlü kreatiflerle hedefli erişim."
+              },
+              {
+                "label": "Büyüme",
+                "desc": "Reklam harcamasını maksimize etmek için A/B testi ve yeniden hedefleme."
+              },
+              {
+                "label": "Premium",
+                "desc": "Farkındalıktan dönüşüme tam huni mimarisi."
+              }
             ]
           },
           {
             "name": "Bağlılık Pazarlaması",
             "description": "Kişiselleştirilmiş yaşam döngüsü mesajlaşması yoluyla kalıcı ilişkiler kurma.",
             "tiers": [
-              { "label": "Akışlar", "desc": "Otomatik karşılama ve satın alma sonrası diziler." },
-              { "label": "CRM", "desc": "Gelişmiş segmentasyon ve davranış temelli tetikleyiciler." },
-              { "label": "Sadakat", "desc": "Tahminleyici analitik ve premium ödül sistemleri." }
+              {
+                "label": "Akışlar",
+                "desc": "Otomatik karşılama ve satın alma sonrası diziler."
+              },
+              {
+                "label": "CRM",
+                "desc": "Gelişmiş segmentasyon ve davranış temelli tetikleyiciler."
+              },
+              {
+                "label": "Sadakat",
+                "desc": "Tahminleyici analitik ve premium ödül sistemleri."
+              }
             ]
           }
         ]
       },
       "add_ons": {
-        "title": "Bespoke Ekstralar",
+        "title": "Kişiselleştirilmiş Çözümler",
         "items": [
           {
             "name": "Dijital",
             "description": "Dijital merkeziniz için teknik yükseltmeler.",
-            "highlights": ["E-commerce Yükseltmeleri", "AI Chatbotları", "Çok Dilli Sistemler"]
+            "highlights": [
+              "E-Ticaret Optimizasyonları",
+              "AI Chatbotları",
+              "Çok Dilli Sistemler"
+            ]
           },
           {
             "name": "Görsel",
             "description": "Görsel dilinizi genişletmek için sanatsal varlıklar.",
-            "highlights": ["Paketleme Tasarımı", "Marka Tanıtım Videoları", "Etkinlik Markalaması"]
+            "highlights": [
+              "Paketleme Tasarımı",
+              "Marka Tanıtım Videoları",
+              "Konsept Tasarımı"
+            ]
           },
           {
             "name": "İçerik",
             "description": "Premium hikaye anlatımı için profesyonel prodüksiyon.",
-            "highlights": ["Profesyonel Fotoğrafçılık", "Influencer Koordinasyonu", "Video Çekimleri"]
+            "highlights": [
+              "Profesyonel Fotoğrafçılık",
+              "Influencer Koordinasyonu",
+              "Video Çekimleri"
+            ]
           }
         ]
       }
@@ -191,16 +246,25 @@
       "title": "Moksha'nın Arkasındaki Zihinler",
       "members": [
         { "name": "Dylan Mahony", "role": "Kurucu ve Teknoloji Lideri" },
-        { "name": "Zeynep Mahony", "role": "Kurucu Ortak, Yönetici ve Tasarım Asistanı" },
-        { "name": "Berkay Erte", "role": "Kurucu Ortak, Multimedya Tasarımcısı ve Kreatif Yapımcı" },
-        { "name": "Ecenaz Demircan", "role": "Kurucu Ortak, Dijital Mimar ve Baş Web Tasarımcısı" }
+        {
+          "name": "Zeynep Mahony",
+          "role": "Kurucu Ortak, Yönetici ve Tasarım Asistanı"
+        },
+        {
+          "name": "Berkay Erte",
+          "role": "Kurucu Ortak, Multimedya Tasarımcısı ve Kreatif Yapımcı"
+        },
+        {
+          "name": "Ecenaz Demircan",
+          "role": "Kurucu Ortak, Dijital Mimari ve Web Tasarım Lideri"
+        }
       ]
     },
     "contact": {
-      "title": "Hazır mısınız?",
-      "ascend": "Yükselmeye",
+      "title_template": "{ascend} Hazır mısınız?",
+      "ascend_word": "Yükselişe",
       "subtitle": "Dijital varlığınızı nasıl yeni zirvelere taşıyabileceğimizi tartışalım.",
-      "location": "Dublin — Küresel",
+      "location": "Dublin — Uluslararası",
       "form": {
         "name": "İsim",
         "name_placeholder": "İsminiz",

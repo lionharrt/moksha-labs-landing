@@ -3,8 +3,9 @@
     ref="sectionRef"
     class="section-container"
     :class="[bgClass, paddingClass]"
+    :data-theme-color="themeColor"
   >
-    <div class="max-w-7xl mx-auto w-full relative z-10">
+    <div :class="fullWidth ? 'w-full h-full relative z-10' : 'max-w-7xl mx-auto w-full relative z-10'">
       <slot />
     </div>
     
@@ -20,44 +21,16 @@ interface Props {
   bgClass?: string
   paddingClass?: string
   themeColor?: string // For background fade transition
+  fullWidth?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   bgClass: 'bg-transparent',
   paddingClass: 'py-24',
-  themeColor: '#FDFBF7'
+  themeColor: '#FDFBF7',
+  fullWidth: false
 })
 
 const sectionRef = ref<HTMLElement | null>(null)
-const { gsap, ScrollTrigger } = useGsap()
-
-onMounted(() => {
-  if (props.themeColor && sectionRef.value) {
-    // Fade background color of the body or a global overlay when this section is active
-    ScrollTrigger.create({
-      trigger: sectionRef.value,
-      start: "top center",
-      end: "bottom center",
-      onRefresh: (self) => {
-        if (self.isActive) {
-          gsap.to("body", {
-            backgroundColor: props.themeColor,
-            duration: 1,
-            ease: "power2.inOut",
-          });
-        }
-      },
-      onToggle: (self) => {
-        if (self.isActive) {
-          gsap.to("body", {
-            backgroundColor: props.themeColor,
-            duration: 1,
-            ease: "power2.inOut",
-          });
-        }
-      },
-    });
-  }
-})
 </script>
 

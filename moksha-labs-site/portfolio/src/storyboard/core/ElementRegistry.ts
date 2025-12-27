@@ -33,8 +33,6 @@ export class ElementRegistry implements IElementRegistry {
     
     this.configs.set(config.id, config);
     this.states.set(config.id, { ...config.initialState });
-    
-    console.log(`[ElementRegistry] Registered element: ${config.id}`);
   }
   
   /**
@@ -44,8 +42,6 @@ export class ElementRegistry implements IElementRegistry {
     this.configs.delete(elementId);
     this.states.delete(elementId);
     this.subscribers.delete(elementId);
-    
-    console.log(`[ElementRegistry] Unregistered element: ${elementId}`);
   }
   
   /**

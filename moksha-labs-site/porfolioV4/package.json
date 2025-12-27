@@ -8,9 +8,12 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
+    "optimize:portfolio": "node scripts/optimize-videos.mjs",
+    "upload:portfolio": "node scripts/upload-portfolio-assets.mjs",
     "deploy": "pnpm build && cd .output/server && npm install && cd ../.. && firebase deploy --only functions,hosting --project mokshalabs"
   },
   "dependencies": {
+    "@emailjs/browser": "^4.4.1",
     "@google-cloud/functions-framework": "^4.0.1",
     "@nuxtjs/i18n": "^10.2.1",
     "@nuxtjs/tailwindcss": "^6.14.0",

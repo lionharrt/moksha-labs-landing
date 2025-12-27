@@ -197,8 +197,8 @@
       ]
     },
     "contact": {
-      "title": "جاهز",
-      "ascend": "للارتقاء؟",
+      "title_template": "جاهز {ascend}",
+      "ascend_word": "للارتقاء؟",
       "subtitle": "دعنا نناقش كيف يمكننا رفع حضورك الرقمي إلى آفاق جديدة.",
       "location": "دبلن — عالمي",
       "form": {

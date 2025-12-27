@@ -33,14 +33,14 @@
                   ? { transform: 'scale(1.2)' }
                   : {},
               ]"
-              :alt="member.name"
+              :alt="`Moksha Labs Team Member - ${member.name}`"
             />
             <span v-else class="text-charcoal/20 font-bold text-2xl">{{
               member.initials
             }}</span>
           </div>
         </div>
-        <h4 class="text-xl font-bold mb-2">{{ member.name }}</h4>
+        <h3 class="text-xl font-bold mb-2">{{ member.name }}</h3>
         <p
           class="text-saffron text-[10px] tracking-[0.2em] uppercase leading-relaxed px-4"
         >

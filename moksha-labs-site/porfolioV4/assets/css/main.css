@@ -3,12 +3,23 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    color-scheme: light only;
+  }
+  html {
+    background-color: #F8F5F0; /* Your cream color */
+  }
   body {
     @apply bg-cream text-charcoal font-sans antialiased;
     overflow-x: hidden;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-serif;
   }
 }
@@ -42,5 +53,28 @@
   .lenis.lenis-scrolling iframe {
     pointer-events: none;
   }
+
+  /* Luxury Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #fdfbf7; /* Cream background */
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #1a1a1a; /* Charcoal thumb */
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #eab308; /* Saffron on hover */
+  }
 }
 
+/* For Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #1a1a1a #fdfbf7;
+}

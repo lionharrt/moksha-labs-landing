@@ -18,6 +18,13 @@
 
 <script setup lang="ts">
 const { locale } = useI18n();
+const { initLazyLoad } = usePortfolioAssets();
+const { refreshTheme } = useThemeTransition();
+
+onMounted(() => {
+  initLazyLoad();
+});
+
 const i18nHead = useLocaleHead({
   addDirAttribute: true,
   identifierAttribute: "id",
@@ -31,6 +38,50 @@ useHead({
   },
   link: computed(() => i18nHead.value.link || []),
   meta: computed(() => i18nHead.value.meta || []),
+  script: [
+    {
+      type: "application/ld+json",
+      children: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "ProfessionalService",
+        name: "Moksha Labs",
+        image: "https://mokshalabs.ie/favicon.png",
+        "@id": "https://mokshalabs.ie",
+        url: "https://mokshalabs.ie",
+        telephone: "",
+        address: {
+          "@type": "PostalAddress",
+          streetAddress: "",
+          addressLocality: "Dublin",
+          postalCode: "",
+          addressCountry: "IE",
+        },
+        geo: {
+          "@type": "GeoCoordinates",
+          latitude: 53.3498,
+          longitude: -6.2603,
+        },
+        openingHoursSpecification: {
+          "@type": "OpeningHoursSpecification",
+          dayOfWeek: [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday",
+          ],
+          opens: "00:00",
+          closes: "23:59",
+        },
+        sameAs: [
+          "https://www.instagram.com/mokshalabs",
+          "https://www.linkedin.com/company/moksha-labs",
+        ],
+      }),
+    },
+  ],
 });
 </script>
 

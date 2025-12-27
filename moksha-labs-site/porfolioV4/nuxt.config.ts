@@ -1,21 +1,25 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: false },
+  experimental: {
+    appManifest: false,
+  },
   modules: ["@nuxtjs/tailwindcss", "@nuxtjs/i18n"],
 
   i18n: {
     locales: [
-      { code: "en", iso: "en-US", file: "en.json", name: "English" },
-      { code: "tr", iso: "tr-TR", file: "tr.json", name: "Türkçe" },
-      { code: "it", iso: "it-IT", file: "it.json", name: "Italiano" },
+      { code: "en", language: "en-US", file: "en.json", name: "English" },
+      { code: "tr", language: "tr-TR", file: "tr.json", name: "Türkçe" },
+      { code: "it", language: "it-IT", file: "it.json", name: "Italiano" },
       {
         code: "ar",
-        iso: "ar-SA",
+        language: "ar-SA",
         file: "ar.json",
         name: "العربية",
         dir: "rtl",
       },
     ],
+    baseUrl: "https://mokshalabs.ie", // Replace with your actual production URL
     lazy: true,
     restructureDir: "",
     langDir: "locales",
@@ -45,17 +49,47 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      title: "Moksha Labs | Digital Agency",
+      title: "Moksha Labs",
       meta: [
         { charset: "utf-8" },
         { name: "viewport", content: "width=device-width, initial-scale=1" },
+        { name: "color-scheme", content: "light only" },
         {
           name: "description",
           content:
-            "High-end digital agency specializing in immersive web experiences.",
+            "Moksha Labs is a high-end digital agency specializing in immersive web experiences, cinematic motion design, and luxury brand identity.",
         },
+        // Open Graph / Facebook
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: "https://mokshalabs.ie" },
+        {
+          property: "og:title",
+          content: "Moksha Labs",
+        },
+        {
+          property: "og:description",
+          content:
+            "Crafting high-end digital experiences for the modern era. Specializing in immersive web applications and luxury branding.",
+        },
+        { property: "og:image", content: "https://mokshalabs.ie/favicon.png" },
+
+        // Twitter
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:url", content: "https://mokshalabs.ie" },
+        {
+          name: "twitter:title",
+          content: "Moksha Labs",
+        },
+        {
+          name: "twitter:description",
+          content:
+            "Crafting high-end digital experiences for the modern era. Specializing in immersive web applications and luxury branding.",
+        },
+        { name: "twitter:image", content: "https://mokshalabs.ie/favicon.png" },
       ],
       link: [
+        { rel: "icon", type: "image/png", href: "/favicon.png" },
+        { rel: "apple-touch-icon", href: "/favicon.png" },
         { rel: "preconnect", href: "https://fonts.googleapis.com" },
         {
           rel: "preconnect",
@@ -74,10 +108,14 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
+      emailjsPublicKey: process.env.EMAILJS_PUBLIC_KEY || "",
+      emailjsServiceId: process.env.EMAILJS_SERVICE_ID || "",
+      emailjsTemplateId: process.env.EMAILJS_TEMPLATE_ID || "",
+      turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || "1x00000000000000000000AA", // Testing key
       firebaseApiKey: process.env.FIREBASE_API_KEY || "",
       firebaseAuthDomain: process.env.FIREBASE_AUTH_DOMAIN || "",
-      firebaseProjectId: process.env.FIREBASE_PROJECT_ID || "",
-      firebaseStorageBucket: process.env.FIREBASE_STORAGE_BUCKET || "",
+      firebaseProjectId: process.env.FIREBASE_PROJECT_ID || "mokshalabs",
+      firebaseStorageBucket: process.env.FIREBASE_STORAGE_BUCKET || "mokshalabs.firebasestorage.app",
       firebaseMessagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "",
       firebaseAppId: process.env.FIREBASE_APP_ID || "",
     },

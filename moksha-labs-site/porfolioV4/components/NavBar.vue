@@ -3,7 +3,7 @@
     class="fixed top-0 left-0 w-full z-50 flex justify-between items-center py-8 px-10 mix-blend-difference"
   >
     <!-- Logo -->
-    <NuxtLink 
+    <NuxtLink
       :to="localePath('/')"
       class="text-2xl font-bold text-white uppercase tracking-tighter no-cursor-scale"
     >
@@ -13,39 +13,36 @@
     <!-- Desktop Navigation -->
     <div class="hidden md:flex gap-10 items-center">
       <div class="flex gap-8 items-center">
-        <NuxtLink
+        <button
           v-for="link in navLinks"
           :key="link.key"
-          :to="localePath(link.href)"
+          @click="scrollTo(link.href)"
           class="nav-link text-white/70 hover:text-white uppercase tracking-widest text-[10px] font-bold transition-colors whitespace-nowrap min-w-fit"
         >
           {{ $t(`nav.${link.key}`) }}
-        </NuxtLink>
+        </button>
       </div>
 
       <!-- Redesigned Language Switcher -->
-      <div 
+      <div
         class="relative flex items-center border-l border-white/10 pl-10"
         @mouseenter="openPicker"
         @mouseleave="closePicker"
       >
-        <div 
+        <div
           ref="pickerContainer"
           class="flex items-center gap-4 overflow-hidden"
-          style="width: 40px;"
+          style="width: 40px"
         >
           <!-- Current Locale (Always Visible) -->
-          <div 
+          <div
             class="text-[10px] font-bold uppercase tracking-widest text-saffron whitespace-nowrap cursor-pointer min-w-[25px]"
           >
             {{ locale }}
           </div>
 
           <!-- Other Locales (Animate In/Out) -->
-          <div 
-            ref="otherLocales"
-            class="flex items-center gap-4 opacity-0"
-          >
+          <div ref="otherLocales" class="flex items-center gap-4 opacity-0">
             <NuxtLink
               v-for="loc in availableLocales"
               :key="loc.code"
@@ -63,10 +60,14 @@
         @click="prefillAndScroll($t('nav.start_project'))"
         class="relative overflow-hidden group/btn bg-white text-black px-6 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-300 active:scale-90 active:bg-saffron/20"
       >
-        <span class="relative z-10 group-hover/btn:text-white transition-colors duration-500 pointer-events-none">
+        <span
+          class="relative z-10 group-hover/btn:text-white transition-colors duration-500 pointer-events-none"
+        >
           {{ $t("nav.start_project") }}
         </span>
-        <div class="absolute inset-0 bg-saffron translate-y-full group-hover/btn:translate-y-0 transition-transform duration-500 pointer-events-none"></div>
+        <div
+          class="absolute inset-0 bg-saffron translate-y-full group-hover/btn:translate-y-0 transition-transform duration-500 pointer-events-none"
+        ></div>
       </button>
     </div>
 
@@ -86,6 +87,19 @@ const switchLocalePath = useSwitchLocalePath();
 const localePath = useLocalePath();
 const { gsap } = useGsap();
 
+const scrollTo = (href: string) => {
+  const { $lenis } = useNuxtApp() as any;
+  if ($lenis) {
+    $lenis.scrollTo(href, {
+      duration: 1.5,
+      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    });
+  } else {
+    const el = document.querySelector(href);
+    el?.scrollIntoView({ behavior: "smooth" });
+  }
+};
+
 const navLinks = [
   { href: "#services", key: "services" },
   { href: "#pricing", key: "pricing" },
@@ -103,36 +117,36 @@ const otherLocales = ref<HTMLElement | null>(null);
 
 const openPicker = () => {
   if (!pickerContainer.value || !otherLocales.value) return;
-  
+
   gsap.to(pickerContainer.value, {
     width: "auto",
     duration: 0.5,
-    ease: "expo.out"
+    ease: "expo.out",
   });
-  
+
   gsap.to(otherLocales.value, {
     opacity: 1,
     x: 0,
     duration: 0.4,
     delay: 0.1,
-    ease: "power2.out"
+    ease: "power2.out",
   });
 };
 
 const closePicker = () => {
   if (!pickerContainer.value || !otherLocales.value) return;
-  
+
   gsap.to(otherLocales.value, {
     opacity: 0,
     duration: 0.3,
-    ease: "power2.in"
+    ease: "power2.in",
   });
-  
+
   gsap.to(pickerContainer.value, {
     width: 40,
     duration: 0.5,
     delay: 0.1,
-    ease: "expo.inOut"
+    ease: "expo.inOut",
   });
 };
 </script>

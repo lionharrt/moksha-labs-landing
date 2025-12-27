@@ -164,9 +164,9 @@ const toggle = (index: number) => {
         opacity: 1,
         duration: 0.8,
         ease: "expo.out",
-        onComplete: () => {
-          ScrollTrigger.refresh();
-        },
+      onComplete: () => {
+        ScrollTrigger.refresh();
+      },
       }
     );
     active.value = index;

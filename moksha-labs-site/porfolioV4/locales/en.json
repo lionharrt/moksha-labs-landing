@@ -50,11 +50,18 @@
       ]
     },
     "portfolio": {
-      "title": "Selected Portfolio",
-      "subtitle": "Selected Works That Define Excellence",
+      "title": "Portfolio",
+      "subtitle": "",
+      "loading_assets": "Loading Immersive Content",
+      "ready": "Ready to Elevate Your Vision?",
+      "start": "Start Your Project",
+      "outro_text": "Ready to Elevate Your Vision?",
       "placeholder": "[ Project Image ]",
       "projects": [
-        { "title": "The Ethereal Collective", "category": "Creative Direction" },
+        {
+          "title": "The Ethereal Collective",
+          "category": "Creative Direction"
+        },
         { "title": "Nexus FinTech", "category": "UI/UX Design" },
         { "title": "Aura Wellness", "category": "Brand Identity" },
         { "title": "Lumina Architecture", "category": "Web Development" }
@@ -120,17 +127,29 @@
           {
             "name": "Social Presence",
             "description": "Focused on aesthetic consistency and essential engagement.",
-            "highlights": ["8 Custom Posts", "2 Cinematic Reels", "Bespoke Copywriting"]
+            "highlights": [
+              "8 Custom Posts",
+              "2 Cinematic Reels",
+              "Bespoke Copywriting"
+            ]
           },
           {
             "name": "Market Authority",
             "description": "Strategic growth through consistent, high-value content.",
-            "highlights": ["12 Custom Posts", "4 Cinematic Reels", "Full Comment Management"]
+            "highlights": [
+              "12 Custom Posts",
+              "4 Cinematic Reels",
+              "Full Comment Management"
+            ]
           },
           {
             "name": "The Premium Edit",
             "description": "High-performance digital strategy for corporate and luxury sectors.",
-            "highlights": ["16 Custom Posts", "6 Reels", "Multi-Campaign Management"]
+            "highlights": [
+              "16 Custom Posts",
+              "6 Reels",
+              "Multi-Campaign Management"
+            ]
           }
         ]
       },
@@ -141,27 +160,54 @@
             "name": "SEO Strategy",
             "description": "Precision-engineered visibility across search engines.",
             "tiers": [
-              { "label": "Lite", "desc": "Foundational indexing and metadata optimization." },
-              { "label": "Pro", "desc": "Active keyword conquest and technical optimization." },
-              { "label": "Elite", "desc": "Total market dominance with backlink outreach." }
+              {
+                "label": "Lite",
+                "desc": "Foundational indexing and metadata optimization."
+              },
+              {
+                "label": "Pro",
+                "desc": "Active keyword conquest and technical optimization."
+              },
+              {
+                "label": "Elite",
+                "desc": "Total market dominance with backlink outreach."
+              }
             ]
           },
           {
             "name": "Strategic Acquisition",
             "description": "Driving conversion through targeted digital placement.",
             "tiers": [
-              { "label": "Starter", "desc": "Targeted reach with high-conversion creatives." },
-              { "label": "Growth", "desc": "A/B testing and retargeting to maximize spend." },
-              { "label": "Premium", "desc": "Full-funnel architecture from awareness to conversion." }
+              {
+                "label": "Starter",
+                "desc": "Targeted reach with high-conversion creatives."
+              },
+              {
+                "label": "Growth",
+                "desc": "A/B testing and retargeting to maximize spend."
+              },
+              {
+                "label": "Premium",
+                "desc": "Full-funnel architecture from awareness to conversion."
+              }
             ]
           },
           {
             "name": "Retention Marketing",
             "description": "Building lasting relationships through personalized lifecycle messaging.",
             "tiers": [
-              { "label": "Flows", "desc": "Automated welcome and post-purchase sequences." },
-              { "label": "CRM", "desc": "Advanced segmentation and behavior-based triggers." },
-              { "label": "Loyalty", "desc": "Predictive analytics and premium reward systems." }
+              {
+                "label": "Flows",
+                "desc": "Automated welcome and post-purchase sequences."
+              },
+              {
+                "label": "CRM",
+                "desc": "Advanced segmentation and behavior-based triggers."
+              },
+              {
+                "label": "Loyalty",
+                "desc": "Predictive analytics and premium reward systems."
+              }
             ]
           }
         ]
@@ -172,17 +218,29 @@
           {
             "name": "Digital",
             "description": "Technical upgrades for your digital headquarters.",
-            "highlights": ["E-commerce Upgrades", "AI Chatbots", "Multilingual Systems"]
+            "highlights": [
+              "E-commerce Upgrades",
+              "AI Chatbots",
+              "Multilingual Systems"
+            ]
           },
           {
             "name": "Visual",
             "description": "Artistic assets to expand your visual language.",
-            "highlights": ["Packaging Design", "Brand Intro Videos", "Event Branding"]
+            "highlights": [
+              "Packaging Design",
+              "Brand Intro Videos",
+              "Event Branding"
+            ]
           },
           {
             "name": "Content",
             "description": "Professional production for premium storytelling.",
-            "highlights": ["Professional Photography", "Influencer Coordination", "Video Shoots"]
+            "highlights": [
+              "Professional Photography",
+              "Influencer Coordination",
+              "Video Shoots"
+            ]
           }
         ]
       }
@@ -191,14 +249,23 @@
       "title": "The Minds Behind Moksha",
       "members": [
         { "name": "Dylan Mahony", "role": "Founder & Tech Lead" },
-        { "name": "Zeynep Mahony", "role": "Co-Founder, Executive & Design Assistant" },
-        { "name": "Berkay Erte", "role": "Co-Founder, Multimedia Designer & Creative Producer" },
-        { "name": "Ecenaz Demircan", "role": "Co-Founder, Digital Architect & Lead Web Designer" }
+        {
+          "name": "Zeynep Mahony",
+          "role": "Co-Founder, Executive & Design Assistant"
+        },
+        {
+          "name": "Berkay Erte",
+          "role": "Co-Founder, Multimedia Designer & Creative Producer"
+        },
+        {
+          "name": "Ecenaz Demircan",
+          "role": "Co-Founder, Digital Architect & Lead Web Designer"
+        }
       ]
     },
     "contact": {
-      "title": "Ready to",
-      "ascend": "Ascend?",
+      "title_template": "Ready to {ascend}",
+      "ascend_word": "Ascend?",
       "subtitle": "Let's discuss how we can elevate your digital presence to new heights.",
       "location": "Dublin — Global",
       "form": {

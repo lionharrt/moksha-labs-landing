@@ -7,12 +7,17 @@
   >
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-20">
       <div>
-        <h2 class="text-7xl font-bold mb-8 leading-tight">
-          {{ $t("sections.contact.title") }}
-          <span class="text-saffron italic">{{
-            $t("sections.contact.ascend")
-          }}</span>
-        </h2>
+        <i18n-t
+          keypath="sections.contact.title_template"
+          tag="h2"
+          class="text-7xl font-bold mb-8 leading-tight"
+        >
+          <template #ascend>
+            <span class="text-saffron italic">{{
+              $t("sections.contact.ascend_word")
+            }}</span>
+          </template>
+        </i18n-t>
         <p class="text-cream/60 text-xl max-w-md mb-12">
           {{ $t("sections.contact.subtitle") }}
         </p>
@@ -31,6 +36,17 @@
 
       <div class="glass-panel p-10 border-cream/10 relative overflow-hidden">
         <form @submit.prevent="handleSubmit" class="space-y-6">
+          <!-- 2025 Anti-Abuse: Honeypot (Hidden from humans) -->
+          <div class="hidden" aria-hidden="true">
+            <input
+              v-model="form.honeypot"
+              type="text"
+              name="moksha_security_check"
+              tabindex="-1"
+              autocomplete="off"
+            />
+          </div>
+
           <div class="space-y-2 group">
             <label
               class="text-xs uppercase tracking-widest font-bold opacity-50 group-focus-within:text-saffron transition-colors"
@@ -81,27 +97,60 @@
             ></textarea>
           </div>
 
+          <!-- Cloudflare Turnstile Widget (Privacy-first bot protection) -->
+          <div class="pt-2">
+            <div
+              class="cf-turnstile"
+              :data-sitekey="config.public.turnstileSiteKey"
+              data-callback="onTurnstileSuccess"
+              data-expired-callback="onTurnstileExpired"
+              data-error-callback="onTurnstileError"
+              data-theme="dark"
+            ></div>
+          </div>
+
           <div class="pt-4 flex flex-col gap-4">
             <button
-              :disabled="!isFormValid"
+              :disabled="!isFormValid || isSubmitting"
               class="relative overflow-hidden group/btn bg-saffron text-charcoal font-bold py-4 px-10 rounded-full transition-all duration-500 disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed hover:bg-cream active:scale-95"
             >
-              <span class="relative z-10">{{
-                isSubmitted
-                  ? $t("sections.contact.form.sending")
-                  : $t("sections.contact.form.submit")
-              }}</span>
+              <span class="relative z-10">
+                <template v-if="isSubmitting">
+                  <span class="inline-block animate-pulse">{{
+                    $t("sections.contact.form.sending")
+                  }}</span>
+                </template>
+                <template v-else>
+                  {{ $t("sections.contact.form.submit") }}
+                </template>
+              </span>
               <div
                 class="absolute inset-0 bg-white translate-y-full group-hover/btn:translate-y-0 transition-transform duration-500"
               ></div>
             </button>
 
+            <!-- Error Message -->
+            <p
+              v-if="isError"
+              class="text-[10px] uppercase tracking-widest text-red-500 font-bold"
+            >
+              * Connection error. Please try again or email directly.
+            </p>
+
             <!-- Smooth Validation Note -->
             <p
-              v-if="!isFormValid && (form.name || form.email || message)"
+              v-if="
+                !isFormValid &&
+                !isSubmitting &&
+                (form.name || form.email || message)
+              "
               class="text-[10px] uppercase tracking-widest text-saffron/60 italic animate-pulse"
             >
-              {{ $t("sections.contact.form.validation_error") }}
+              {{
+                turnstileToken
+                  ? $t("sections.contact.form.validation_error")
+                  : "* Please verify you are human to ascend."
+              }}
             </p>
           </div>
         </form>
@@ -151,14 +200,32 @@
 </template>
 
 <script setup lang="ts">
+import emailjs from "@emailjs/browser";
+
 const { message, subject } = useContactForm();
+const config = useRuntimeConfig();
 
 const form = ref({
   name: "",
   email: "",
+  honeypot: "", // 2025 Bot Protection: Honeypot field
 });
 
 const isSubmitted = ref(false);
+const isError = ref(false);
+const isSubmitting = ref(false);
+const turnstileToken = ref("");
+
+// Load Cloudflare Turnstile script
+useHead({
+  script: [
+    {
+      src: "https://challenges.cloudflare.com/turnstile/v0/api.js",
+      async: true,
+      defer: true,
+    },
+  ],
+});
 
 const isEmailValid = computed(() => {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -169,26 +236,84 @@ const isFormValid = computed(() => {
   return (
     form.value.name.length > 1 &&
     isEmailValid.value &&
-    message.value.length > 10
+    message.value.length > 10 &&
+    turnstileToken.value !== ""
   );
 });
 
-const handleSubmit = () => {
-  if (isFormValid.value) {
-    // In a real app, you'd send this to Firebase or an API
-    console.log("Form submitted:", {
-      ...form.value,
+// Turnstile callback
+const onTurnstileVerify = (token: string) => {
+  turnstileToken.value = token;
+};
+
+// Function to handle Turnstile expiration
+const onTurnstileExpire = () => {
+  turnstileToken.value = "";
+};
+
+const handleSubmit = async () => {
+  if (!isFormValid.value || isSubmitting.value) return;
+  
+  // 1. Honeypot check: If filled, silently fail (it's a bot)
+  if (form.value.honeypot) {
+    console.warn("Honeypot filled. Bot detected.");
+    isSubmitted.value = true; // Show success anyway to confuse bot
+    return;
+  }
+
+  isSubmitting.value = true;
+  isError.value = false;
+
+  try {
+    const templateParams = {
+      from_name: form.value.name,
+      from_email: form.value.email,
       subject: subject.value,
       message: message.value,
-    });
-    isSubmitted.value = true;
+      "cf-turnstile-response": turnstileToken.value,
+    };
 
-    // Clear form
-    form.value = { name: "", email: "" };
-    message.value = "";
-    subject.value = "";
+    const response = await emailjs.send(
+      config.public.emailjsServiceId,
+      config.public.emailjsTemplateId,
+      templateParams,
+      config.public.emailjsPublicKey
+    );
+
+    if (response.status === 200) {
+      isSubmitted.value = true;
+      // Clear form
+      form.value = { name: "", email: "", honeypot: "" };
+      message.value = "";
+      subject.value = "";
+      turnstileToken.value = ""; // Reset token
+    } else {
+      throw new Error("Failed to send email");
+    }
+  } catch (error) {
+    console.error("EmailJS Error:", error);
+    isError.value = true;
+  } finally {
+    isSubmitting.value = false;
   }
 };
+
+// Expose verification callback to window for Turnstile
+onMounted(() => {
+  // Use a proper global assignment
+  window.onTurnstileSuccess = (token: string) => {
+    turnstileToken.value = token;
+  };
+  
+  window.onTurnstileExpired = () => {
+    turnstileToken.value = "";
+  };
+
+  window.onTurnstileError = () => {
+    console.error("Turnstile failed to load");
+    turnstileToken.value = "";
+  };
+});
 </script>
 
 <style scoped>

@@ -36,8 +36,6 @@ export class EffectRegistry implements IEffectRegistry {
     
     this.configs.set(config.id, config);
     this.applications.set(config.id, application);
-    
-    console.log(`[EffectRegistry] Registered effect: ${config.id} (${config.category})`);
   }
   
   /**
@@ -57,8 +55,6 @@ export class EffectRegistry implements IEffectRegistry {
     
     this.configs.delete(effectId);
     this.applications.delete(effectId);
-    
-    console.log(`[EffectRegistry] Unregistered effect: ${effectId}`);
   }
   
   /**
