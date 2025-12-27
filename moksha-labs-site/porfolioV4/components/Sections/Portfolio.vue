@@ -10,7 +10,7 @@
     <!-- Section Intro Header -->
     <div
       ref="headerRef"
-      class="pt-40 pb-40 text-center max-w-7xl mx-auto px-6 relative z-10 portfolio-header-box"
+      class="pt-24 pb-12 md:pt-40 md:pb-40 text-center max-w-7xl mx-auto px-6 relative z-10 portfolio-header-box"
     >
       <h2
         class="text-6xl md:text-8xl font-black text-charcoal intro-reveal flex flex-col items-center"
@@ -37,7 +37,7 @@
     >
       <div
         ref="horizontalRef"
-        class="flex gap-10 md:gap-20 pl-0 md:pl-20 pr-0 py-10 w-fit items-center"
+        class="flex gap-10 md:gap-20 pl-6 md:pl-20 pr-0 py-10 w-fit items-center"
       >
         <div
           v-for="(project, idx) in masterpieceSlices"
@@ -308,7 +308,7 @@ const resolveVideos = async () => {
   for (const project of masterpieceSlices.value) {
     const dUrl = await getAssetUrl(`portfolio/${project.id}.mp4`);
     if (dUrl) videoUrls.value[project.id] = dUrl;
-    if (project.id === "illhanlar") {
+    if (["illhanlar", "gokbey"].includes(project.id)) {
       const mUrl = await getAssetUrl(`portfolio/${project.id}_mobile.mp4`);
       if (mUrl) videoUrls.value[`${project.id}_mobile`] = mUrl;
     }
@@ -327,7 +327,7 @@ onMounted(() => {
   masterpieceSlices.value.forEach((project) => {
     setTimeout(() => {
       project.loaded = true;
-      if (project.id === "illhanlar") project.loadedMobile = true;
+      if (["illhanlar", "gokbey"].includes(project.id)) project.loadedMobile = true;
     }, 8000);
   });
 
