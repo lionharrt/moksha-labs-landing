@@ -9,7 +9,7 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "optimize:portfolio": "node scripts/optimize-videos.mjs",
-    "upload:portfolio": "node scripts/upload-portfolio-assets.mjs",
+    "upload:portfolio": "node scripts/upload-to-storage.mjs",
     "deploy": "pnpm build && cd .output/server && npm install && cd ../.. && firebase deploy --only functions,hosting --project mokshalabs"
   },
   "dependencies": {

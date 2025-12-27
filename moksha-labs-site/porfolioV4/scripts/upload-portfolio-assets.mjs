@@ -7,7 +7,7 @@ import { getStorage } from 'firebase-admin/storage';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = join(__dirname, '..');
-const ASSETS_DIR = join(PROJECT_ROOT, 'assets/portfolio-pieces');
+const ASSETS_DIR = join(PROJECT_ROOT, 'public/videos');
 
 // Configuration
 const bucketName = process.env.FIREBASE_STORAGE_BUCKET || process.argv[2] || 'mokshalabs.firebasestorage.app';

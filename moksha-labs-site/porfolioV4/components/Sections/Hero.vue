@@ -54,27 +54,27 @@
         <div class="relative flex items-center justify-center">
           <!-- Multi-layered Pulsing Rings -->
           <div
-            class="w-64 h-64 border border-saffron/30 rounded-full animate-ripple-1 absolute"
+            class="w-32 h-32 border border-saffron/30 rounded-full animate-ripple-1 absolute"
           ></div>
           <div
-            class="w-64 h-64 border border-saffron/20 rounded-full animate-ripple-2 absolute"
+            class="w-32 h-32 border border-saffron/20 rounded-full animate-ripple-2 absolute"
           ></div>
           <div
-            class="w-64 h-64 border border-saffron/10 rounded-full animate-ripple-3 absolute"
+            class="w-32 h-32 border border-saffron/10 rounded-full animate-ripple-3 absolute"
           ></div>
 
           <!-- The Focal Point with Logo -->
           <div class="flex flex-col items-center justify-center z-10">
             <img
               src="~/assets/image/Logo1a1a1a.png"
-              class="w-48 h-48 opacity-90 animate-bounce-subtle"
+              class="h-16 opacity-90 animate-bounce-subtle"
               alt="Moksha Logo"
             />
           </div>
 
           <!-- Downward Flow Indicator (Elegant Arrows) -->
           <div
-            class="absolute top-[135px] flex flex-col items-center space-y-2 opacity-60"
+            class="absolute top-[60px] flex flex-col items-center space-y-2 opacity-60"
           >
             <div
               class="w-2.5 h-2.5 border-r-2 border-b-2 border-saffron rotate-45 animate-arrow-flow-1"

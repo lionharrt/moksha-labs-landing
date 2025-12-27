@@ -2,38 +2,49 @@
   <div
     ref="refElement"
     class="portfolio-card-container duration-[var(--duration)] ease-[var(--easing)] delay-[var(--delay)] relative isolate w-full transition-transform will-change-transform [contain:layout_style] [perspective:1000px]"
+    :class="{ 'is-loading': loading }"
     @pointermove="handlePointerMove"
     @pointerenter="handlePointerEnter"
     @pointerleave="handlePointerLeave"
   >
     <div
-      class="card-inner duration-[var(--duration)] ease-[var(--easing)] delay-[var(--delay)] grid h-full origin-center overflow-hidden rounded-2xl border border-charcoal/10 transition-transform will-change-transform [transform:rotateY(var(--r-x))_rotateX(var(--r-y))] shadow-2xl"
+      class="card-inner duration-[var(--duration)] ease-[var(--easing)] delay-[var(--delay)] grid h-full origin-center transition-transform will-change-transform [transform:rotateY(var(--r-x))_rotateX(var(--r-y))] shadow-2xl relative rounded-xl md:rounded-2xl"
+      :class="[$attrs.class, { 'loading-state': loading }]"
     >
+      <!-- Animated Border Layer (Conic Gradient) -->
+      <div v-if="loading" class="animated-border-wrap">
+        <div class="animated-border-bg"></div>
+      </div>
+
+      <!-- Main Content Container -->
       <div
-        class="grid size-full [clip-path:inset(0_0_0_0_round_var(--radius))] [grid-area:1/1] bg-charcoal/5"
+        class="content-mask relative z-10 grid size-full overflow-hidden rounded-xl md:rounded-2xl bg-cream [grid-area:1/1]"
       >
         <div class="size-full">
           <slot />
         </div>
+
+        <!-- Subtle Luxury Sheen -->
+        <div
+          class="sheen-layer transition-background duration-[var(--duration)] ease-[var(--easing)] delay-[var(--delay)] will-change-background absolute inset-0 opacity-[var(--opacity)] mix-blend-overlay transition-opacity [background:radial-gradient(farthest-corner_circle_at_var(--m-x)_var(--m-y),_rgba(226,160,79,0.15)_0%,_rgba(255,255,255,0)_80%)]"
+        />
+
+        <!-- Glass Noise -->
+        <div
+          class="absolute inset-0 z-10 pointer-events-none mix-blend-overlay opacity-10 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"
+        ></div>
       </div>
-      
-      <!-- Subtle Luxury Sheen (Replacing the rainbow/diagonal effects with a minimalist saffron/white glow) -->
-      <div
-        class="transition-background duration-[var(--duration)] ease-[var(--easing)] delay-[var(--delay)] will-change-background grid size-full opacity-[var(--opacity)] mix-blend-overlay transition-opacity [background:radial-gradient(farthest-corner_circle_at_var(--m-x)_var(--m-y),_rgba(234,179,8,0.15)_0%,_rgba(255,255,255,0)_80%)] [grid-area:1/1]"
-      />
-      
-      <!-- Glass Noise Overlay -->
-      <div class="absolute inset-0 z-10 pointer-events-none mix-blend-overlay opacity-10 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] [grid-area:1/1]"></div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref } from "vue";
 
 const props = defineProps<{
   initialTiltX?: number;
   initialTiltY?: number;
+  loading?: boolean;
 }>();
 
 const isPointerInside = ref(false);
@@ -60,8 +71,7 @@ function handlePointerMove(event: PointerEvent) {
       x: percentage.x - 50,
       y: percentage.y - 50,
     };
-    
-    // Smoothly blend from initial tilt to mouse position
+
     state.value.rotate.x = -(delta.x / 4) * rotateFactor;
     state.value.rotate.y = (delta.y / 2) * rotateFactor;
     state.value.glare.x = percentage.x;
@@ -82,7 +92,10 @@ function handlePointerLeave() {
   if (refElement.value) {
     refElement.value.style.setProperty("--duration", "0.8s");
     refElement.value.style.setProperty("--opacity", "0");
-    state.value.rotate = { x: props.initialTiltX || 0, y: props.initialTiltY || 0 };
+    state.value.rotate = {
+      x: props.initialTiltX || 0,
+      y: props.initialTiltY || 0,
+    };
   }
 }
 </script>
@@ -95,12 +108,67 @@ function handlePointerLeave() {
   --r-y: v-bind(state.rotate.y + "deg");
   --duration: 0.8s;
   --opacity: 0;
-  --radius: 16px;
   --easing: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .card-inner {
-  aspect-ratio: 16/10;
+  border: 1px solid rgba(26, 26, 26, 0.1);
+  overflow: hidden;
+}
+
+.card-inner.loading-state {
+  padding: 2px;
+  border: none;
+  background: transparent;
+  overflow: visible;
+}
+
+.animated-border-wrap {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.animated-border-bg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 400%; /* Massive spread to ensure corners are hit first */
+  aspect-ratio: 1/1;
+  translate: -50% -50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0%,
+    transparent 40%,
+    rgba(226, 160, 79, 0.9) 50%,
+    /* Using official saffron */ transparent 60%,
+    transparent 100%
+  );
+  animation: rotate-border 4s linear infinite;
+  will-change: transform;
+}
+
+.content-mask {
+  z-index: 10;
+  /* Official Moksha rounding */
+  border-radius: 0.75rem; /* xl equivalent minus padding */
+}
+
+@media (min-width: 768px) {
+  .content-mask {
+    border-radius: 1.75rem; /* 2xl equivalent minus padding */
+  }
+}
+
+@keyframes rotate-border {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>
-

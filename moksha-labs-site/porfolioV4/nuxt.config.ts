@@ -88,7 +88,18 @@ export default defineNuxtConfig({
         { name: "twitter:image", content: "https://mokshalabs.ie/favicon.png" },
       ],
       link: [
-        { rel: "icon", type: "image/png", href: "/favicon.png" },
+        {
+          rel: "icon",
+          type: "image/png",
+          href: "/favicon.png",
+          media: "(prefers-color-scheme: light)",
+        },
+        {
+          rel: "icon",
+          type: "image/png",
+          href: "/favicon-dark.png",
+          media: "(prefers-color-scheme: dark)",
+        },
         { rel: "apple-touch-icon", href: "/favicon.png" },
         { rel: "preconnect", href: "https://fonts.googleapis.com" },
         {

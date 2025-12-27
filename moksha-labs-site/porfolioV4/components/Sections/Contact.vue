@@ -99,14 +99,7 @@
 
           <!-- Cloudflare Turnstile Widget (Privacy-first bot protection) -->
           <div class="pt-2">
-            <div
-              class="cf-turnstile"
-              :data-sitekey="config.public.turnstileSiteKey"
-              data-callback="onTurnstileSuccess"
-              data-expired-callback="onTurnstileExpired"
-              data-error-callback="onTurnstileError"
-              data-theme="dark"
-            ></div>
+            <div id="turnstile-container"></div>
           </div>
 
           <div class="pt-4 flex flex-col gap-4">
@@ -216,16 +209,8 @@ const isError = ref(false);
 const isSubmitting = ref(false);
 const turnstileToken = ref("");
 
-// Load Cloudflare Turnstile script
-useHead({
-  script: [
-    {
-      src: "https://challenges.cloudflare.com/turnstile/v0/api.js",
-      async: true,
-      defer: true,
-    },
-  ],
-});
+// Remove automatic script load to handle it manually for CSP/Nonce compatibility
+useHead({});
 
 const isEmailValid = computed(() => {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -298,21 +283,45 @@ const handleSubmit = async () => {
   }
 };
 
-// Expose verification callback to window for Turnstile
-onMounted(() => {
-  // Use a proper global assignment
-  window.onTurnstileSuccess = (token: string) => {
-    turnstileToken.value = token;
-  };
-  
-  window.onTurnstileExpired = () => {
-    turnstileToken.value = "";
-  };
+// 2025 Production-Grade Turnstile Logic
+const onTurnstileLoaded = () => {
+  const w = window as any;
+  if (w.turnstile) {
+    w.turnstile.render("#turnstile-container", {
+      sitekey: config.public.turnstileSiteKey,
+      callback: (token: string) => {
+        turnstileToken.value = token;
+      },
+      "expired-callback": () => {
+        turnstileToken.value = "";
+      },
+      "error-callback": (code: string) => {
+        console.error("Turnstile Error:", code);
+        turnstileToken.value = "";
+      },
+      theme: "dark",
+    });
+  }
+};
 
-  window.onTurnstileError = () => {
-    console.error("Turnstile failed to load");
-    turnstileToken.value = "";
-  };
+onMounted(() => {
+  (window as any).onTurnstileLoaded = onTurnstileLoaded;
+
+  // In case the script loads faster than the component mounts
+  if ((window as any).turnstile) {
+    onTurnstileLoaded();
+  }
+});
+
+// useHead handles the 'nonce' automatically on production servers
+useHead({
+  script: [
+    {
+      src: "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoaded",
+      async: true,
+      defer: true,
+    },
+  ],
 });
 </script>
 
