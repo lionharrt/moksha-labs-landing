@@ -308,7 +308,7 @@ const resolveVideos = async () => {
   for (const project of masterpieceSlices.value) {
     const dUrl = await getAssetUrl(`portfolio/${project.id}.mp4`);
     if (dUrl) videoUrls.value[project.id] = dUrl;
-    if (["illhanlar", "gokbey"].includes(project.id)) {
+    if (["illhanlar", "gokbey", "emteknik"].includes(project.id)) {
       const mUrl = await getAssetUrl(`portfolio/${project.id}_mobile.mp4`);
       if (mUrl) videoUrls.value[`${project.id}_mobile`] = mUrl;
     }
@@ -327,7 +327,8 @@ onMounted(() => {
   masterpieceSlices.value.forEach((project) => {
     setTimeout(() => {
       project.loaded = true;
-      if (["illhanlar", "gokbey"].includes(project.id)) project.loadedMobile = true;
+      if (["illhanlar", "gokbey", "emteknik"].includes(project.id))
+        project.loadedMobile = true;
     }, 8000);
   });
 
