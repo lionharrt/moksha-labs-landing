@@ -87,6 +87,7 @@
                   muted
                   loop
                   playsinline
+                  autoplay
                   preload="auto"
                   :title="`${project.title} project showcase video`"
                   @loadeddata="handleLoadingState(project, 'desktop')"
@@ -237,7 +238,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, nextTick, computed } from "vue";
+import { onMounted, onUnmounted, ref, nextTick, computed, watch } from "vue";
 
 const { locale } = useI18n();
 const { gsap, ScrollTrigger } = useGsap();
@@ -290,7 +291,7 @@ const masterpieceSlices = ref([
     category: "architecture",
     loaded: false,
     loadedMobile: false,
-    isInView: false, // New: Visibility tracking
+    isInView: false,
   },
   {
     id: "gokbey",
@@ -298,7 +299,7 @@ const masterpieceSlices = ref([
     category: "mobility",
     loaded: false,
     loadedMobile: false,
-    isInView: false, // New: Visibility tracking
+    isInView: false,
   },
   {
     id: "illhanlar",
@@ -306,7 +307,7 @@ const masterpieceSlices = ref([
     category: "commerce",
     loaded: false,
     loadedMobile: false,
-    isInView: false, // New: Visibility tracking
+    isInView: false,
   },
 ]);
 
@@ -324,47 +325,62 @@ const resolveVideos = async () => {
   }
 };
 
-// Safety: Mark as loaded if event doesn't fire
+// Synchronization Logic: Watch for both to be ready, then reveal and sync
+masterpieceSlices.value.forEach((project) => {
+  watch(
+    () => [project.loaded, project.loadedMobile, project.isInView],
+    ([isLoaded, isMobileLoaded, isInView]) => {
+      if (!isInView) return;
+
+      const hasMobile = ["illhanlar", "gokbey", "emteknik"].includes(project.id);
+      const ready = hasMobile ? isLoaded && isMobileLoaded : isLoaded;
+
+      if (ready) {
+        nextTick(() => {
+          const desktopVid = document.querySelector(
+            `video[data-vid="${project.id}-desktop"]`
+          ) as HTMLVideoElement;
+          const mobileVid = document.querySelector(
+            `video[data-vid="${project.id}-mobile"]`
+          ) as HTMLVideoElement;
+
+          if (desktopVid) {
+            desktopVid.currentTime = 0;
+            desktopVid.play().catch(() => {});
+          }
+          if (mobileVid) {
+            mobileVid.currentTime = 0;
+            mobileVid.play().catch(() => {});
+          }
+        });
+      }
+    }
+  );
+});
+
+// Handle video events
 const handleLoadingState = (project: any, type: "desktop" | "mobile") => {
   if (type === "desktop") project.loaded = true;
   else project.loadedMobile = true;
-
-  // Synchronization Logic: Only start playing when both are ready
-  const hasMobile = ["illhanlar", "gokbey", "emteknik"].includes(project.id);
-  const bothReady = hasMobile
-    ? project.loaded && project.loadedMobile
-    : project.loaded;
-
-  if (bothReady) {
-    nextTick(() => {
-      const desktopVid = document.querySelector(
-        `video[data-vid="${project.id}-desktop"]`
-      ) as HTMLVideoElement;
-      const mobileVid = document.querySelector(
-        `video[data-vid="${project.id}-mobile"]`
-      ) as HTMLVideoElement;
-
-      if (desktopVid) {
-        desktopVid.currentTime = 0;
-        desktopVid.play().catch(() => {});
-      }
-      if (mobileVid) {
-        mobileVid.currentTime = 0;
-        mobileVid.play().catch(() => {});
-      }
-    });
-  }
 };
 
 onMounted(() => {
   resolveVideos();
-  // 1. Safety Release
+
+  // Safety Release: Reveal after 8s if still stuck in view
   masterpieceSlices.value.forEach((project) => {
-    setTimeout(() => {
-      project.loaded = true;
-      if (["illhanlar", "gokbey", "emteknik"].includes(project.id))
-        project.loadedMobile = true;
-    }, 8000);
+    watch(() => project.isInView, (inView) => {
+      if (inView) {
+        setTimeout(() => {
+          if (!project.loaded) {
+            project.loaded = true;
+            if (["illhanlar", "gokbey", "emteknik"].includes(project.id)) {
+              project.loadedMobile = true;
+            }
+          }
+        }, 8000);
+      }
+    });
   });
 
   // 2. Intersection Observer: Only load video when card enters viewport
