@@ -30,7 +30,7 @@
           {{ $t("sections.portfolio.subtitle") }}
         </p>
         <div class="h-[1px] w-20 bg-charcoal/20"></div>
-        </div>
+      </div>
     </div>
 
     <div
@@ -64,7 +64,12 @@
                 <img
                   :src="getPoster(project.id)"
                   class="absolute inset-0 w-full h-full object-cover z-0 transition-opacity duration-1000"
-                  :class="project.loaded ? 'opacity-0' : 'opacity-100'"
+                  :class="
+                    project.loaded &&
+                    (project.loadedMobile || !getMobileVideo(project.id))
+                      ? 'opacity-0'
+                      : 'opacity-100'
+                  "
                   alt=""
                 />
 
@@ -74,14 +79,15 @@
                   :data-vid="`${project.id}-desktop`"
                   class="w-full h-full object-cover transition-all duration-1000 ease-out relative z-20"
                   :class="
-                    (project.loaded && (project.loadedMobile || !getMobileVideo(project.id)))
+                    project.loaded &&
+                    (project.loadedMobile || !getMobileVideo(project.id))
                       ? 'opacity-100 scale-100'
                       : 'opacity-0 scale-105'
                   "
                   muted
                   loop
                   playsinline
-                  preload="none"
+                  preload="auto"
                   :title="`${project.title} project showcase video`"
                   @loadeddata="handleLoadingState(project, 'desktop')"
                   @canplay="handleLoadingState(project, 'desktop')"
@@ -110,25 +116,29 @@
                   <!-- Mobile Poster Frame -->
                   <img
                     :src="getMobilePoster(project.id)"
-                class="absolute inset-0 w-full h-full object-cover z-0 transition-opacity duration-1000"
-                    :class="(project.loaded && project.loadedMobile) ? 'opacity-0' : 'opacity-100'"
-                alt=""
-              />
+                    class="absolute inset-0 w-full h-full object-cover z-0 transition-opacity duration-1000"
+                    :class="
+                      project.loaded && project.loadedMobile
+                        ? 'opacity-0'
+                        : 'opacity-100'
+                    "
+                    alt=""
+                  />
 
-              <video
+                  <video
                     v-if="project.isInView"
                     :src="getMobileVideo(project.id)"
                     :data-vid="`${project.id}-mobile`"
                     class="w-full h-full object-cover transition-all duration-1000 ease-out relative z-20"
                     :class="
-                      (project.loaded && project.loadedMobile)
+                      project.loaded && project.loadedMobile
                         ? 'opacity-100 scale-100'
                         : 'opacity-0 scale-110'
                     "
-                muted
-                loop
-                playsinline
-                    preload="none"
+                    muted
+                    loop
+                    playsinline
+                    preload="auto"
                     @loadeddata="handleLoadingState(project, 'mobile')"
                     @canplay="handleLoadingState(project, 'mobile')"
                     @playing="handleLoadingState(project, 'mobile')"
@@ -321,13 +331,19 @@ const handleLoadingState = (project: any, type: "desktop" | "mobile") => {
 
   // Synchronization Logic: Only start playing when both are ready
   const hasMobile = ["illhanlar", "gokbey", "emteknik"].includes(project.id);
-  const bothReady = hasMobile ? (project.loaded && project.loadedMobile) : project.loaded;
+  const bothReady = hasMobile
+    ? project.loaded && project.loadedMobile
+    : project.loaded;
 
   if (bothReady) {
     nextTick(() => {
-      const desktopVid = document.querySelector(`video[data-vid="${project.id}-desktop"]`) as HTMLVideoElement;
-      const mobileVid = document.querySelector(`video[data-vid="${project.id}-mobile"]`) as HTMLVideoElement;
-      
+      const desktopVid = document.querySelector(
+        `video[data-vid="${project.id}-desktop"]`
+      ) as HTMLVideoElement;
+      const mobileVid = document.querySelector(
+        `video[data-vid="${project.id}-mobile"]`
+      ) as HTMLVideoElement;
+
       if (desktopVid) {
         desktopVid.currentTime = 0;
         desktopVid.play().catch(() => {});
