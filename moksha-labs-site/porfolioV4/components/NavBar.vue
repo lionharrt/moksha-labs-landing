@@ -25,7 +25,7 @@
 
       <!-- Redesigned Language Switcher -->
       <div
-        class="relative flex items-center border-l border-white/10 pl-10"
+        class="relative flex items-center border-s border-white/10 ps-10"
         @mouseenter="openPicker"
         @mouseleave="closePicker"
       >
@@ -72,20 +72,67 @@
     </div>
 
     <!-- Mobile Menu Toggle -->
-    <button class="md:hidden text-white no-cursor-scale">
-      <Menu :size="24" />
+    <button 
+      @click="isMenuOpen = !isMenuOpen"
+      class="md:hidden text-white no-cursor-scale relative z-[60]"
+    >
+      <Menu v-if="!isMenuOpen" :size="24" />
+      <X v-else :size="24" />
     </button>
+
+    <!-- Mobile Menu Overlay -->
+    <Transition name="fade">
+      <div 
+        v-if="isMenuOpen"
+        class="fixed inset-0 bg-charcoal z-[55] flex flex-col items-center justify-center p-10 md:hidden"
+      >
+        <div class="flex flex-col gap-8 items-center">
+          <button
+            v-for="link in navLinks"
+            :key="link.key"
+            @click="scrollToMobile(link.href)"
+            class="text-white text-2xl font-bold uppercase tracking-widest hover:text-saffron transition-colors"
+          >
+            {{ $t(`nav.${link.key}`) }}
+          </button>
+          
+          <div class="h-[1px] w-20 bg-white/10 my-4"></div>
+          
+          <div class="flex gap-6">
+            <NuxtLink
+              v-for="loc in locales"
+              :key="loc.code"
+              :to="switchLocalePath(loc.code)"
+              class="text-sm font-bold uppercase tracking-widest transition-colors"
+              :class="locale === loc.code ? 'text-saffron' : 'text-white/40 hover:text-white'"
+              @click="isMenuOpen = false"
+            >
+              {{ loc.code }}
+            </NuxtLink>
+          </div>
+
+          <button
+            @click="prefillAndScrollMobile($t('nav.start_project'))"
+            class="mt-8 bg-white text-black px-10 py-4 rounded-full text-sm font-bold uppercase tracking-widest"
+          >
+            {{ $t("nav.start_project") }}
+          </button>
+        </div>
+      </div>
+    </Transition>
   </nav>
 </template>
 
 <script setup lang="ts">
-import { Menu } from "lucide-vue-next";
+import { Menu, X } from "lucide-vue-next";
 
 const { prefillAndScroll } = useContactForm();
 const { locale, locales, t } = useI18n();
 const switchLocalePath = useSwitchLocalePath();
 const localePath = useLocalePath();
 const { gsap } = useGsap();
+
+const isMenuOpen = ref(false);
 
 const scrollTo = (href: string) => {
   const { $lenis } = useNuxtApp() as any;
@@ -98,6 +145,20 @@ const scrollTo = (href: string) => {
     const el = document.querySelector(href);
     el?.scrollIntoView({ behavior: "smooth" });
   }
+};
+
+const scrollToMobile = (href: string) => {
+  isMenuOpen.value = false;
+  setTimeout(() => {
+    scrollTo(href);
+  }, 300);
+};
+
+const prefillAndScrollMobile = (msg: string) => {
+  isMenuOpen.value = false;
+  setTimeout(() => {
+    prefillAndScroll(msg);
+  }, 300);
 };
 
 const navLinks = [
@@ -156,5 +217,16 @@ const closePicker = () => {
    while allowing language codes (EN, TR, etc.) to remain uppercase */
 :deep([dir="rtl"]) .nav-link {
   text-transform: none;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
 }
 </style>

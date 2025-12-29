@@ -2,6 +2,7 @@
   <BaseSection
     ref="triggerRef"
     id="portfolio"
+    :key="locale"
     theme-color="#FDFBF7"
     class="portfolio-container relative bg-cream"
     :full-width="true"
@@ -29,7 +30,7 @@
           {{ $t("sections.portfolio.subtitle") }}
         </p>
         <div class="h-[1px] w-20 bg-charcoal/20"></div>
-      </div>
+        </div>
     </div>
 
     <div
@@ -37,7 +38,7 @@
     >
       <div
         ref="horizontalRef"
-        class="flex gap-10 md:gap-20 pl-6 md:pl-20 pr-0 py-10 w-fit items-center"
+        class="flex gap-10 md:gap-20 ps-6 md:ps-20 pe-0 py-10 w-fit items-center"
       >
         <div
           v-for="(project, idx) in masterpieceSlices"
@@ -48,7 +49,8 @@
           <div
             class="text-[10px] text-charcoal/30 mb-4 font-mono tracking-[0.3em] uppercase"
           >
-            0{{ (idx as number) + 1 }} / {{ project.category }}
+            0{{ (idx as number) + 1 }} /
+            {{ $t(`sections.portfolio.categories.${project.category}`) }}
           </div>
 
           <div class="relative mb-8 group/portfolio">
@@ -69,16 +71,16 @@
                 <video
                   v-if="getVideo(project.id) && project.isInView"
                   :src="getVideo(project.id)"
+                  :data-vid="`${project.id}-desktop`"
                   class="w-full h-full object-cover transition-all duration-1000 ease-out relative z-20"
                   :class="
-                    project.loaded
+                    (project.loaded && (project.loadedMobile || !getMobileVideo(project.id)))
                       ? 'opacity-100 scale-100'
                       : 'opacity-0 scale-105'
                   "
                   muted
                   loop
                   playsinline
-                  autoplay
                   preload="none"
                   :title="`${project.title} project showcase video`"
                   @loadeddata="handleLoadingState(project, 'desktop')"
@@ -91,7 +93,12 @@
             <!-- Overlapping Phone Panel (Only shows if mobile video exists) -->
             <div
               v-if="getMobileVideo(project.id)"
-              class="absolute -right-4 md:-right-12 bottom-[30%] translate-y-1/2 w-[15vw] md:w-[12vw] lg:w-[10vw] max-w-[240px] z-20 transition-transform duration-700 group-hover/portfolio:translate-x-4"
+              class="absolute bottom-[30%] translate-y-1/2 w-[15vw] md:w-[12vw] lg:w-[10vw] max-w-[240px] z-20 transition-transform duration-700"
+              :class="[
+                isRTL
+                  ? '-left-4 md:-left-12 group-hover/portfolio:-translate-x-4'
+                  : '-right-4 md:-right-12 group-hover/portfolio:translate-x-4',
+              ]"
             >
               <UIPortfolioCard
                 class="aspect-[9/19.5]"
@@ -103,24 +110,24 @@
                   <!-- Mobile Poster Frame -->
                   <img
                     :src="getMobilePoster(project.id)"
-                    class="absolute inset-0 w-full h-full object-cover z-0 transition-opacity duration-1000"
-                    :class="project.loadedMobile ? 'opacity-0' : 'opacity-100'"
-                    alt=""
-                  />
+                class="absolute inset-0 w-full h-full object-cover z-0 transition-opacity duration-1000"
+                    :class="(project.loaded && project.loadedMobile) ? 'opacity-0' : 'opacity-100'"
+                alt=""
+              />
 
-                  <video
+              <video
                     v-if="project.isInView"
                     :src="getMobileVideo(project.id)"
+                    :data-vid="`${project.id}-mobile`"
                     class="w-full h-full object-cover transition-all duration-1000 ease-out relative z-20"
                     :class="
-                      project.loadedMobile
+                      (project.loaded && project.loadedMobile)
                         ? 'opacity-100 scale-100'
                         : 'opacity-0 scale-110'
                     "
-                    muted
-                    loop
-                    playsinline
-                    autoplay
+                muted
+                loop
+                playsinline
                     preload="none"
                     @loadeddata="handleLoadingState(project, 'mobile')"
                     @canplay="handleLoadingState(project, 'mobile')"
@@ -151,26 +158,15 @@
             <h4
               class="ready-text text-6xl md:text-[10vw] font-black uppercase mb-8 leading-none pointer-events-none flex items-center justify-center"
             >
-              <span class="ready-char inline-block" style="--i: 0; --j: 0"
-                >R</span
-              >
-              <span class="ready-char inline-block" style="--i: 1; --j: 0"
-                >E</span
-              >
-              <span class="ready-char inline-block" style="--i: 2; --j: 0"
-                >A</span
-              >
-              <span class="ready-char inline-block" style="--i: 3; --j: 0"
-                >D</span
-              >
-              <span class="ready-char inline-block" style="--i: 4; --j: 0"
-                >Y</span
-              >
               <span
-                class="ready-char inline-block ml-[1vw]"
-                style="--i: 5; --j: 1"
-                >?</span
+                v-for="(char, i) in $t('sections.portfolio.ready').split('')"
+                :key="i"
+                class="ready-char inline-block"
+                :class="char === ' ' ? 'mx-[2vw]' : ''"
+                :style="`--i: ${i}; --j: ${char === '?' ? 1 : 0}`"
               >
+                {{ char }}
+              </span>
             </h4>
             <div class="flex flex-col items-center gap-12">
               <NuxtLink
@@ -182,7 +178,7 @@
               >
                 <span
                   class="relative z-10 font-black uppercase tracking-widest text-[10px] md:text-[12px] pointer-events-none"
-                  >Start Project</span
+                  >{{ $t("sections.portfolio.start") }}</span
                 >
                 <div
                   class="w-2 h-2 bg-saffron rounded-full group-hover:bg-charcoal transition-colors duration-500 pointer-events-none"
@@ -211,7 +207,7 @@
               <div class="flex flex-col items-center justify-center z-10">
                 <span
                   class="text-[9px] uppercase tracking-[0.5em] text-charcoal font-black mb-2"
-                  >continue</span
+                  >{{ $t("sections.portfolio.continue") }}</span
                 >
                 <div class="flex flex-col items-center space-y-1 opacity-60">
                   <div
@@ -231,9 +227,12 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, nextTick } from "vue";
+import { onMounted, onUnmounted, ref, nextTick, computed } from "vue";
 
+const { locale } = useI18n();
 const { gsap, ScrollTrigger } = useGsap();
+
+const isRTL = computed(() => locale.value === "ar");
 
 const triggerRef = ref<HTMLElement | null>(null);
 const headerRef = ref<HTMLElement | null>(null);
@@ -278,7 +277,7 @@ const masterpieceSlices = ref([
   {
     id: "emteknik",
     title: "Emteknik",
-    category: "Architecture",
+    category: "architecture",
     loaded: false,
     loadedMobile: false,
     isInView: false, // New: Visibility tracking
@@ -286,7 +285,7 @@ const masterpieceSlices = ref([
   {
     id: "gokbey",
     title: "Gökbey",
-    category: "Mobility",
+    category: "mobility",
     loaded: false,
     loadedMobile: false,
     isInView: false, // New: Visibility tracking
@@ -294,7 +293,7 @@ const masterpieceSlices = ref([
   {
     id: "illhanlar",
     title: "İlhanlar",
-    category: "Commerce",
+    category: "commerce",
     loaded: false,
     loadedMobile: false,
     isInView: false, // New: Visibility tracking
@@ -319,6 +318,26 @@ const resolveVideos = async () => {
 const handleLoadingState = (project: any, type: "desktop" | "mobile") => {
   if (type === "desktop") project.loaded = true;
   else project.loadedMobile = true;
+
+  // Synchronization Logic: Only start playing when both are ready
+  const hasMobile = ["illhanlar", "gokbey", "emteknik"].includes(project.id);
+  const bothReady = hasMobile ? (project.loaded && project.loadedMobile) : project.loaded;
+
+  if (bothReady) {
+    nextTick(() => {
+      const desktopVid = document.querySelector(`video[data-vid="${project.id}-desktop"]`) as HTMLVideoElement;
+      const mobileVid = document.querySelector(`video[data-vid="${project.id}-mobile"]`) as HTMLVideoElement;
+      
+      if (desktopVid) {
+        desktopVid.currentTime = 0;
+        desktopVid.play().catch(() => {});
+      }
+      if (mobileVid) {
+        mobileVid.currentTime = 0;
+        mobileVid.play().catch(() => {});
+      }
+    });
+  }
 };
 
 onMounted(() => {
@@ -390,7 +409,7 @@ const initExhibitionAnimations = () => {
       scrollTrigger: {
         trigger: ".exhibition-horizontal",
         pin: true,
-        scrub: 1,
+        scrub: true,
         start: "top top",
         end: () => "+=" + (amountToScroll + window.innerHeight),
         invalidateOnRefresh: true,
@@ -402,8 +421,11 @@ const initExhibitionAnimations = () => {
     const scrollDuration =
       amountToScroll / (amountToScroll + window.innerHeight);
 
+    // Explicitly set initial position to avoid jumps
+    gsap.set(horizontalRef.value, { x: 0 });
+
     tl.to(horizontalRef.value, {
-      x: -amountToScroll,
+      x: isRTL.value ? amountToScroll : -amountToScroll,
       ease: "none",
       duration: scrollDuration,
     });

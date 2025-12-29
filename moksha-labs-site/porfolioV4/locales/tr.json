@@ -53,15 +53,25 @@
       "title": "Portfolyo",
       "subtitle": "Mükemmelliği Tanımlayan Seçilmiş Çalışmalar",
       "loading_assets": "Sürükleyici İçerik Yükleniyor",
-      "ready": "Vizyonunuzu Yükseltmeye Hazır mısınız?",
+      "ready": "HAZIR MISIN?",
       "start": "Projeyi Başlat",
+      "continue": "devam et",
       "outro_text": "Vizyonunuzu Yükseltmeye Hazır mısınız?",
       "placeholder": "[ Proje Görseli ]",
+      "categories": {
+        "architecture": "Mimar",
+        "mobility": "Mobilite",
+        "commerce": "Ticaret",
+        "creative_direction": "Kreatif Direktörlük",
+        "uiux_design": "UI/UX Tasarım",
+        "branding": "Marka Kimliği",
+        "web_dev": "Web Geliştirme"
+      },
       "projects": [
-        { "title": "Ethereal Collective", "category": "Kreatif Direktörlük" },
-        { "title": "Nexus FinTech", "category": "UI/UX Tasarım" },
-        { "title": "Aura Wellness", "category": "Marka Kimliği" },
-        { "title": "Lumina Mimarlık", "category": "Web Geliştirme" }
+        { "title": "Ethereal Collective", "category": "creative_direction" },
+        { "title": "Nexus FinTech", "category": "uiux_design" },
+        { "title": "Aura Wellness", "category": "branding" },
+        { "title": "Lumina Mimarlık", "category": "architecture" }
       ]
     },
     "pricing": {
@@ -256,7 +266,7 @@
         },
         {
           "name": "Ecenaz Demircan",
-          "role": "Kurucu Ortak, Dijital Mimari ve Web Tasarım Lideri"
+          "role": "Kurucu Ortak, Dijital Mimar ve Web Tasarım Lideri"
         }
       ]
     },

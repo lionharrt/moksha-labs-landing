@@ -28,7 +28,7 @@
                 >0{{ index + 1 }}</span
               >
               <h3
-                class="text-4xl md:text-6xl font-serif transition-transform duration-500 group-hover:translate-x-4"
+                class="text-4xl md:text-6xl font-serif transition-transform duration-500 group-hover:translate-x-4 rtl:group-hover:-translate-x-4"
               >
                 {{ category.title }}
               </h3>
@@ -86,7 +86,7 @@
                   <div
                     v-for="tier in item.tiers"
                     :key="tier.label"
-                    class="border-l-2 border-saffron/20 pl-4 py-1"
+                    class="border-s-2 border-saffron/20 ps-4 py-1"
                   >
                     <span
                       class="text-[10px] uppercase tracking-wider font-bold block"

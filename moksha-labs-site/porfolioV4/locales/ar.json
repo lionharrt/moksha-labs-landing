@@ -52,12 +52,26 @@
     "portfolio": {
       "title": "الأعمال المختارة",
       "subtitle": "أعمال مختارة تحدد التميز",
+      "loading_assets": "جاري تحميل المحتوى...",
+      "ready": "جاهز",
+      "start": "ابدأ المشروع",
+      "continue": "استمر",
+      "outro_text": "هل أنت جاهز للارتقاء برؤيتك؟",
       "placeholder": "[ صورة المشروع ]",
+      "categories": {
+        "architecture": "هندسة معمارية",
+        "mobility": "تنقل",
+        "commerce": "تجارة",
+        "creative_direction": "توجيه إبداعي",
+        "uiux_design": "تصميم واجهة المستخدم",
+        "branding": "هوية تجارية",
+        "web_dev": "تطوير ويب"
+      },
       "projects": [
-        { "title": "المجموعة الأثيرية", "category": "التوجيه الإبداعي" },
-        { "title": "نكسس فينتك", "category": "تصميم تجربة المستخدم" },
-        { "title": "أورا للصحة", "category": "هوية العلامة التجارية" },
-        { "title": "لومينا للهندسة المعمارية", "category": "تطوير الويب" }
+        { "title": "المجموعة الأثيرية", "category": "creative_direction" },
+        { "title": "نكسس فينتك", "category": "uiux_design" },
+        { "title": "أورا للصحة", "category": "branding" },
+        { "title": "لومينا للهندسة المعمارية", "category": "architecture" }
       ]
     },
     "pricing": {
@@ -208,6 +222,7 @@
         "email_placeholder": "hello{'@'}example.com",
         "topic": "موضوع الاستفسار",
         "topic_placeholder": "مثلاً: الباقة المتميزة / استراتيجية العلامة التجارية",
+        "topic_start_project": "ابدأ المشروع",
         "message": "الرسالة",
         "message_placeholder": "أخبرنا عن رؤيتك...",
         "submit": "إرسال الاستفسار",

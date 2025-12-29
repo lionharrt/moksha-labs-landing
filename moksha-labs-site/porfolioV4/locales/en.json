@@ -53,18 +53,25 @@
       "title": "Portfolio",
       "subtitle": "",
       "loading_assets": "Loading Immersive Content",
-      "ready": "Ready to Elevate Your Vision?",
-      "start": "Start Your Project",
+      "ready": "READY?",
+      "start": "Start Project",
+      "continue": "continue",
       "outro_text": "Ready to Elevate Your Vision?",
       "placeholder": "[ Project Image ]",
+      "categories": {
+        "architecture": "Architecture",
+        "mobility": "Mobility",
+        "commerce": "Commerce",
+        "creative_direction": "Creative Direction",
+        "uiux_design": "UI/UX Design",
+        "branding": "Brand Identity",
+        "web_dev": "Web Development"
+      },
       "projects": [
-        {
-          "title": "The Ethereal Collective",
-          "category": "Creative Direction"
-        },
-        { "title": "Nexus FinTech", "category": "UI/UX Design" },
-        { "title": "Aura Wellness", "category": "Brand Identity" },
-        { "title": "Lumina Architecture", "category": "Web Development" }
+        { "title": "The Ethereal Collective", "category": "creative_direction" },
+        { "title": "Nexus FinTech", "category": "uiux_design" },
+        { "title": "Aura Wellness", "category": "branding" },
+        { "title": "Lumina Architecture", "category": "architecture" }
       ]
     },
     "pricing": {
@@ -183,7 +190,7 @@
                 "desc": "Targeted reach with high-conversion creatives."
               },
               {
-                "label": "Growth",
+                "label": "Büyüme",
                 "desc": "A/B testing and retargeting to maximize spend."
               },
               {
