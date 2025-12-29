@@ -111,6 +111,7 @@
                 class="aspect-[9/19.5]"
                 :initial-tilt-x="5"
                 :initial-tilt-y="5"
+                rounded="rounded-[2.5rem] md:rounded-[3.5rem]"
                 :loading="project.isInView && !project.loadedMobile"
               >
                 <div class="relative w-full h-full bg-charcoal/5">
@@ -332,7 +333,9 @@ masterpieceSlices.value.forEach((project) => {
     ([isLoaded, isMobileLoaded, isInView]) => {
       if (!isInView) return;
 
-      const hasMobile = ["illhanlar", "gokbey", "emteknik"].includes(project.id);
+      const hasMobile = ["illhanlar", "gokbey", "emteknik"].includes(
+        project.id
+      );
       const ready = hasMobile ? isLoaded && isMobileLoaded : isLoaded;
 
       if (ready) {
@@ -369,18 +372,21 @@ onMounted(() => {
 
   // Safety Release: Reveal after 8s if still stuck in view
   masterpieceSlices.value.forEach((project) => {
-    watch(() => project.isInView, (inView) => {
-      if (inView) {
-        setTimeout(() => {
-          if (!project.loaded) {
-            project.loaded = true;
-            if (["illhanlar", "gokbey", "emteknik"].includes(project.id)) {
-              project.loadedMobile = true;
+    watch(
+      () => project.isInView,
+      (inView) => {
+        if (inView) {
+          setTimeout(() => {
+            if (!project.loaded) {
+              project.loaded = true;
+              if (["illhanlar", "gokbey", "emteknik"].includes(project.id)) {
+                project.loadedMobile = true;
+              }
             }
-          }
-        }, 8000);
+          }, 8000);
+        }
       }
-    });
+    );
   });
 
   // 2. Intersection Observer: Only load video when card enters viewport

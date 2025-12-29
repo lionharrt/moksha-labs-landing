@@ -8,8 +8,8 @@
     @pointerleave="handlePointerLeave"
   >
     <div
-      class="card-inner duration-[var(--duration)] ease-[var(--easing)] delay-[var(--delay)] grid h-full origin-center transition-transform will-change-transform [transform:rotateY(var(--r-x))_rotateX(var(--r-y))] shadow-2xl relative rounded-xl md:rounded-2xl"
-      :class="[$attrs.class, { 'loading-state': loading }]"
+      class="card-inner duration-[var(--duration)] ease-[var(--easing)] delay-[var(--delay)] grid h-full origin-center transition-transform will-change-transform [transform:rotateY(var(--r-x))_rotateX(var(--r-y))] shadow-2xl relative"
+      :class="[$attrs.class, rounded, { 'loading-state': loading }]"
     >
       <!-- Animated Border Layer (Conic Gradient) -->
       <div v-if="loading" class="animated-border-wrap">
@@ -18,7 +18,8 @@
 
       <!-- Main Content Container -->
       <div
-        class="content-mask relative z-10 grid size-full overflow-hidden rounded-xl md:rounded-2xl bg-cream [grid-area:1/1]"
+        class="content-mask relative z-10 grid size-full overflow-hidden bg-cream [grid-area:1/1]"
+        :class="rounded"
       >
         <div class="size-full">
           <slot />
@@ -41,11 +42,17 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
-const props = defineProps<{
-  initialTiltX?: number;
-  initialTiltY?: number;
-  loading?: boolean;
-}>();
+const props = withDefaults(
+  defineProps<{
+    initialTiltX?: number;
+    initialTiltY?: number;
+    loading?: boolean;
+    rounded?: string;
+  }>(),
+  {
+    rounded: "rounded-xl md:rounded-2xl",
+  }
+);
 
 const isPointerInside = ref(false);
 const refElement = ref<HTMLElement | null>(null);
@@ -153,14 +160,6 @@ function handlePointerLeave() {
 
 .content-mask {
   z-index: 10;
-  /* Official Moksha rounding */
-  border-radius: 0.75rem; /* xl equivalent minus padding */
-}
-
-@media (min-width: 768px) {
-  .content-mask {
-    border-radius: 1.75rem; /* 2xl equivalent minus padding */
-  }
 }
 
 @keyframes rotate-border {
