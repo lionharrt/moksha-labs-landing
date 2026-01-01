@@ -10,7 +10,8 @@
   "hero": {
     "main_text": "MOKSHA",
     "subtitle": "Dijital Evrim",
-    "title": "Modern çağ için üst düzey dijital deneyimler hazırlıyoruz."
+    "title": "Modern çağ için üst düzey dijital deneyimler hazırlıyoruz.",
+    "scroll": "Kaydır"
   },
   "sections": {
     "services": {
@@ -51,9 +52,9 @@
     },
     "portfolio": {
       "title": "Portfolyo",
-      "subtitle": "Mükemmelliği Tanımlayan Seçilmiş Çalışmalar",
+      "scroll_hint": "Keşfetmek için kaydırın",
       "loading_assets": "Sürükleyici İçerik Yükleniyor",
-      "ready": "HAZIR MISIN?",
+      "ready": "HAZIRSAN?",
       "start": "Projeyi Başlat",
       "continue": "devam et",
       "outro_text": "Vizyonunuzu Yükseltmeye Hazır mısınız?",
@@ -220,7 +221,7 @@
         ]
       },
       "add_ons": {
-        "title": "Kişiselleştirilmiş Çözümler",
+        "title": "Kişiye Özel Çözümler",
         "items": [
           {
             "name": "Dijital",

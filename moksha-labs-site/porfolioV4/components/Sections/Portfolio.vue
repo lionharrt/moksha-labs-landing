@@ -8,38 +8,48 @@
     :full-width="true"
     padding-class="!py-0 !px-0"
   >
-    <!-- Section Intro Header -->
     <div
-      ref="headerRef"
-      class="pt-24 pb-12 md:pt-40 md:pb-40 text-center max-w-7xl mx-auto px-6 relative z-10 portfolio-header-box"
-    >
-      <h2
-        class="text-6xl md:text-8xl font-black text-charcoal intro-reveal flex flex-col items-center"
-      >
-        <span class="overflow-hidden">
-          <span class="inline-block title-line">{{
-            $t("sections.portfolio.title")
-          }}</span>
-        </span>
-      </h2>
-      <div class="mt-8 flex justify-center items-center gap-4">
-        <div class="h-[1px] w-20 bg-charcoal/20"></div>
-        <p
-          class="text-saffron font-medium tracking-[0.3em] uppercase text-sm italic"
-        >
-          {{ $t("sections.portfolio.subtitle") }}
-        </p>
-        <div class="h-[1px] w-20 bg-charcoal/20"></div>
-      </div>
-    </div>
-
-    <div
-      class="exhibition-horizontal overflow-hidden min-h-screen flex items-center"
+      class="exhibition-horizontal overflow-hidden min-h-screen flex flex-col justify-center"
     >
       <div
         ref="horizontalRef"
         class="flex gap-10 md:gap-20 ps-6 md:ps-20 pe-0 py-10 w-fit items-center"
       >
+        <!-- Portfolio Title as First Card -->
+        <div
+          ref="headerRef"
+          class="w-[80vw] md:w-[65vw] lg:w-[55vw] max-w-[1200px] flex-shrink-0 flex flex-col justify-center min-h-[70vh]"
+        >
+          <h2
+            class="text-6xl md:text-8xl lg:text-9xl font-black text-charcoal intro-reveal relative z-10"
+          >
+            <span class="overflow-hidden block">
+              <span class="inline-block title-line">{{
+                $t("sections.portfolio.title")
+              }}</span>
+            </span>
+          </h2>
+          <div class="mt-8 h-[1px] bg-charcoal/20 relative z-10"></div>
+
+          <!-- Scroll Hint -->
+          <div class="mt-12 flex items-center gap-3 text-charcoal/40">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+            <span class="text-sm uppercase tracking-wider">{{
+              $t("sections.portfolio.scroll_hint") || "Scroll to explore"
+            }}</span>
+          </div>
+        </div>
         <div
           v-for="(project, idx) in masterpieceSlices"
           :key="project.id"
@@ -111,7 +121,7 @@
                 class="aspect-[9/19.5]"
                 :initial-tilt-x="5"
                 :initial-tilt-y="5"
-                rounded="rounded-[2.5rem] md:rounded-[3.5rem]"
+                rounded="rounded-[0.5rem] md:rounded-[0.5rem]"
                 :loading="project.isInView && !project.loadedMobile"
               >
                 <div class="relative w-full h-full bg-charcoal/5">
@@ -170,15 +180,22 @@
             <h4
               class="ready-text text-6xl md:text-[10vw] font-black uppercase mb-8 leading-none pointer-events-none flex items-center justify-center"
             >
-              <span
-                v-for="(char, i) in $t('sections.portfolio.ready').split('')"
-                :key="i"
-                class="ready-char inline-block"
-                :class="char === ' ' ? 'mx-[2vw]' : ''"
-                :style="`--i: ${i}; --j: ${char === '?' ? 1 : 0}`"
-              >
-                {{ char }}
-              </span>
+              <template v-if="locale === 'ar'">
+                <span class="ready-char inline-block" style="--i: 0; --j: 1">
+                  {{ $t("sections.portfolio.ready") }}
+                </span>
+              </template>
+              <template v-else>
+                <span
+                  v-for="(char, i) in $t('sections.portfolio.ready').split('')"
+                  :key="i"
+                  class="ready-char inline-block"
+                  :class="char === ' ' ? 'mx-[2vw]' : ''"
+                  :style="`--i: ${i}; --j: ${char === '?' ? 1 : 0}`"
+                >
+                  {{ char }}
+                </span>
+              </template>
             </h4>
             <div class="flex flex-col items-center gap-12">
               <NuxtLink
@@ -234,6 +251,60 @@
           </div>
         </div>
       </div>
+
+      <!-- Mobile Controls: Visible only on small screens -->
+      <div
+        class="md:hidden flex justify-center items-center gap-8 py-8 relative z-30"
+      >
+        <button
+          @click="scrollPortfolio(-1)"
+          class="group p-4 bg-charcoal/5 rounded-full border border-charcoal/10 active:scale-95 transition-all"
+          aria-label="Previous project"
+        >
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="text-charcoal group-hover:text-saffron transition-colors"
+          >
+            <path d="m15 18-6-6 6-6" />
+          </svg>
+        </button>
+
+        <div class="flex gap-2">
+          <div
+            v-for="(_, i) in [...masterpieceSlices, { id: 'ready' }]"
+            :key="i"
+            class="w-1.5 h-1.5 rounded-full transition-all duration-300"
+            :class="activeSlide === i ? 'bg-saffron w-4' : 'bg-charcoal/20'"
+          ></div>
+        </div>
+
+        <button
+          @click="scrollPortfolio(1)"
+          class="group p-4 bg-charcoal/5 rounded-full border border-charcoal/10 active:scale-95 transition-all"
+          aria-label="Next project"
+        >
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="text-charcoal group-hover:text-saffron transition-colors"
+          >
+            <path d="m9 18 6-6-6-6" />
+          </svg>
+        </button>
+      </div>
     </div>
   </BaseSection>
 </template>
@@ -243,6 +314,7 @@ import { onMounted, onUnmounted, ref, nextTick, computed, watch } from "vue";
 
 const { locale } = useI18n();
 const { gsap, ScrollTrigger } = useGsap();
+const { registerPoint } = useScrollPhasing();
 
 const isRTL = computed(() => locale.value === "ar");
 
@@ -250,6 +322,7 @@ const triggerRef = ref<HTMLElement | null>(null);
 const headerRef = ref<HTMLElement | null>(null);
 const horizontalRef = ref<HTMLElement | null>(null);
 const magneticBtn = ref<any>(null);
+const activeSlide = ref(0);
 
 // Magnetic Button Logic
 const handleMagnetic = (e: MouseEvent) => {
@@ -276,6 +349,34 @@ const resetMagnetic = () => {
     duration: 0.6,
     ease: "elastic.out(1, 0.3)",
   });
+};
+
+const scrollPortfolio = (direction: number) => {
+  const triggers = ScrollTrigger.getAll();
+  const st = triggers.find(
+    (t) =>
+      t.trigger &&
+      (t.trigger as HTMLElement).classList?.contains("exhibition-horizontal")
+  );
+
+  if (st) {
+    const currentScrollY = window.scrollY;
+    const scrollRange = st.end - st.start;
+
+    // Move by a viewport height for comfortable navigation
+    // ScrollTrigger's scrub will handle the smooth animation
+    const scrollIncrement = window.innerHeight * 0.8;
+    const targetScrollY = currentScrollY + direction * scrollIncrement;
+
+    // Clamp to the bounds of the portfolio section
+    const clampedTarget = Math.max(st.start, Math.min(st.end, targetScrollY));
+
+    gsap.to(window, {
+      scrollTo: clampedTarget,
+      duration: 0.8,
+      ease: "power2.inOut",
+    });
+  }
 };
 
 // Static video paths from the public/videos folder
@@ -406,6 +507,85 @@ onMounted(() => {
   document.querySelectorAll(".project-card").forEach((el) => {
     observer.observe(el);
   });
+
+  // 4. Register Portfolio Snap Point at entry
+  // ScrollTrigger's native scrub handles all scrolling within the section
+  // Only snap when entering from Services section
+  setTimeout(() => {
+    const st = ScrollTrigger.getAll().find(
+      (t) =>
+        t.trigger &&
+        (t.trigger as HTMLElement).classList?.contains("exhibition-horizontal")
+    );
+    if (st) {
+      // Snap to portfolio entry (title card)
+      registerPoint({
+        id: "portfolio-start",
+        y: st.start,
+      });
+    }
+  }, 1200);
+
+  // 3. Support horizontal scroll input by translating it to vertical scroll
+  // This lets users scroll horizontally (trackpad, shift+wheel) to navigate
+  const el = document.querySelector(".exhibition-horizontal");
+  if (el) {
+    el.addEventListener(
+      "wheel",
+      (e: any) => {
+        // If user is scrolling horizontally (trackpad gesture, shift+wheel, etc.)
+        const isHorizontalScroll =
+          Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey;
+
+        if (isHorizontalScroll && Math.abs(e.deltaX) > 0) {
+          e.preventDefault();
+
+          // Translate horizontal scroll to vertical scroll to drive ScrollTrigger
+          const scrollAmount = e.deltaX * 2; // Multiply for more responsive feel
+          window.scrollBy(0, scrollAmount);
+        }
+        // Vertical scroll works naturally with ScrollTrigger
+      },
+      { passive: false }
+    );
+
+    // Mobile: Touch swipe support
+    if (window.innerWidth < 1024) {
+      let touchStartX = 0;
+      let touchStartY = 0;
+
+      el.addEventListener(
+        "touchstart",
+        (e: any) => {
+          touchStartX = e.touches[0].clientX;
+          touchStartY = e.touches[0].clientY;
+        },
+        { passive: true }
+      );
+
+      el.addEventListener(
+        "touchend",
+        (e: any) => {
+          const touchEndX = e.changedTouches[0].clientX;
+          const touchEndY = e.changedTouches[0].clientY;
+
+          const deltaX = touchStartX - touchEndX;
+          const deltaY = touchStartY - touchEndY;
+
+          // Determine dominant direction
+          const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY);
+
+          // For horizontal swipes on mobile, use button navigation
+          if (isHorizontalSwipe && Math.abs(deltaX) > 80) {
+            const direction = deltaX > 0 ? 1 : -1;
+            scrollPortfolio(direction);
+          }
+          // Vertical swipes use native ScrollTrigger behavior
+        },
+        { passive: true }
+      );
+    }
+  }
 });
 
 const initExhibitionAnimations = () => {
@@ -451,6 +631,10 @@ const initExhibitionAnimations = () => {
         start: "top top",
         end: () => "+=" + (amountToScroll + window.innerHeight),
         invalidateOnRefresh: true,
+        onUpdate: (self) => {
+          const totalSlides = masterpieceSlices.value.length + 1;
+          activeSlide.value = Math.round(self.progress * (totalSlides - 1));
+        },
       },
     });
 

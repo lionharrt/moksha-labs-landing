@@ -84,7 +84,7 @@
     <Transition name="fade">
       <div 
         v-if="isMenuOpen"
-        class="fixed inset-0 bg-charcoal z-[55] flex flex-col items-center justify-center p-10 md:hidden"
+        class="fixed inset-0 bg-charcoal/80 backdrop-blur-xl z-[55] flex flex-col items-center justify-center p-10 md:hidden"
       >
         <div class="flex flex-col gap-8 items-center">
           <button

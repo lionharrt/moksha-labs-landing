@@ -2,14 +2,15 @@ import Lenis from 'lenis'
 
 export default defineNuxtPlugin(() => {
   if (import.meta.client) {
+    // Minimal Lenis config - just for ScrollTrigger sync, not aggressive smoothing
     const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      duration: 0.8, // Shorter duration for snappier feel
+      easing: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t, // Simpler easeInOut
       orientation: 'vertical',
       gestureOrientation: 'vertical',
-      smoothWheel: true,
+      smoothWheel: false, // Disable smooth wheel for snap system
       wheelMultiplier: 1,
-      touchMultiplier: 2,
+      touchMultiplier: 1.5, // Reduce touch multiplier for more control
       infinite: false,
     })
 
@@ -23,6 +24,7 @@ export default defineNuxtPlugin(() => {
 
     $gsap.ticker.lagSmoothing(0)
 
+    // Provide global access to stop/start Lenis during animations
     return {
       provide: {
         lenis

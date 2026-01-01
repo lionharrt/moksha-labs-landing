@@ -10,7 +10,8 @@
   "hero": {
     "main_text": "MOKSHA",
     "subtitle": "Digital Evolution",
-    "title": "Crafting high-end digital experiences for the modern era."
+    "title": "Crafting high-end digital experiences for the modern era.",
+    "scroll": "Scroll"
   },
   "sections": {
     "services": {
@@ -51,7 +52,7 @@
     },
     "portfolio": {
       "title": "Portfolio",
-      "subtitle": "",
+      "scroll_hint": "Scroll to explore",
       "loading_assets": "Loading Immersive Content",
       "ready": "READY?",
       "start": "Start Project",
@@ -68,7 +69,10 @@
         "web_dev": "Web Development"
       },
       "projects": [
-        { "title": "The Ethereal Collective", "category": "creative_direction" },
+        {
+          "title": "The Ethereal Collective",
+          "category": "creative_direction"
+        },
         { "title": "Nexus FinTech", "category": "uiux_design" },
         { "title": "Aura Wellness", "category": "branding" },
         { "title": "Lumina Architecture", "category": "architecture" }

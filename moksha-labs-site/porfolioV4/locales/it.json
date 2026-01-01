@@ -51,7 +51,7 @@
     },
     "portfolio": {
       "title": "Portfolio Selezionato",
-      "subtitle": "Lavori scelti che definiscono l'eccellenza",
+      "scroll_hint": "Scorri per esplorare",
       "loading_assets": "Caricamento Contenuti Immersivi",
       "ready": "Pronto a Elevare la Tua Visione?",
       "start": "Inizia il Tuo Progetto",
