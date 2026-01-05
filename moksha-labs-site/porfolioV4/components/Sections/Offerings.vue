@@ -133,7 +133,8 @@ const toggle = (index: number) => {
       ease: "power3.inOut",
       onComplete: () => {
         drawer.style.visibility = "hidden";
-        ScrollTrigger.refresh();
+        // Single refresh after animation completes
+        requestAnimationFrame(() => ScrollTrigger.refresh());
       },
     });
     active.value = null;
@@ -153,7 +154,6 @@ const toggle = (index: number) => {
     // Open new
     drawer.style.visibility = "visible";
     gsap.set(drawer, { height: "auto" });
-    ScrollTrigger.refresh();
 
     const autoHeight = drawer.offsetHeight;
     gsap.fromTo(
@@ -164,9 +164,10 @@ const toggle = (index: number) => {
         opacity: 1,
         duration: 0.8,
         ease: "expo.out",
-      onComplete: () => {
-        ScrollTrigger.refresh();
-      },
+        onComplete: () => {
+          // Single refresh after animation completes
+          requestAnimationFrame(() => ScrollTrigger.refresh());
+        },
       }
     );
     active.value = index;

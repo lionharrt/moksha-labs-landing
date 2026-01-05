@@ -1,10 +1,10 @@
 <template>
   <div class="app-root">
     <FloatingBackground />
-    <NavBar />
+    <NavBar :class="{ 'navbar-entrance': !isAppReady }" />
     <CustomCursor />
 
-    <NuxtPage />
+    <NuxtPage :class="{ 'page-entrance': !isAppReady }" />
 
     <footer
       class="bg-charcoal text-cream py-10 px-10 text-center border-t border-cream/5 relative z-10"
@@ -19,10 +19,17 @@
 <script setup lang="ts">
 const { locale } = useI18n();
 const { initLazyLoad } = usePortfolioAssets();
-const { refreshTheme } = useThemeTransition();
+useThemeTransition(); // Initialize theme transitions
+
+const isAppReady = ref(false);
 
 onMounted(() => {
   initLazyLoad();
+  
+  // Delay navbar entrance until after logo animation (1.2s)
+  setTimeout(() => {
+    isAppReady.value = true;
+  }, 1200);
 });
 
 const i18nHead = useLocaleHead({
@@ -39,21 +46,63 @@ useHead({
   link: computed(() => i18nHead.value.link || []),
   meta: computed(() => i18nHead.value.meta || []),
   script: [
+    // Organization Schema
+    {
+      type: "application/ld+json",
+      children: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "@id": "https://mokshalabs.ie/#organization",
+        name: "Moksha Labs",
+        url: "https://mokshalabs.ie",
+        logo: "https://mokshalabs.ie/favicon.png",
+        description: "High-end digital agency specializing in immersive web experiences, cinematic motion design, and luxury brand identity.",
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: "Dublin",
+          addressCountry: "IE",
+        },
+        contactPoint: {
+          "@type": "ContactPoint",
+          contactType: "Customer Service",
+          availableLanguage: ["English", "Turkish", "Italian", "Arabic"],
+        },
+        sameAs: [
+          "https://www.instagram.com/mokshalabs",
+          "https://www.linkedin.com/company/moksha-labs",
+        ],
+      }),
+    },
+    // WebSite Schema with SearchAction for AEO
+    {
+      type: "application/ld+json",
+      children: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "@id": "https://mokshalabs.ie/#website",
+        url: "https://mokshalabs.ie",
+        name: "Moksha Labs",
+        description: "Crafting high-end digital experiences for the modern era.",
+        publisher: {
+          "@id": "https://mokshalabs.ie/#organization",
+        },
+        inLanguage: ["en-US", "tr-TR", "it-IT", "ar-SA"],
+      }),
+    },
+    // ProfessionalService Schema
     {
       type: "application/ld+json",
       children: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "ProfessionalService",
+        "@id": "https://mokshalabs.ie/#service",
         name: "Moksha Labs",
         image: "https://mokshalabs.ie/favicon.png",
-        "@id": "https://mokshalabs.ie",
         url: "https://mokshalabs.ie",
-        telephone: "",
+        priceRange: "€€€",
         address: {
           "@type": "PostalAddress",
-          streetAddress: "",
           addressLocality: "Dublin",
-          postalCode: "",
           addressCountry: "IE",
         },
         geo: {
@@ -75,9 +124,17 @@ useHead({
           opens: "00:00",
           closes: "23:59",
         },
-        sameAs: [
-          "https://www.instagram.com/mokshalabs",
-          "https://www.linkedin.com/company/moksha-labs",
+        areaServed: {
+          "@type": "Country",
+          name: ["Ireland", "United Kingdom", "Europe", "Turkey", "Middle East"],
+        },
+        serviceType: [
+          "Web Design & Development",
+          "Brand Identity Design",
+          "Digital Transformation",
+          "Social Media Marketing",
+          "SEO & Digital Marketing",
+          "Motion Design",
         ],
       }),
     },
@@ -89,5 +146,34 @@ useHead({
 /* Any global app styles */
 .app-root {
   @apply relative;
+}
+
+/* Smooth entrance animations - SEO friendly (content in DOM) */
+.navbar-entrance {
+  opacity: 0;
+  transform: translateY(-30px);
+}
+
+.page-entrance {
+  opacity: 0;
+}
+
+.page-entrance > * {
+  opacity: 0;
+}
+
+/* Only hide non-hero sections initially */
+.page-entrance > *:not(#hero) {
+  visibility: hidden;
+}
+
+/* Navbar descends when ready */
+.navbar-entrance {
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.navbar-entrance:not(.navbar-entrance) {
+  opacity: 1;
+  transform: translateY(0);
 }
 </style>

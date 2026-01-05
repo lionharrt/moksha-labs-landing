@@ -2,16 +2,13 @@ import { onMounted, onUnmounted } from 'vue'
 
 export const useThemeTransition = () => {
   const { gsap, ScrollTrigger } = useGsap()
+  let initialized = false
 
   const initThemeController = () => {
-    if (!import.meta.client) return
+    if (!import.meta.client || initialized) return
+    initialized = true
 
-    // 1. Clean up existing theme triggers
-    ScrollTrigger.getAll().forEach(st => {
-      if (st.vars.id === 'theme-trigger') st.kill()
-    })
-
-    // 2. Find all sections with a theme color
+    // Find all sections with a theme color
     const sections = gsap.utils.toArray<HTMLElement>('[data-theme-color]')
     
     sections.forEach((section) => {
@@ -19,9 +16,8 @@ export const useThemeTransition = () => {
       if (!color) return
 
       ScrollTrigger.create({
-        id: 'theme-trigger',
         trigger: section,
-        start: "top 60%", // Deterministic threshold: 60% down the viewport
+        start: "top 60%",
         end: "bottom 60%",
         onToggle: (self) => {
           if (self.isActive) {
@@ -33,22 +29,23 @@ export const useThemeTransition = () => {
             })
           }
         },
-        // Low priority ensures this calculates AFTER pinning and layout shifts
         refreshPriority: -10 
       })
     })
   }
 
   onMounted(() => {
-    // Initial load - wait for Nuxt hydration and layout
-    setTimeout(initThemeController, 1000)
-    
-    // Listen for layout shifts (like horizontal pinning ready)
-    window.addEventListener('refresh-theme', initThemeController)
+    // Single initialization after layout is ready
+    setTimeout(initThemeController, 800)
   })
 
   onUnmounted(() => {
-    window.removeEventListener('refresh-theme', initThemeController)
+    // Clean up theme triggers
+    ScrollTrigger.getAll().forEach(st => {
+      if (st.vars.trigger && (st.vars.trigger as HTMLElement).dataset?.themeColor) {
+        st.kill()
+      }
+    })
   })
 
   return {

@@ -1,7 +1,6 @@
 <template>
   <BaseSection
     ref="heroSection"
-    :key="locale"
     theme-color="#FDFBF7"
     class="hero-section flex items-center justify-center overflow-hidden !py-0 min-h-screen"
   >
@@ -31,12 +30,12 @@
         </h1>
       </div>
 
-      <!-- Content that appears after the text scrolls -->
+      <!-- Content that appears after the text scrolls - Auto scrolls to services -->
       <div
         ref="subContent"
         class="absolute inset-0 flex items-center justify-center opacity-0 pointer-events-none translate-y-12"
       >
-        <div class="text-center max-w-2xl px-6">
+        <div class="text-center max-w-2xl px-6 relative">
           <p
             class="text-saffron uppercase tracking-[0.5em] text-sm font-bold mb-6"
           >
@@ -48,94 +47,54 @@
         </div>
       </div>
 
+      <!-- Interactive Start Button -->
       <div
         ref="scrollIndicator"
-        class="absolute inset-0 z-0 flex flex-col items-center justify-center cursor-pointer pointer-events-auto"
-        @click="startExperience"
+        class="absolute inset-0 z-20 flex flex-col items-center justify-center cursor-pointer pointer-events-auto group"
+        :class="{ 'hero-mounted': isMounted }"
+        @click="playHeroAnimation"
       >
-        <div class="relative flex items-center justify-center">
-          <!-- Multi-layered Pulsing Rings -->
+        <div
+          class="relative flex items-center justify-center transition-transform duration-500 group-hover:scale-110 active:scale-95"
+        >
+          <!-- Multi-layered Pulsing Rings (Ambient) -->
           <div
-            class="w-32 h-32 border border-saffron/30 rounded-full animate-ripple-1 absolute"
+            class="w-32 h-32 border border-saffron/30 rounded-full hero-ripple-1 absolute opacity-0"
           ></div>
           <div
-            class="w-32 h-32 border border-saffron/20 rounded-full animate-ripple-2 absolute"
+            class="w-32 h-32 border border-saffron/20 rounded-full hero-ripple-2 absolute opacity-0"
           ></div>
           <div
-            class="w-32 h-32 border border-saffron/10 rounded-full animate-ripple-3 absolute"
+            class="w-32 h-32 border border-saffron/10 rounded-full hero-ripple-3 absolute opacity-0"
           ></div>
 
-          <!-- The Focal Point with Logo -->
-          <div class="flex flex-col items-center justify-center z-10">
+          <!-- The Focal Point with Logo (Bobbing on a Lake) -->
+          <div
+            class="flex flex-col items-center justify-center z-10 hero-float-lake space-y-2"
+          >
             <img
               src="~/assets/image/Logo1a1a1a.png"
-              class="h-16 opacity-90 animate-bounce-subtle"
+              class="h-16 hero-logo-entrance"
               alt="Moksha Logo"
             />
-          </div>
-
-          <!-- Downward Flow Indicator (Elegant Arrows) -->
-          <div
-            class="absolute top-[70px] flex flex-col items-center space-y-4 opacity-80"
-          >
             <span
-              class="text-[10px] uppercase font-bold animate-pulse text-saffron"
-              :class="locale !== 'ar' ? 'tracking-[0.4em] mr-[-0.4em]' : ''"
+              class="hero-enter-text text-[10px] uppercase font-bold tracking-[0.4em] text-saffron group-hover:text-charcoal transition-colors duration-300"
             >
-              {{ $t("hero.scroll") }}
+              {{ $t("hero.enter") }}
             </span>
-            <div class="flex flex-col items-center gap-2 mt-2">
-              <svg
-                width="14"
-                height="8"
-                viewBox="0 0 14 8"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                class="animate-arrow-flow-1"
-              >
-                <path
-                  d="M1 1L7 7L13 1"
-                  stroke="#E2A04F"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-              <svg
-                width="14"
-                height="8"
-                viewBox="0 0 14 8"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                class="animate-arrow-flow-2"
-              >
-                <path
-                  d="M1 1L7 7L13 1"
-                  stroke="#E2A04F"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-              <svg
-                width="14"
-                height="8"
-                viewBox="0 0 14 8"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                class="animate-arrow-flow-3"
-              >
-                <path
-                  d="M1 1L7 7L13 1"
-                  stroke="#E2A04F"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-            </div>
           </div>
         </div>
+      </div>
+
+      <!-- Swallow Ripples (Triggered on Click) -->
+      <div
+        class="absolute inset-0 pointer-events-none flex items-center justify-center z-10"
+      >
+        <div
+          v-for="i in 3"
+          :key="i"
+          class="swallow-ripple absolute w-32 h-32 border border-saffron/40 rounded-full opacity-0"
+        ></div>
       </div>
     </div>
   </BaseSection>
@@ -150,11 +109,12 @@ const scrollIndicator = ref<HTMLElement | null>(null);
 
 const { locale, t } = useI18n();
 const { gsap, ScrollTrigger } = useGsap();
-const { registerPoint, navigate, isHeroAnimationPlaying } = useScrollPhasing();
+const { isHeroAnimationPlaying } = useScrollPhasing();
+const { lock: lockScroll, unlock: unlockScroll } = useScrollLock();
 
 const animationState = ref<"start" | "playing" | "complete">("start");
-const heroTimeline = ref<gsap.core.Timeline | null>(null);
-const isScrollLocked = ref(false);
+const heroTimeline = shallowRef<gsap.core.Timeline | null>(null);
+const isMounted = ref(false);
 
 const startExperience = () => {
   if (animationState.value !== "start") return;
@@ -162,72 +122,124 @@ const startExperience = () => {
 };
 
 const text = "MOKSHA";
-const heroChars = computed(() => text.split(""));
-
-// Lock/unlock scroll functionality
-const lockScroll = () => {
-  isScrollLocked.value = true;
-  document.body.style.overflow = "hidden";
-  document.documentElement.style.overflow = "hidden";
-
-  // Stop Lenis if available
-  const { $lenis } = useNuxtApp();
-  if ($lenis) $lenis.stop();
-};
-
-const unlockScroll = () => {
-  isScrollLocked.value = false;
-  document.body.style.overflow = "";
-  document.documentElement.style.overflow = "";
-
-  // Start Lenis if available
-  const { $lenis } = useNuxtApp();
-  if ($lenis) $lenis.start();
-};
+const heroChars = text.split("");
 
 const playHeroAnimation = () => {
-  if (animationState.value !== "start") return;
-
   const tl = heroTimeline.value;
-  if (!tl) return;
+  if (!tl || animationState.value !== "start") return;
 
   animationState.value = "playing";
   isHeroAnimationPlaying.value = true;
 
-  // Play without locking scroll - let it be a visual flourish
   tl.play();
-  tl.eventCallback("onComplete", () => {
-    animationState.value = "complete";
-    isHeroAnimationPlaying.value = false;
-  });
 };
 
-const reverseHeroAnimation = () => {
-  if (animationState.value !== "complete") return;
+const resetHero = () => {
+  if (animationState.value === "start") return;
 
   const tl = heroTimeline.value;
-  if (!tl) return;
+  if (tl) {
+    tl.pause(0); // Reset main timeline to start
+  }
 
   animationState.value = "start";
-  isHeroAnimationPlaying.value = true;
+  isHeroAnimationPlaying.value = false;
 
-  // Reverse without locking scroll
-  tl.reverse();
-  tl.eventCallback("onReverseComplete", () => {
-    isHeroAnimationPlaying.value = false;
-  });
+  // Reset swallow ripples
+  const swallowRipples = document.querySelectorAll(".swallow-ripple");
+  if (swallowRipples.length) {
+    gsap.set(swallowRipples, { opacity: 0, scale: 1 });
+  }
+
+  // Reset visual elements to their initial "Enter Button" state
+  if (subContent.value) {
+    gsap.set(subContent.value, {
+      opacity: 0,
+      y: 12,
+      scale: 1,
+      clearProps: "all",
+    });
+  }
+  if (scrollIndicator.value) {
+    gsap.set(scrollIndicator.value, {
+      opacity: 1,
+      scale: 1,
+      clearProps: "pointerEvents",
+    });
+    scrollIndicator.value.style.pointerEvents = "auto";
+  }
+
+  // NEVER re-lock - once user has control, they keep it
 };
 
-onMounted(() => {
+
+onMounted(async () => {
+  // Clean up any existing ScrollTriggers from hot-reload
+  ScrollTrigger.getById("heroTrigger")?.kill();
+  ScrollTrigger.getById("heroResetTrigger")?.kill();
+  
+  // Delay mount flag to allow logo entrance animation to complete first
+  await nextTick();
+  setTimeout(() => {
+    isMounted.value = true;
+  }, 1200);
+
   const triggerElement = heroSection.value?.$el || heroSection.value;
   const chars = document.querySelectorAll(".hero-char");
+
+  // Initial lock - ONLY if we are actually at the top of the page
+  if (window.scrollY < 100) {
+    lockScroll('hero-initial');
+  } else {
+    // If we start lower down, ensure Hero is in its completed state
+    animationState.value = "complete";
+    isHeroAnimationPlaying.value = false;
+    unlockScroll('hero-initial');
+    if (scrollIndicator.value)
+      scrollIndicator.value.style.pointerEvents = "none";
+    gsap.set(subContent.value, { opacity: 1, y: 0, scale: 1 });
+    gsap.set(".hero-char", { opacity: 1, x: 0, y: 0, rotate: 0 });
+  }
+
   if (!chars.length || !triggerElement) return;
 
-  // 1. Create the master timeline (NOT scrubbed, plays automatically when triggered)
+  // 1. Create the master timeline
   const tl = gsap.timeline({
     paused: true,
+    onComplete: () => {
+      animationState.value = "complete";
+      isHeroAnimationPlaying.value = false;
+      unlockScroll('hero-initial');
+    },
   });
   heroTimeline.value = tl;
+
+  // 2. Swallow Ripples Animation - Only set them up, don't trigger immediate render
+  const swallowRipples = document.querySelectorAll(".swallow-ripple");
+  swallowRipples.forEach((ripple, i) => {
+    const startTime = 0.1 + i * 0.25;
+    // We use a to animation with an explicit start state to avoid ghosting
+    tl.to(
+      ripple,
+      {
+        opacity: 0.6,
+        scale: 1,
+        duration: 0.001,
+        immediateRender: false,
+      },
+      startTime
+    );
+    tl.to(
+      ripple,
+      {
+        scale: 8,
+        opacity: 0,
+        duration: 2.5,
+        ease: "power2.out",
+      },
+      startTime + 0.001
+    );
+  });
 
   // The "Track" Animation for each character - with bounce and pause
   chars.forEach((char, i) => {
@@ -270,78 +282,49 @@ onMounted(() => {
   );
   tl.to(
     scrollIndicator.value,
-    { opacity: 0, scale: 0.5, duration: 0.5, ease: "power2.inOut" },
+    {
+      opacity: 0,
+      scale: 0.8,
+      duration: 0.6,
+      ease: "power2.inOut",
+      onComplete: () => {
+        if (scrollIndicator.value)
+          scrollIndicator.value.style.pointerEvents = "none";
+      },
+    },
     0
   );
 
-  // 2. Create the ScrollTrigger for pinning - shorter duration
+  // 2. Create the ScrollTrigger for pinning - minimal spacing
   ScrollTrigger.create({
     id: "heroTrigger",
     trigger: triggerElement,
     start: "top top",
-    end: "+=100%", // Just 1 viewport height instead of 2
+    end: "+=10%", // Minimal scroll space - just enough to trigger exit
     pin: true,
     pinSpacing: true,
+    // No onEnterBack - never re-lock scroll once user has control
   });
 
-  // 3. Simple scroll-based animation trigger
-  const animationTriggerPoint = 100;
-  let lastScrollForDirection = window.scrollY;
-  let scrollUpStreak = 0;
-
-  const handleScroll = () => {
-    const currentScrollY = window.scrollY;
-
-    // Track sustained upward scrolling
-    if (currentScrollY < lastScrollForDirection - 5) {
-      // Scrolling up
-      scrollUpStreak++;
-    } else if (currentScrollY > lastScrollForDirection + 5) {
-      // Scrolling down
-      scrollUpStreak = 0;
-    }
-    lastScrollForDirection = currentScrollY;
-
-    // Forward: scrolled down past threshold and animation hasn't played yet
-    if (
-      currentScrollY > animationTriggerPoint &&
-      animationState.value === "start"
-    ) {
-      playHeroAnimation();
-    }
-
-    // Reverse: ONLY if sustained upward scrolling (5+ ups) AND at very top
-    // This requires deliberate upward navigation back to start
-    if (
-      currentScrollY < 5 &&
-      animationState.value === "complete" &&
-      scrollUpStreak >= 5
-    ) {
-      scrollUpStreak = 0;
-      reverseHeroAnimation();
-    }
-  };
-
-  window.addEventListener("scroll", handleScroll, { passive: true });
-
-  // 4. Register Hero snap points
-  registerPoint({
-    id: "hero-start",
-    y: 0,
-  });
-
-  registerPoint({
-    id: "hero-evolution",
-    y: () => {
-      const st = ScrollTrigger.getById("heroTrigger");
-      return st ? st.end : window.innerHeight * 2;
+  // 3. Create a separate ScrollTrigger for Reset (Ensures it's fully off-screen)
+  ScrollTrigger.create({
+    id: "heroResetTrigger",
+    trigger: triggerElement,
+    start: "bottom top", // Fires only when the bottom of Hero passes the top of the viewport
+    onLeave: () => {
+      if (animationState.value === "complete") {
+        resetHero();
+      }
     },
   });
 
   onUnmounted(() => {
     ScrollTrigger.getById("heroTrigger")?.kill();
-    window.removeEventListener("scroll", handleScroll);
-    unlockScroll(); // Clean up on unmount
+    ScrollTrigger.getById("heroResetTrigger")?.kill();
+    if (heroTimeline.value) {
+      heroTimeline.value.kill();
+    }
+    unlockScroll('hero-initial'); // Clean up on unmount
   });
 });
 </script>
@@ -350,83 +333,123 @@ onMounted(() => {
 @keyframes ripple-1 {
   0% {
     transform: scale(1);
-    opacity: 0.5;
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.4;
   }
   100% {
-    transform: scale(1.8);
+    transform: scale(2.5);
     opacity: 0;
   }
 }
 @keyframes ripple-2 {
   0% {
     transform: scale(1);
-    opacity: 0.3;
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.2;
   }
   100% {
-    transform: scale(2.2);
+    transform: scale(3.5);
     opacity: 0;
   }
 }
 @keyframes ripple-3 {
   0% {
     transform: scale(1);
+    opacity: 0;
+  }
+  10% {
     opacity: 0.1;
   }
   100% {
-    transform: scale(2.6);
-    opacity: 0;
-  }
-}
-@keyframes arrow-ripple {
-  0% {
-    transform: translateY(-5px);
-    opacity: 0;
-  }
-  20% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-  40% {
-    transform: translateY(10px);
-    opacity: 0;
-  }
-  100% {
-    transform: translateY(10px);
+    transform: scale(4.5);
     opacity: 0;
   }
 }
 
-@keyframes bounce-subtle {
+@keyframes float-lake {
   0%,
   100% {
-    transform: translateY(0);
+    transform: translateY(0) rotate(-0.5deg);
   }
   50% {
-    transform: translateY(-8px);
+    transform: translateY(12px) rotate(0.5deg);
   }
 }
 
-.animate-ripple-1 {
-  animation: ripple-1 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-}
-.animate-ripple-2 {
-  animation: ripple-2 4s cubic-bezier(0.4, 0, 0.2, 1) infinite 1s;
-}
-.animate-ripple-3 {
-  animation: ripple-3 4s cubic-bezier(0.4, 0, 0.2, 1) infinite 2s;
+/* Prevent animations from starting until component is mounted */
+.hero-ripple-1,
+.hero-ripple-2,
+.hero-ripple-3,
+.hero-float-lake {
+  animation-play-state: paused;
 }
 
-.animate-arrow-flow-1 {
-  animation: arrow-ripple 4s cubic-bezier(0.4, 0, 0.2, 1) infinite 0.2s;
+/* Start animations only when mounted */
+.hero-mounted .hero-ripple-1 {
+  animation: ripple-1 5.2s cubic-bezier(0.2, 0, 0.3, 1) infinite;
+  animation-delay: 2.6s;
+  animation-fill-mode: backwards;
+  animation-play-state: running;
 }
-.animate-arrow-flow-2 {
-  animation: arrow-ripple 4s cubic-bezier(0.4, 0, 0.2, 1) infinite 1.2s;
+.hero-mounted .hero-ripple-2 {
+  animation: ripple-2 5.2s cubic-bezier(0.2, 0, 0.3, 1) infinite 3s;
+  animation-fill-mode: backwards;
+  animation-play-state: running;
 }
-.animate-arrow-flow-3 {
-  animation: arrow-ripple 4s cubic-bezier(0.4, 0, 0.2, 1) infinite 2.2s;
+.hero-mounted .hero-ripple-3 {
+  animation: ripple-3 5.2s cubic-bezier(0.2, 0, 0.3, 1) infinite 3.4s;
+  animation-fill-mode: backwards;
+  animation-play-state: running;
 }
 
-.animate-bounce-subtle {
-  animation: bounce-subtle 2s ease-in-out infinite;
+.hero-mounted .hero-float-lake {
+  animation: float-lake 5.2s ease-in-out infinite;
+  animation-play-state: running;
+}
+
+/* Logo entrance - scale in first (independent of hero-mounted) */
+.hero-logo-entrance {
+  opacity: 0;
+  transform: scale(0.5);
+  animation: scaleIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s forwards;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+}
+
+/* Graceful fade-in for ENTER text - after logo */
+.hero-enter-text {
+  opacity: 0;
+  animation: fadeInDown 0.8s ease-out 1.2s forwards;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 0.8;
+    transform: translateY(0);
+  }
+}
+
+/* Prevent ripples and float from starting until hero is mounted */
+.hero-ripple-1,
+.hero-ripple-2,
+.hero-ripple-3 {
+  opacity: 0 !important;
 }
 </style>

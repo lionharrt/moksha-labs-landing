@@ -8,16 +8,48 @@
     :full-width="true"
     padding-class="!py-0 !px-0"
   >
+    <!-- Mobile Title - Outside horizontal scroll -->
+    <div v-if="isMobile" class="px-6 pt-12 pb-6">
+      <h2 ref="headerRef" class="text-4xl font-black text-charcoal">
+        {{ $t("sections.portfolio.title") }}
+      </h2>
+      <div class="mt-4 h-[1px] bg-charcoal/20"></div>
+      <div class="mt-3 flex items-center gap-2 text-charcoal/40 text-xs">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M5 12h14M12 5l7 7-7 7" />
+        </svg>
+        <span class="uppercase tracking-wider">{{
+          $t("sections.portfolio.scroll_hint") || "Swipe to explore"
+        }}</span>
+      </div>
+    </div>
+
     <div
-      class="exhibition-horizontal overflow-hidden min-h-screen flex flex-col justify-center"
+      class="exhibition-horizontal overflow-hidden flex flex-col justify-center"
+      :class="isMobile ? 'min-h-auto pb-12' : 'min-h-screen'"
     >
       <div
         ref="horizontalRef"
-        class="flex gap-10 md:gap-20 ps-6 md:ps-20 pe-0 py-10 w-fit items-center"
+        class="flex ps-6 md:ps-20 pe-6 md:pe-0 w-fit items-center"
+        :class="
+          isMobile
+            ? 'mobile-portfolio-scroll gap-6 py-6'
+            : 'gap-10 md:gap-20 py-10'
+        "
       >
-        <!-- Portfolio Title as First Card -->
+        <!-- Portfolio Title as First Card - Desktop Only -->
         <div
-          ref="headerRef"
+          v-if="!isMobile"
+          ref="headerRefDesktop"
           class="w-[80vw] md:w-[65vw] lg:w-[55vw] max-w-[1200px] flex-shrink-0 flex flex-col justify-center min-h-[70vh]"
         >
           <h2
@@ -53,7 +85,12 @@
         <div
           v-for="(project, idx) in masterpieceSlices"
           :key="project.id"
-          class="project-card w-[80vw] md:w-[65vw] lg:w-[55vw] max-w-[1200px] flex-shrink-0"
+          class="project-card flex-shrink-0"
+          :class="
+            isMobile
+              ? 'w-[85vw]'
+              : 'w-[80vw] md:w-[65vw] lg:w-[55vw] max-w-[1200px]'
+          "
           :data-project-id="project.id"
         >
           <div
@@ -65,9 +102,10 @@
 
           <div class="relative mb-8 group/portfolio">
             <UIPortfolioCard
-              class="aspect-video"
+              class="aspect-video cursor-pointer hide-custom-cursor"
               :aria-label="`Portfolio project: ${project.title}`"
               :loading="project.isInView && !project.loaded"
+              @click="openPlayer(project, 'desktop', $event)"
             >
               <div class="relative w-full h-full bg-charcoal/5">
                 <!-- High-Quality First Frame Poster -->
@@ -110,12 +148,17 @@
             <!-- Overlapping Phone Panel (Only shows if mobile video exists) -->
             <div
               v-if="getMobileVideo(project.id)"
-              class="absolute bottom-[30%] translate-y-1/2 w-[15vw] md:w-[12vw] lg:w-[10vw] max-w-[240px] z-20 transition-transform duration-700"
+              class="absolute bottom-[30%] translate-y-1/2 z-20 transition-transform duration-700 cursor-pointer hide-custom-cursor"
               :class="[
-                isRTL
-                  ? '-left-4 md:-left-12 group-hover/portfolio:-translate-x-4'
-                  : '-right-4 md:-right-12 group-hover/portfolio:translate-x-4',
+                isMobile
+                  ? 'w-[20vw] -right-2'
+                  : 'w-[15vw] md:w-[12vw] lg:w-[10vw] max-w-[240px]',
+                !isMobile &&
+                  (isRTL
+                    ? '-left-4 md:-left-12 group-hover/portfolio:-translate-x-4'
+                    : '-right-4 md:-right-12 group-hover/portfolio:translate-x-4'),
               ]"
+              @click="openPlayer(project, 'mobile', $event)"
             >
               <UIPortfolioCard
                 class="aspect-[9/19.5]"
@@ -174,7 +217,8 @@
 
         <!-- Final Cinematic Outro -->
         <div
-          class="w-screen h-[100vh] flex-shrink-0 flex items-center justify-center relative"
+          class="flex-shrink-0 flex items-center justify-center relative"
+          :class="isMobile ? 'w-[85vw] min-h-[60vh]' : 'w-screen h-[100vh]'"
         >
           <div class="text-center">
             <h4
@@ -251,61 +295,18 @@
           </div>
         </div>
       </div>
-
-      <!-- Mobile Controls: Visible only on small screens -->
-      <div
-        class="md:hidden flex justify-center items-center gap-8 py-8 relative z-30"
-      >
-        <button
-          @click="scrollPortfolio(-1)"
-          class="group p-4 bg-charcoal/5 rounded-full border border-charcoal/10 active:scale-95 transition-all"
-          aria-label="Previous project"
-        >
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="text-charcoal group-hover:text-saffron transition-colors"
-          >
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-        </button>
-
-        <div class="flex gap-2">
-          <div
-            v-for="(_, i) in [...masterpieceSlices, { id: 'ready' }]"
-            :key="i"
-            class="w-1.5 h-1.5 rounded-full transition-all duration-300"
-            :class="activeSlide === i ? 'bg-saffron w-4' : 'bg-charcoal/20'"
-          ></div>
-        </div>
-
-        <button
-          @click="scrollPortfolio(1)"
-          class="group p-4 bg-charcoal/5 rounded-full border border-charcoal/10 active:scale-95 transition-all"
-          aria-label="Next project"
-        >
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="text-charcoal group-hover:text-saffron transition-colors"
-          >
-            <path d="m9 18 6-6-6-6" />
-          </svg>
-        </button>
-      </div>
     </div>
+
+    <!-- Full-screen Player -->
+    <UIPortfolioPlayer
+      :is-open="playerState.isOpen"
+      :video-url="playerState.videoUrl"
+      :poster-url="playerState.posterUrl"
+      :initial-rect="playerState.initialRect"
+      :type="playerState.type"
+      :current-time="playerState.currentTime"
+      @close="closePlayer"
+    />
   </BaseSection>
 </template>
 
@@ -314,15 +315,52 @@ import { onMounted, onUnmounted, ref, nextTick, computed, watch } from "vue";
 
 const { locale } = useI18n();
 const { gsap, ScrollTrigger } = useGsap();
-const { registerPoint } = useScrollPhasing();
+const { registerSection } = useScrollPhasing();
 
 const isRTL = computed(() => locale.value === "ar");
+const isMobile = ref(false);
 
 const triggerRef = ref<HTMLElement | null>(null);
 const headerRef = ref<HTMLElement | null>(null);
+const headerRefDesktop = ref<HTMLElement | null>(null);
 const horizontalRef = ref<HTMLElement | null>(null);
 const magneticBtn = ref<any>(null);
-const activeSlide = ref(0);
+
+// Player State
+const playerState = ref({
+  isOpen: false,
+  videoUrl: "",
+  posterUrl: "",
+  initialRect: null as DOMRect | null,
+  type: "desktop" as "desktop" | "mobile",
+  currentTime: 0,
+});
+
+const openPlayer = (
+  project: any,
+  type: "desktop" | "mobile",
+  event: MouseEvent
+) => {
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+  const video = (event.currentTarget as HTMLElement).querySelector(
+    "video"
+  ) as HTMLVideoElement;
+
+  playerState.value = {
+    isOpen: true,
+    videoUrl:
+      type === "desktop" ? getVideo(project.id) : getMobileVideo(project.id),
+    posterUrl:
+      type === "desktop" ? getPoster(project.id) : getMobilePoster(project.id),
+    initialRect: rect,
+    type,
+    currentTime: video ? video.currentTime : 0,
+  };
+};
+
+const closePlayer = () => {
+  playerState.value.isOpen = false;
+};
 
 // Magnetic Button Logic
 const handleMagnetic = (e: MouseEvent) => {
@@ -349,34 +387,6 @@ const resetMagnetic = () => {
     duration: 0.6,
     ease: "elastic.out(1, 0.3)",
   });
-};
-
-const scrollPortfolio = (direction: number) => {
-  const triggers = ScrollTrigger.getAll();
-  const st = triggers.find(
-    (t) =>
-      t.trigger &&
-      (t.trigger as HTMLElement).classList?.contains("exhibition-horizontal")
-  );
-
-  if (st) {
-    const currentScrollY = window.scrollY;
-    const scrollRange = st.end - st.start;
-
-    // Move by a viewport height for comfortable navigation
-    // ScrollTrigger's scrub will handle the smooth animation
-    const scrollIncrement = window.innerHeight * 0.8;
-    const targetScrollY = currentScrollY + direction * scrollIncrement;
-
-    // Clamp to the bounds of the portfolio section
-    const clampedTarget = Math.max(st.start, Math.min(st.end, targetScrollY));
-
-    gsap.to(window, {
-      scrollTo: clampedTarget,
-      duration: 0.8,
-      ease: "power2.inOut",
-    });
-  }
 };
 
 // Static video paths from the public/videos folder
@@ -468,10 +478,25 @@ const handleLoadingState = (project: any, type: "desktop" | "mobile") => {
   else project.loadedMobile = true;
 };
 
-onMounted(() => {
+// Store cleanup functions
+let intersectionObserver: IntersectionObserver | null = null;
+let wheelHandler: EventListener | null = null;
+let touchStartHandler: EventListener | null = null;
+let touchEndHandler: EventListener | null = null;
+
+onMounted(async () => {
+  await nextTick();
+
+  // Check if mobile
+  isMobile.value = window.innerWidth < 768;
+  window.addEventListener("resize", () => {
+    isMobile.value = window.innerWidth < 768;
+  });
+
+  // 1. Resolve Firebase video URLs
   resolveVideos();
 
-  // Safety Release: Reveal after 8s if still stuck in view
+  // 2. Safety Release: Reveal after 8s if still stuck in view
   masterpieceSlices.value.forEach((project) => {
     watch(
       () => project.isInView,
@@ -490,8 +515,8 @@ onMounted(() => {
     );
   });
 
-  // 2. Intersection Observer: Only load video when card enters viewport
-  const observer = new IntersectionObserver(
+  // 3. Intersection Observer: Only load video when card enters viewport
+  intersectionObserver = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
@@ -505,210 +530,188 @@ onMounted(() => {
   );
 
   document.querySelectorAll(".project-card").forEach((el) => {
-    observer.observe(el);
+    intersectionObserver?.observe(el);
   });
 
-  // 4. Register Portfolio Snap Point at entry
-  // ScrollTrigger's native scrub handles all scrolling within the section
-  // Only snap when entering from Services section
+  // 4. Wait for layout stabilization before initializing animations
   setTimeout(() => {
-    const st = ScrollTrigger.getAll().find(
-      (t) =>
-        t.trigger &&
-        (t.trigger as HTMLElement).classList?.contains("exhibition-horizontal")
-    );
-    if (st) {
-      // Snap to portfolio entry (title card)
-      registerPoint({
-        id: "portfolio-start",
-        y: st.start,
-      });
-    }
-  }, 1200);
-
-  // 3. Support horizontal scroll input by translating it to vertical scroll
-  // This lets users scroll horizontally (trackpad, shift+wheel) to navigate
-  const el = document.querySelector(".exhibition-horizontal");
-  if (el) {
-    el.addEventListener(
-      "wheel",
-      (e: any) => {
-        // If user is scrolling horizontally (trackpad gesture, shift+wheel, etc.)
-        const isHorizontalScroll =
-          Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey;
-
-        if (isHorizontalScroll && Math.abs(e.deltaX) > 0) {
-          e.preventDefault();
-
-          // Translate horizontal scroll to vertical scroll to drive ScrollTrigger
-          const scrollAmount = e.deltaX * 2; // Multiply for more responsive feel
-          window.scrollBy(0, scrollAmount);
+    // Header Animation - Desktop only (mobile title is static)
+    if (!isMobile.value) {
+      gsap.fromTo(
+        ".title-line",
+        { y: 100, rotate: 2, opacity: 0 },
+        {
+          y: 0,
+          rotate: 0,
+          opacity: 1,
+          duration: 1.5,
+          ease: "expo.out",
+          scrollTrigger: {
+            trigger: headerRefDesktop.value,
+            start: "top 85%",
+          },
         }
-        // Vertical scroll works naturally with ScrollTrigger
-      },
-      { passive: false }
-    );
-
-    // Mobile: Touch swipe support
-    if (window.innerWidth < 1024) {
-      let touchStartX = 0;
-      let touchStartY = 0;
-
-      el.addEventListener(
-        "touchstart",
-        (e: any) => {
-          touchStartX = e.touches[0].clientX;
-          touchStartY = e.touches[0].clientY;
-        },
-        { passive: true }
-      );
-
-      el.addEventListener(
-        "touchend",
-        (e: any) => {
-          const touchEndX = e.changedTouches[0].clientX;
-          const touchEndY = e.changedTouches[0].clientY;
-
-          const deltaX = touchStartX - touchEndX;
-          const deltaY = touchStartY - touchEndY;
-
-          // Determine dominant direction
-          const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY);
-
-          // For horizontal swipes on mobile, use button navigation
-          if (isHorizontalSwipe && Math.abs(deltaX) > 80) {
-            const direction = deltaX > 0 ? 1 : -1;
-            scrollPortfolio(direction);
-          }
-          // Vertical swipes use native ScrollTrigger behavior
-        },
-        { passive: true }
       );
     }
+
+    // Horizontal Scroll Logic - ONLY ON DESKTOP
+    if (horizontalRef.value && !isMobile.value) {
+      const getScrollAmount = () => {
+        if (!horizontalRef.value) return 0;
+        return horizontalRef.value.scrollWidth - window.innerWidth;
+      };
+
+      // Calculate total distance - movement + hold phase
+      const holdDistance = window.innerHeight * 1.5;
+
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          id: "portfolioTrigger",
+          trigger: ".exhibition-horizontal",
+          pin: true,
+          scrub: 1,
+          start: "top top",
+          end: () => `+=${getScrollAmount() + holdDistance}`,
+          invalidateOnRefresh: true,
+        },
+      });
+
+      const movementDuration = 0.85;
+
+      gsap.set(horizontalRef.value, { x: 0 });
+
+      tl.to(horizontalRef.value, {
+        x: () => (isRTL.value ? getScrollAmount() : -getScrollAmount()),
+        ease: "none",
+        duration: movementDuration,
+      });
+
+      tl.to(
+        ".ready-text",
+        {
+          scale: 1,
+          color: "#d97706",
+          opacity: 1,
+          ease: "power2.out",
+          duration: 0.2,
+        },
+        movementDuration - 0.1
+      );
+
+      tl.to(
+        ".scroll-indicator-outro",
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.1,
+          ease: "power2.out",
+        },
+        movementDuration
+      );
+    }
+
+    // Register section for tracking
+    registerSection({
+      id: "portfolio",
+      y: () => {
+        const st = ScrollTrigger.getById("portfolioTrigger");
+        return st ? st.start : 0;
+      },
+    });
+  }, 600);
+
+  // 5. Horizontal scroll support - ONLY on desktop, ONLY when inside portfolio section
+  // On mobile, we use native horizontal scroll instead
+  const el = document.querySelector(".exhibition-horizontal");
+  if (el && !isMobile.value && window.innerWidth >= 768) {
+    wheelHandler = (e: Event) => {
+      // Double-check we're not on mobile
+      if (window.innerWidth < 768) return;
+
+      const wheelEvent = e as WheelEvent;
+      // Check if we're actually in the portfolio section
+      const st = ScrollTrigger.getById("portfolioTrigger");
+      if (!st || !st.isActive) return;
+
+      const isHorizontalIntent =
+        Math.abs(wheelEvent.deltaX) > Math.abs(wheelEvent.deltaY) * 1.2 ||
+        wheelEvent.shiftKey;
+
+      if (isHorizontalIntent && Math.abs(wheelEvent.deltaX) > 2) {
+        const atStart = st.progress <= 0 && wheelEvent.deltaX < 0;
+        const atEnd = st.progress >= 1 && wheelEvent.deltaX > 0;
+        if (atStart || atEnd) return;
+
+        wheelEvent.preventDefault();
+        const scrollAmount = wheelEvent.deltaX * 1.5;
+        window.scrollBy(0, scrollAmount);
+      }
+    };
+
+    el.addEventListener("wheel", wheelHandler as EventListener, {
+      passive: false,
+    });
   }
 });
 
-const initExhibitionAnimations = () => {
-  if (!import.meta.client) return;
-
-  // Kill existing to avoid duplicates
+onUnmounted(() => {
+  // Clean up ScrollTriggers
+  ScrollTrigger.getById("portfolioTrigger")?.kill();
   ScrollTrigger.getAll().forEach((t: any) => {
-    if (
-      t.trigger === ".exhibition-horizontal" ||
-      t.trigger === headerRef.value
-    ) {
+    if (t.trigger === headerRef.value || t.trigger === ".title-line") {
       t.kill();
     }
   });
 
-  // 1. Header Animation
-  gsap.fromTo(
-    ".title-line",
-    { y: 100, rotate: 2, opacity: 0 },
-    {
-      y: 0,
-      rotate: 0,
-      opacity: 1,
-      duration: 1.5,
-      ease: "expo.out",
-      scrollTrigger: {
-        trigger: headerRef.value,
-        start: "top 85%",
-      },
-    }
-  );
-
-  // 2. Horizontal Scroll Logic
-  if (horizontalRef.value) {
-    const scrollWidth = horizontalRef.value.scrollWidth;
-    const amountToScroll = scrollWidth - window.innerWidth;
-
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: ".exhibition-horizontal",
-        pin: true,
-        scrub: true,
-        start: "top top",
-        end: () => "+=" + (amountToScroll + window.innerHeight),
-        invalidateOnRefresh: true,
-        onUpdate: (self) => {
-          const totalSlides = masterpieceSlices.value.length + 1;
-          activeSlide.value = Math.round(self.progress * (totalSlides - 1));
-        },
-      },
-    });
-
-    // We want the horizontal scroll to take up most of the pinning distance,
-    // but leave some "hold" at the end so the user can actually see the full screen Ready section.
-    const scrollDuration =
-      amountToScroll / (amountToScroll + window.innerHeight);
-
-    // Explicitly set initial position to avoid jumps
-    gsap.set(horizontalRef.value, { x: 0 });
-
-    tl.to(horizontalRef.value, {
-      x: isRTL.value ? amountToScroll : -amountToScroll,
-      ease: "none",
-      duration: scrollDuration,
-    });
-
-    // Variable weight morph animation for the "READY?" text
-    // We delay the start so it happens primarily while the section is centering
-    // and finishing slightly into the "hold" phase for maximum impact.
-    const readySectionRatio =
-      window.innerWidth / (amountToScroll + window.innerHeight);
-
-    // Start when the section is 50% visible on screen
-    const startPoint = scrollDuration - readySectionRatio * 0.5;
-    // End a bit after it has become full screen (during the pinned "hold" phase)
-    const animDuration = readySectionRatio * 0.8;
-
-    tl.to(
-      ".ready-text",
-      {
-        scale: 1,
-        color: "#d97706",
-        opacity: 1,
-        ease: "power2.out",
-        duration: animDuration,
-      },
-      startPoint
-    );
-
-    // Reveal the scroll indicator slightly after the text starts morphing
-    tl.to(
-      ".scroll-indicator-outro",
-      {
-        opacity: 1,
-        y: 0,
-        duration: animDuration * 0.5,
-        ease: "power2.out",
-      },
-      startPoint + animDuration * 0.3
-    );
+  // Clean up observers and event listeners
+  if (intersectionObserver) {
+    intersectionObserver.disconnect();
+    intersectionObserver = null;
   }
 
-  // CRITICAL: Force a total recalculation of the page height
-  // and all subsequent section trigger positions.
-  ScrollTrigger.refresh();
-  window.dispatchEvent(new CustomEvent("refresh-theme"));
-};
-
-onMounted(async () => {
-  await nextTick();
-  setTimeout(() => {
-    initExhibitionAnimations();
-  }, 400);
-});
-
-onUnmounted(() => {
-  ScrollTrigger.getAll().forEach((t: any) => t.kill());
+  const el = document.querySelector(".exhibition-horizontal");
+  if (el && wheelHandler) {
+    el.removeEventListener("wheel", wheelHandler);
+    wheelHandler = null;
+  }
+  if (el && touchStartHandler) {
+    el.removeEventListener("touchstart", touchStartHandler);
+    touchStartHandler = null;
+  }
+  if (el && touchEndHandler) {
+    el.removeEventListener("touchend", touchEndHandler);
+    touchEndHandler = null;
+  }
 });
 </script>
 
 <style scoped>
 .portfolio-container {
   overflow-x: hidden;
+}
+
+/* Mobile: Allow native horizontal scroll */
+@media (max-width: 767px) {
+  .exhibition-horizontal {
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    min-height: auto !important;
+  }
+
+  .mobile-portfolio-scroll {
+    height: auto;
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .exhibition-horizontal::-webkit-scrollbar {
+    display: none;
+  }
+
+  .exhibition-horizontal {
+    scrollbar-width: none;
+  }
 }
 
 .title-line {

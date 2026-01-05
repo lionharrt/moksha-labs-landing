@@ -10,7 +10,9 @@
   "hero": {
     "main_text": "MOKSHA",
     "subtitle": "Evoluzione Digitale",
-    "title": "Creazione di esperienze digitali di alto livello per l'era moderna."
+    "title": "Creazione di esperienze digitali di alto livello per l'era moderna.",
+    "scroll": "Scorri",
+    "enter": "ENTRA"
   },
   "sections": {
     "services": {

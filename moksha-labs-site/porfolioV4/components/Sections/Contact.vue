@@ -193,8 +193,6 @@
 </template>
 
 <script setup lang="ts">
-import emailjs from "@emailjs/browser";
-
 const { message, subject } = useContactForm();
 const config = useRuntimeConfig();
 
@@ -250,22 +248,20 @@ const handleSubmit = async () => {
   isError.value = false;
 
   try {
-    const templateParams = {
-      from_name: form.value.name,
-      from_email: form.value.email,
-      subject: subject.value,
-      message: message.value,
-      "cf-turnstile-response": turnstileToken.value,
-    };
+    // Send to our server API endpoint (using Lark SMTP)
+    const response = await $fetch("/api/contact", {
+      method: "POST",
+      body: {
+        name: form.value.name,
+        email: form.value.email,
+        subject: subject.value,
+        message: message.value,
+        turnstileToken: turnstileToken.value,
+        honeypot: form.value.honeypot,
+      },
+    });
 
-    const response = await emailjs.send(
-      config.public.emailjsServiceId,
-      config.public.emailjsTemplateId,
-      templateParams,
-      config.public.emailjsPublicKey
-    );
-
-    if (response.status === 200) {
+    if (response.success) {
       isSubmitted.value = true;
       // Clear form
       form.value = { name: "", email: "", honeypot: "" };
@@ -275,8 +271,8 @@ const handleSubmit = async () => {
     } else {
       throw new Error("Failed to send email");
     }
-  } catch (error) {
-    console.error("EmailJS Error:", error);
+  } catch (error: any) {
+    console.error("Email sending error:", error);
     isError.value = true;
   } finally {
     isSubmitting.value = false;
