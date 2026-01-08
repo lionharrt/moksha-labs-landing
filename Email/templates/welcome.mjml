@@ -1,0 +1,268 @@
+<mjml>
+  <mj-head>
+    <mj-title>A Personal Message from Moksha Labs</mj-title>
+    <mj-font
+      name="Inter"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap"
+    />
+    <mj-font
+      name="Georgia"
+      href="https://fonts.googleapis.com/css2?family=Georgia&display=swap"
+    />
+    <mj-attributes>
+      <mj-all
+        font-family="Inter, Helvetica, Arial, sans-serif"
+        color="#1a1a1a"
+      />
+      <mj-text font-size="16px" line-height="1.8" />
+      <mj-button
+        background-color="#1a1a1a"
+        color="#fdfbf7"
+        font-size="11px"
+        font-weight="700"
+        border-radius="0px"
+        text-transform="uppercase"
+        letter-spacing="0.2em"
+        padding="18px 36px"
+      />
+      <mj-section padding="0px" />
+    </mj-attributes>
+    <mj-style>
+      .serif { font-family: 'Georgia', serif !important; } .orange { color:
+      #f15a24 !important; } .bg-orange { background-color: #f15a24 !important; }
+      .letter-spacing-large { letter-spacing: 0.3em !important; } .logo-text {
+      font-family: 'Times New Roman', Times, serif !important; letter-spacing:
+      2px !important; }
+    </mj-style>
+  </mj-head>
+  <mj-body background-color="#fdfbf7">
+    <!-- Header: Saffron branding -->
+    <mj-section background-color="#e6400b" padding="60px 20px">
+      <mj-column>
+        <mj-image
+          src="https://mokshalabs.ie/favicon-dark.png"
+          height="75px"
+          width="100px"
+          alt="Moksha Labs"
+        />
+        <mj-text
+          align="center"
+          color="#ffffff"
+          font-size="32px"
+          font-weight="400"
+          padding-top="15px"
+        >
+          <span class="logo-text"
+            >MOKSHA<span style="font-style: italic; font-weight: 600"
+              >LABS</span
+            ></span
+          >
+        </mj-text>
+        <mj-text
+          align="center"
+          color="#ffffff"
+          font-size="10px"
+          font-weight="400"
+          text-transform="uppercase"
+          letter-spacing="5px"
+          padding-top="5px"
+        >
+          SHAPING DIGITAL PRESENCE
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Main Content -->
+    <mj-section background-color="#ffffff" padding="60px 50px">
+      <mj-column>
+        <mj-text
+          color="#e6400b"
+          font-size="12px"
+          font-weight="700"
+          text-transform="uppercase"
+          letter-spacing="0.3em"
+          padding-bottom="16px"
+        >
+          A Note from Dylan
+        </mj-text>
+        <mj-text
+          font-size="28px"
+          font-weight="400"
+          line-height="1.2"
+          padding-bottom="32px"
+        >
+          <span class="serif">Hey there, <strong>{{name}}</strong>.</span>
+        </mj-text>
+
+        <mj-text padding-bottom="20px">
+          I’ve been building custom websites and working with companies for over
+          10 years, and if there’s one thing I’ve seen, it’s how often people
+          get the fundamentals wrong.
+        </mj-text>
+
+        <mj-text padding-bottom="20px">
+          The core aspect customers care about in the first 5 seconds isn't your
+          logic—it's <strong>how the website feels</strong>. I have a passion
+          for creating interfaces that flow with a subtle, interesting movement
+          that elevates a brand far above its competitors.
+        </mj-text>
+
+        <mj-text padding-bottom="20px" font-weight="700" font-style="italic">
+          I had a look at your website, and honestly? There’s serious room for
+          improvement.
+        </mj-text>
+
+        <mj-text padding-bottom="20px">
+          Did you know most customers form an opinion on a website in a fraction
+          of a second? It’s almost entirely subconscious. The secret to cracking
+          that first impression lies in four things:
+        </mj-text>
+
+        <mj-text padding-bottom="10px" padding-left="20px">
+          • Space<br />
+          • Color<br />
+          • Imagery<br />
+          • <span class="orange"><strong>Movement</strong></span>
+        </mj-text>
+
+        <mj-text padding-bottom="20px">
+          Nothing says "professional" like graceful movement. Most developers
+          are too caught up in the logic to create things that actually feel
+          great to use.
+          <strong>That’s where we at Moksha Labs are different.</strong>
+        </mj-text>
+
+        <mj-text padding-bottom="20px">
+          Beyond the feel, our speed is incomparable. I will blow you away with
+          what I can build in a timeframe that will have you questioning how
+          it’s even possible.
+        </mj-text>
+
+        <mj-text padding-bottom="20px">
+          This isn't just about my vision; it’s about yours. If you don’t like
+          something, I’ll have a new version for you in hours, not weeks. We
+          combine your knowledge of your customers with my decade of experience
+          and artistic flair to bring your business the storefront it deserves.
+        </mj-text>
+
+        <mj-text padding-bottom="20px">
+          And if you need more than just a storefront?
+          <strong
+            >Custom integrations, complex features, automations, AI?</strong
+          >
+          I’ve done it all. I’ve built hundreds of applications across varied
+          technologies and industries. Whatever you need to reach the next
+          level, I can manage it.
+        </mj-text>
+
+        <mj-text padding-bottom="32px">
+          Interested? I’m happy to set up a call at your earliest convenience.
+          <strong>Let’s make some magic.</strong>
+        </mj-text>
+
+        <mj-button align="left" href="https://mokshalabs.ie">
+          Check out my work
+        </mj-button>
+      </mj-column>
+    </mj-section>
+
+    <!-- Signature -->
+    <mj-section
+      background-color="#ffffff"
+      padding="40px 50px"
+      border-top="1px solid #f0f0f0"
+    >
+      <mj-column width="100px" vertical-align="middle">
+        <mj-image
+          src="https://storage.googleapis.com/mokshalabs.firebasestorage.app/team/dylan.jpg"
+          width="100px"
+          border-radius="50%"
+          padding="0px"
+          border="4px solid #ffffff"
+        />
+      </mj-column>
+      <mj-column width="350px" padding-left="25px" vertical-align="middle">
+        <mj-text
+          font-size="32px"
+          font-weight="500"
+          line-height="1"
+          padding-bottom="12px"
+          padding-top="10px"
+          align="left"
+        >
+          Dylan Mahony
+        </mj-text>
+        <mj-text
+          font-size="14px"
+          font-weight="700"
+          color="#ffffff"
+          text-transform="uppercase"
+          letter-spacing="1px"
+          padding="10px 20px"
+          container-background-color="#f15a24"
+          align="left"
+        >
+          Founder & Tech Lead
+        </mj-text>
+        <mj-text
+          font-size="16px"
+          color="#666666"
+          padding-top="20px"
+          align="left"
+        >
+          <img
+            src="https://img.icons8.com/ios-filled/50/f15a24/new-post.png"
+            width="14"
+            style="vertical-align: middle; margin-right: 5px"
+          />
+          <a
+            href="mailto:dylan@mokshalabs.ie"
+            style="
+              color: #666666;
+              text-decoration: none;
+              vertical-align: middle;
+            "
+            >dylan@mokshalabs.ie</a
+          >
+          <br />
+          <img
+            src="https://img.icons8.com/ios-filled/50/f15a24/globe--v1.png"
+            width="14"
+            style="vertical-align: middle; margin-right: 5px"
+          />
+          <a
+            href="https://www.mokshalabs.ie"
+            style="
+              color: #666666;
+              text-decoration: none;
+              vertical-align: middle;
+            "
+            >www.mokshalabs.ie</a
+          >
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Footer -->
+    <mj-section
+      padding="40px 50px"
+      background-color="#fdfbf7"
+      border-top="1px solid #f0f0f0"
+    >
+      <mj-column>
+        <mj-text
+          font-size="10px"
+          text-transform="uppercase"
+          letter-spacing="0.15em"
+          line-height="2"
+          color="#1a1a1a"
+          align="left"
+        >
+          © 2026 Moksha Labs<br />
+          Immersive Experiences • Luxury Branding • Motion<br />
+          Dublin, Ireland
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
