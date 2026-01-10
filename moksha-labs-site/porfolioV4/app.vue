@@ -24,6 +24,17 @@ useThemeTransition(); // Initialize theme transitions
 const isAppReady = ref(false);
 
 onMounted(() => {
+  // Ensure we always start at the top on refresh
+  if (history.scrollRestoration) {
+    history.scrollRestoration = "manual";
+  }
+  window.scrollTo(0, 0);
+
+  const { $lenis } = useNuxtApp() as any;
+  if ($lenis) {
+    $lenis.scrollTo(0, { immediate: true });
+  }
+
   initLazyLoad();
   
   // Delay navbar entrance until after logo animation (1.2s)
@@ -55,7 +66,12 @@ useHead({
         "@id": "https://mokshalabs.ie/#organization",
         name: "Moksha Labs",
         url: "https://mokshalabs.ie",
-        logo: "https://mokshalabs.ie/favicon.png",
+        logo: {
+          "@type": "ImageObject",
+          "url": "https://mokshalabs.ie/favicon.png",
+          "width": "180",
+          "height": "180"
+        },
         description: "High-end digital agency specializing in immersive web experiences, cinematic motion design, and luxury brand identity.",
         address: {
           "@type": "PostalAddress",
@@ -97,7 +113,7 @@ useHead({
         "@type": "ProfessionalService",
         "@id": "https://mokshalabs.ie/#service",
         name: "Moksha Labs",
-        image: "https://mokshalabs.ie/favicon.png",
+        image: "https://mokshalabs.ie/og-image.jpg",
         url: "https://mokshalabs.ie",
         priceRange: "€€€",
         address: {

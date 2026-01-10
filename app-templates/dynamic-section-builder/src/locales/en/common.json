@@ -2,8 +2,9 @@
   "company": {
     "name": "Your Company",
     "tagline": "Unlock The Power Of Solar",
-    "phone": "+1-555-0100",
-    "email": "info@yourcompany.ie",
+    "phone": "+353 83363 9750",
+    "whatsapp": "+353 83363 9750",
+    "email": "zeynep@mokshalabs.ie",
     "address": "5 Russell Close, Gracefield Manor, Ballylinan, Co. Laois",
     "eircode": "R14FH59"
   },
@@ -39,4 +40,3 @@
     "sitemap": "Sitemap"
   }
 }
-

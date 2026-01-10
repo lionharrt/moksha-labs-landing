@@ -27,14 +27,27 @@ export default defineEventHandler(async (event) => {
     });
   }
 
+  // Debug: check for missing config
+  if (!config.larkEmail || !config.larkPassword) {
+    console.error("Missing Lark configuration. Check LARK_EMAIL and LARK_PASSWORD environment variables.");
+    throw createError({
+      statusCode: 500,
+      statusMessage: "Email configuration error",
+    });
+  }
+
   try {
     const transporter = nodemailer.createTransport({
       host: "smtp.larksuite.com",
-      port: 465,
-      secure: true,
+      port: 587,
+      secure: false, // use STARTTLS
       auth: {
         user: config.larkEmail,
         pass: config.larkPassword,
+      },
+      tls: {
+        // Do not fail on invalid certs
+        rejectUnauthorized: false,
       },
     });
 
@@ -179,11 +192,21 @@ Sent from mokshalabs.ie
 
     return { success: true };
   } catch (error: any) {
-    console.error("Email sending error:", error);
+    // Log detailed error for debugging
+    console.error("Full email error detail:", {
+      message: error.message,
+      code: error.code,
+      command: error.command,
+      stack: error.stack
+    });
+    
     throw createError({
       statusCode: 500,
       statusMessage: "Failed to send email",
-      data: error.message,
+      data: {
+        message: error.message,
+        code: error.code
+      },
     });
   }
 });

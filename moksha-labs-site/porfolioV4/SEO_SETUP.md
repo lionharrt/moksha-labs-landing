@@ -170,7 +170,8 @@ If you add a blog:
 
 Before going live, verify:
 
-- [ ] `og-image.jpg` created and placed in `/public/`
+- [x] `og-image.jpg` created and placed in `/public/`
+- [x] `favicon.ico` created from `favicon.png`
 - [ ] Test sitemap at `/sitemap.xml`
 - [ ] Verify robots.txt is accessible
 - [ ] Test OG tags on Facebook Debugger

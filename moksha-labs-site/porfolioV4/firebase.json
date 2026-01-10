@@ -23,9 +23,12 @@
       }
     ]
   },
-  "functions": {
-    "source": ".output/server",
-    "runtime": "nodejs20"
-  }
+  "functions": [
+    {
+      "source": ".output/server",
+      "codebase": "portfolio",
+      "runtime": "nodejs20"
+    }
+  ]
 }
 

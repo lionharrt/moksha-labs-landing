@@ -53,36 +53,53 @@
 
 <script setup lang="ts">
 const { t, tm, rt } = useI18n();
+const { getAssetUrl } = useFirebase();
 
-const teamWithImages = [
+const teamWithImages = ref([
   {
     name: "Dylan Mahony",
     initials: "DM",
     image: "/image/dylan.jpg",
+    storagePath: "team/dylan.jpg",
   },
   {
     name: "Zeynep Mahony",
     initials: "ZM",
     image: "/image/zeynep.jpg",
+    storagePath: "team/zeynep.jpg",
   },
   {
     name: "Berkay Erte",
     initials: "BE",
     image: "/image/berkay.jpg",
+    storagePath: "team/berkay.jpg",
   },
   {
     name: "Ecenaz Demircan",
     initials: "ED",
     image: "/image/ecenaz.jpg",
+    storagePath: "team/ecenaz.jpg",
   },
-];
+]);
+
+// Resolve Storage URLs on mount
+onMounted(async () => {
+  const promises = teamWithImages.value.map(async (member) => {
+    const url = await getAssetUrl(member.storagePath);
+    if (url) {
+      member.image = url;
+    }
+  });
+  await Promise.all(promises);
+});
 
 const teamList = computed(() => {
   const members = tm("sections.team.members");
   if (!Array.isArray(members)) return [];
-  return teamWithImages.map((member, index) => {
+  return teamWithImages.value.map((member, index) => {
     const tMember: any = members[index];
-    const resolve = (val: any) => (!val ? "" : (typeof val === 'string' ? val : rt(val)));
+    const resolve = (val: any) =>
+      !val ? "" : typeof val === "string" ? val : rt(val);
     return {
       ...member,
       name: tMember ? resolve(tMember.name) : member.name,

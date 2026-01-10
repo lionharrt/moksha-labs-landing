@@ -10,7 +10,7 @@
     "postinstall": "nuxt prepare",
     "optimize:portfolio": "node scripts/optimize-videos.mjs",
     "upload:portfolio": "node scripts/upload-to-storage.mjs",
-    "deploy": "pnpm build && cd .output/server && npm install && cd ../.. && firebase deploy --only functions,hosting --project mokshalabs"
+    "deploy": "pnpm build && cd .output/server && npm install && cd ../.. && firebase deploy --only functions:portfolio,hosting --project mokshalabs"
   },
   "dependencies": {
     "@google-cloud/functions-framework": "^4.0.1",

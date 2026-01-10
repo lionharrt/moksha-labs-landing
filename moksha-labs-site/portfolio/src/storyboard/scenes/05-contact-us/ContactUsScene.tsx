@@ -42,7 +42,8 @@ const ContactUsScene = () => {
     const initParticles = () => {
       particles.length = 0; // Clear existing particles
       resizeCanvas(); // Ensure canvas is sized before initializing particles
-      for (let i = 0; i < 15; i++) { // Very few bubbles for deep sea
+      for (let i = 0; i < 15; i++) {
+        // Very few bubbles for deep sea
         particles.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
@@ -132,9 +133,7 @@ const ContactUsScene = () => {
       {/* Contact Us content */}
       <div className="relative z-10 flex items-center justify-center h-full">
         <div className="text-center text-white max-w-4xl">
-          <h1 className="text-6xl font-bold mb-8 text-white/90">
-            Contact Us
-          </h1>
+          <h1 className="text-6xl font-bold mb-8 text-white/90">Contact Us</h1>
           <p className="text-xl text-white/70 mb-12">
             Reach out from the depths. Let&apos;s start a conversation.
           </p>
@@ -142,15 +141,21 @@ const ContactUsScene = () => {
           {/* Contact information */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
             <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-white/10">
-              <h3 className="text-xl font-semibold mb-4 text-white/90">Email</h3>
-              <p className="text-white/70">hello@mokshalabs.com</p>
+              <h3 className="text-xl font-semibold mb-4 text-white/90">
+                Email
+              </h3>
+              <p className="text-white/70">hello@mokshalabs.ie</p>
             </div>
             <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-white/10">
-              <h3 className="text-xl font-semibold mb-4 text-white/90">Location</h3>
+              <h3 className="text-xl font-semibold mb-4 text-white/90">
+                Location
+              </h3>
               <p className="text-white/70">Deep in the digital ocean</p>
             </div>
             <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-white/10">
-              <h3 className="text-xl font-semibold mb-4 text-white/90">Response Time</h3>
+              <h3 className="text-xl font-semibold mb-4 text-white/90">
+                Response Time
+              </h3>
               <p className="text-white/70">Within 24 hours</p>
             </div>
           </div>

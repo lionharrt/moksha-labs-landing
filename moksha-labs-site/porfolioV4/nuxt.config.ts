@@ -165,6 +165,13 @@ export default defineNuxtConfig({
       ],
       link: [
         { rel: "canonical", href: "https://mokshalabs.ie" },
+        { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
+        {
+          rel: "icon",
+          type: "image/png",
+          href: "/favicon.png",
+          sizes: "32x32",
+        },
         {
           rel: "icon",
           type: "image/png",
@@ -177,7 +184,7 @@ export default defineNuxtConfig({
           href: "/favicon-dark.png",
           media: "(prefers-color-scheme: dark)",
         },
-        { rel: "apple-touch-icon", href: "/favicon.png" },
+        { rel: "apple-touch-icon", href: "/favicon.png", sizes: "180x180" },
         { rel: "preconnect", href: "https://fonts.googleapis.com" },
         {
           rel: "preconnect",
