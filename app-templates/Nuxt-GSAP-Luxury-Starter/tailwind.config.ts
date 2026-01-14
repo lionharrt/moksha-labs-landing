@@ -4,23 +4,24 @@ export default <Partial<Config>>{
   theme: {
     extend: {
       colors: {
-        cream: {
-          DEFAULT: '#FDFBF7',
-          dark: '#F5F2ED',
+        background: {
+          DEFAULT: '#FFFFFF', // Placeholder background
+          dark: '#F5F5F5',
+        },
+        primary: {
+          DEFAULT: '#000000', // Placeholder primary
+          light: '#333333',
+          dark: '#000000',
         },
         accent: {
-          DEFAULT: '#E2A04F', // Starter Saffron
-          light: '#EBC18D',
-          dark: '#B87D35',
-        },
-        charcoal: {
-          DEFAULT: '#1A1A1A',
-          light: '#333333',
+          DEFAULT: '#888888', // Placeholder accent
+          light: '#AAAAAA',
+          dark: '#666666',
         }
       },
       fontFamily: {
-        serif: ['Playfair Display', 'serif'],
-        sans: ['Inter', 'sans-serif'],
+        serif: ['serif'],
+        sans: ['sans-serif'],
       },
       borderRadius: {
         'xl': '1rem',

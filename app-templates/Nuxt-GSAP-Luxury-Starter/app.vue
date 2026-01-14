@@ -1,19 +1,14 @@
 <template>
   <div class="app-root">
-    <!-- BACKGROUND: Global floating elements or ambient lighting -->
-    <FloatingBackground />
+    <!-- [PLACEHOLDER]: App-wide background elements or ambient layers -->
     
-    <!-- NAVIGATION: Fixed global navbar -->
+    <!-- NAVIGATION: Global navigation -->
     <NavBar />
-    
-    <!-- INTERACTION: High-end custom cursor -->
-    <CustomCursor />
     
     <main class="relative z-10">
       <!-- 
-        PAGE STRUCTURE:
-        Each top-level component should be a section wrapped in BaseSection.
-        This enables the smooth background fade transitions.
+        PAGE CONTENT:
+        Add your page sections or components here.
       -->
       <SectionsHero />
     </main>
@@ -22,15 +17,15 @@
 
 <script setup lang="ts">
 /**
- * NUXT-GSAP-LUXURY-STARTER
- * A boilerplate for high-end digital experiences.
+ * NUXT-GSAP-STARTER
+ * A boilerplate for digital experiences.
  * Uses GSAP for animations, Lenis for smooth scrolling, and Tailwind for styling.
  */
 </script>
 
 <style>
 .app-root {
-  @apply relative min-h-screen bg-cream;
+  @apply relative min-h-screen bg-background text-primary;
 }
 </style>
 
